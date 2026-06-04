@@ -4,9 +4,6 @@ import { create } from "storybook/theming";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "../app/globals.css";
 
-// ---------------------------------------------------------------------------
-// Docs panel theme
-// ---------------------------------------------------------------------------
 const docsTheme = create({
   base: "dark",
   brandTitle: "ScnTw Design System",
@@ -20,103 +17,179 @@ const docsTheme = create({
 
 // ---------------------------------------------------------------------------
 // Design-system token presets
-// Each entry overrides the shadcn CSS custom properties to match the target
-// design language. Only the tokens that differ from shadcn neutral are listed.
+// Secondary, accent and tertiary now carry real chromatic values so that
+// secondary buttons, hover states and badges all look visually distinct.
 // ---------------------------------------------------------------------------
 type TokenMap = Record<string, string>;
 
 const DS_TOKENS: Record<string, TokenMap> = {
-  shadcn: {
-    // Neutral defaults — no overrides needed
-  },
 
+  // ---- shadcn Neutral (default) -------------------------------------------
+  // Kept as the canonical neutral baseline — zero chroma everywhere.
+  shadcn: {},
+
+  // ---- Material Design 3 (Material You) ------------------------------------
+  // Primary = blue, Secondary = teal, Tertiary/Accent = purple.
+  // Container tokens map to shadcn secondary/accent (light fill + dark text).
   material: {
-    // Material Design 3 (Material You) — tonal blue palette
-    "--primary":              "oklch(0.49 0.17 264)",  // M3 Primary (blue)
+    "--primary":              "oklch(0.49 0.17 264)",
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.87 0.06 200)",  // M3 Secondary container
-    "--secondary-foreground":  "oklch(0.2 0.06 200)",
-    "--accent":               "oklch(0.88 0.04 280)",  // M3 Tertiary container
-    "--accent-foreground":    "oklch(0.2 0.06 280)",
-    "--background":           "oklch(0.99 0.004 264)", // M3 Surface
-    "--foreground":           "oklch(0.2 0.02 264)",   // M3 On-surface
-    "--card":                 "oklch(0.96 0.01 264)",  // M3 Surface-container
-    "--card-foreground":      "oklch(0.2 0.02 264)",
-    "--muted":                "oklch(0.93 0.02 264)",  // M3 Surface-variant
+
+    // Secondary = teal (on secondary buttons, chips)
+    "--secondary":            "oklch(0.52 0.13 195)",
+    "--secondary-foreground": "oklch(1 0 0)",
+
+    // Accent = tertiary purple (hover, focus rings, badges)
+    "--accent":               "oklch(0.55 0.18 303)",
+    "--accent-foreground":    "oklch(1 0 0)",
+
+    // Surfaces — subtly tinted blue-grey
+    "--background":           "oklch(0.99 0.004 264)",
+    "--foreground":           "oklch(0.18 0.02 264)",
+    "--card":                 "oklch(0.97 0.008 264)",
+    "--card-foreground":      "oklch(0.18 0.02 264)",
+    "--muted":                "oklch(0.93 0.015 264)",
     "--muted-foreground":     "oklch(0.45 0.05 264)",
-    "--border":               "oklch(0.76 0.04 264)",  // M3 Outline-variant
-    "--input":                "oklch(0.76 0.04 264)",
+    "--border":               "oklch(0.78 0.04 264)",
+    "--input":                "oklch(0.78 0.04 264)",
     "--ring":                 "oklch(0.49 0.17 264)",
-    "--destructive":          "oklch(0.53 0.22 27)",   // M3 Error
-    "--radius":               "0.75rem",               // M3 uses more rounding (12px base)
+    "--destructive":          "oklch(0.53 0.22 27)",
+    "--radius":               "0.75rem",
+    // Chart palette — blue, teal, purple, amber, red
+    "--chart-1":              "oklch(0.49 0.17 264)",
+    "--chart-2":              "oklch(0.52 0.13 195)",
+    "--chart-3":              "oklch(0.55 0.18 303)",
+    "--chart-4":              "oklch(0.7 0.18 55)",
+    "--chart-5":              "oklch(0.6 0.22 27)",
   },
 
+  // ---- Fluent Design 2 (Microsoft) ----------------------------------------
+  // Primary = cornflower blue, Secondary = teal, Accent = warm amber.
   fluent: {
-    // Microsoft Fluent Design 2 — neutral + accent blue
-    "--primary":              "oklch(0.5 0.19 250)",   // Fluent Accent Blue
+    "--primary":              "oklch(0.5 0.19 250)",
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.95 0 0)",       // Subtle fill
-    "--secondary-foreground":  "oklch(0.1 0 0)",
-    "--accent":               "oklch(0.93 0.01 250)",  // Subtle accent
-    "--accent-foreground":    "oklch(0.2 0.05 250)",
+
+    // Secondary = Fluent teal (Teams sidebar accent)
+    "--secondary":            "oklch(0.52 0.14 195)",
+    "--secondary-foreground": "oklch(1 0 0)",
+
+    // Accent = Fluent amber/gold (warning, highlights)
+    "--accent":               "oklch(0.75 0.18 70)",
+    "--accent-foreground":    "oklch(0.15 0.04 70)",
+
     "--background":           "oklch(1 0 0)",
     "--foreground":           "oklch(0.13 0 0)",
     "--card":                 "oklch(0.98 0 0)",
     "--card-foreground":      "oklch(0.13 0 0)",
-    "--muted":                "oklch(0.97 0 0)",
-    "--muted-foreground":     "oklch(0.45 0 0)",
-    "--border":               "oklch(0.86 0 0)",
-    "--input":                "oklch(0.86 0 0)",
+    "--muted":                "oklch(0.96 0.005 250)",
+    "--muted-foreground":     "oklch(0.45 0.02 250)",
+    "--border":               "oklch(0.87 0.01 250)",
+    "--input":                "oklch(0.87 0.01 250)",
     "--ring":                 "oklch(0.5 0.19 250)",
     "--destructive":          "oklch(0.53 0.22 27)",
-    "--radius":               "0.25rem",               // Fluent uses tighter radii (4px)
+    "--radius":               "0.25rem",
+    "--chart-1":              "oklch(0.5 0.19 250)",
+    "--chart-2":              "oklch(0.52 0.14 195)",
+    "--chart-3":              "oklch(0.75 0.18 70)",
+    "--chart-4":              "oklch(0.6 0.22 303)",
+    "--chart-5":              "oklch(0.55 0.22 27)",
   },
 
+  // ---- IBM Carbon Design System -------------------------------------------
+  // Primary = IBM blue, Secondary = teal/cyan, Accent = purple.
   carbon: {
-    // IBM Carbon Design System — flat, sharp, blue-grey
-    "--primary":              "oklch(0.55 0.19 250)",  // IBM Blue 60
+    "--primary":              "oklch(0.55 0.19 250)",
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.93 0 0)",
-    "--secondary-foreground":  "oklch(0.1 0 0)",
-    "--accent":               "oklch(0.9 0 0)",
-    "--accent-foreground":    "oklch(0.1 0 0)",
-    "--background":           "oklch(0.97 0 0)",       // Carbon White
+
+    // Secondary = IBM Cyan 60
+    "--secondary":            "oklch(0.52 0.16 214)",
+    "--secondary-foreground": "oklch(1 0 0)",
+
+    // Accent = IBM Purple 60
+    "--accent":               "oklch(0.5 0.2 303)",
+    "--accent-foreground":    "oklch(1 0 0)",
+
+    "--background":           "oklch(0.97 0 0)",
     "--foreground":           "oklch(0.1 0 0)",
     "--card":                 "oklch(1 0 0)",
     "--card-foreground":      "oklch(0.1 0 0)",
     "--muted":                "oklch(0.93 0 0)",
     "--muted-foreground":     "oklch(0.4 0 0)",
-    "--border":               "oklch(0.77 0 0)",       // Carbon UI-03
+    "--border":               "oklch(0.77 0 0)",
     "--input":                "oklch(0.77 0 0)",
     "--ring":                 "oklch(0.55 0.19 250)",
     "--destructive":          "oklch(0.48 0.22 27)",
-    "--radius":               "0rem",                  // Carbon is strictly square
+    "--radius":               "0rem",
+    "--chart-1":              "oklch(0.55 0.19 250)",
+    "--chart-2":              "oklch(0.52 0.16 214)",
+    "--chart-3":              "oklch(0.5 0.2 303)",
+    "--chart-4":              "oklch(0.65 0.2 142)",
+    "--chart-5":              "oklch(0.7 0.18 55)",
   },
 
+  // ---- Apple Human Interface Guidelines -----------------------------------
+  // Primary = Apple blue, Secondary = green, Accent = orange/amber.
   apple: {
-    // Apple Human Interface Guidelines — SF-style, tinted greys
-    "--primary":              "oklch(0.55 0.2 250)",   // Apple Blue
+    "--primary":              "oklch(0.55 0.2 250)",
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.96 0.005 250)", // Apple secondarySystemBackground
-    "--secondary-foreground":  "oklch(0.2 0 0)",
-    "--accent":               "oklch(0.93 0.01 250)",
-    "--accent-foreground":    "oklch(0.2 0 0)",
+
+    // Secondary = Apple Green
+    "--secondary":            "oklch(0.56 0.18 142)",
+    "--secondary-foreground": "oklch(1 0 0)",
+
+    // Accent = Apple Orange
+    "--accent":               "oklch(0.7 0.2 55)",
+    "--accent-foreground":    "oklch(0.15 0.04 55)",
+
     "--background":           "oklch(1 0 0)",
-    "--foreground":           "oklch(0.07 0 0)",       // Apple label
+    "--foreground":           "oklch(0.07 0 0)",
     "--card":                 "oklch(0.98 0 0)",
     "--card-foreground":      "oklch(0.07 0 0)",
     "--muted":                "oklch(0.96 0.005 250)",
-    "--muted-foreground":     "oklch(0.55 0 0)",       // Apple secondaryLabel
-    "--border":               "oklch(0.88 0 0)",       // Apple separator
+    "--muted-foreground":     "oklch(0.55 0 0)",
+    "--border":               "oklch(0.88 0 0)",
     "--input":                "oklch(0.88 0 0)",
     "--ring":                 "oklch(0.55 0.2 250)",
-    "--destructive":          "oklch(0.55 0.22 27)",   // Apple Red
-    "--radius":               "0.625rem",              // Apple uses ~10px
+    "--destructive":          "oklch(0.55 0.22 27)",
+    "--radius":               "0.625rem",
+    "--chart-1":              "oklch(0.55 0.2 250)",
+    "--chart-2":              "oklch(0.56 0.18 142)",
+    "--chart-3":              "oklch(0.7 0.2 55)",
+    "--chart-4":              "oklch(0.6 0.22 27)",
+    "--chart-5":              "oklch(0.5 0.2 303)",
+  },
+
+  // ---- Expressive (vibrant 3-colour palette) -------------------------------
+  // No specific design language — maximally chromatic to show full component
+  // colour range. Good for demoing badges, charts and status components.
+  expressive: {
+    "--primary":              "oklch(0.5 0.22 264)",   // Vivid blue
+    "--primary-foreground":   "oklch(1 0 0)",
+    "--secondary":            "oklch(0.55 0.2 142)",   // Vivid green
+    "--secondary-foreground": "oklch(1 0 0)",
+    "--accent":               "oklch(0.6 0.22 303)",   // Vivid purple
+    "--accent-foreground":    "oklch(1 0 0)",
+    "--background":           "oklch(0.98 0 0)",
+    "--foreground":           "oklch(0.1 0 0)",
+    "--card":                 "oklch(1 0 0)",
+    "--card-foreground":      "oklch(0.1 0 0)",
+    "--muted":                "oklch(0.95 0.01 264)",
+    "--muted-foreground":     "oklch(0.45 0.05 264)",
+    "--border":               "oklch(0.87 0.02 264)",
+    "--input":                "oklch(0.87 0.02 264)",
+    "--ring":                 "oklch(0.5 0.22 264)",
+    "--destructive":          "oklch(0.55 0.25 27)",   // Vivid red
+    "--radius":               "0.75rem",
+    "--chart-1":              "oklch(0.5 0.22 264)",
+    "--chart-2":              "oklch(0.55 0.2 142)",
+    "--chart-3":              "oklch(0.6 0.22 303)",
+    "--chart-4":              "oklch(0.65 0.22 55)",
+    "--chart-5":              "oklch(0.55 0.25 27)",
   },
 };
 
 // ---------------------------------------------------------------------------
-// Global toolbar controls
+// Toolbar globals
 // ---------------------------------------------------------------------------
 export const globalTypes = {
   designSystem: {
@@ -125,11 +198,12 @@ export const globalTypes = {
       title: "Design Layer",
       icon: "grid",
       items: [
-        { value: "shadcn",   title: "shadcn Neutral (default)" },
-        { value: "material", title: "Material Design 3" },
-        { value: "fluent",   title: "Fluent Design 2 (Microsoft)" },
-        { value: "carbon",   title: "Carbon Design (IBM)" },
-        { value: "apple",    title: "Apple HIG" },
+        { value: "shadcn",      title: "shadcn Neutral (default)" },
+        { value: "material",    title: "Material Design 3" },
+        { value: "fluent",      title: "Fluent Design 2 (Microsoft)" },
+        { value: "carbon",      title: "Carbon Design (IBM)" },
+        { value: "apple",       title: "Apple HIG" },
+        { value: "expressive",  title: "Expressive (vivid 3-colour)" },
       ],
       dynamicTitle: true,
     },
@@ -137,19 +211,19 @@ export const globalTypes = {
   },
 
   radius: {
-    description: "Border radius override (overrides design layer)",
+    description: "Radius override",
     toolbar: {
       title: "Radius",
       icon: "circlehollow",
       items: [
         { value: "",          title: "Layer default" },
-        { value: "0rem",      title: "None (square)" },
+        { value: "0rem",      title: "None" },
         { value: "0.3rem",    title: "XS" },
         { value: "0.5rem",    title: "SM" },
         { value: "0.625rem",  title: "Default" },
         { value: "0.75rem",   title: "MD" },
         { value: "1rem",      title: "LG" },
-        { value: "1.5rem",    title: "XL (pill)" },
+        { value: "1.5rem",    title: "Pill" },
       ],
       dynamicTitle: true,
     },
@@ -157,19 +231,19 @@ export const globalTypes = {
   },
 
   primaryColor: {
-    description: "Primary colour override (overrides design layer)",
+    description: "Primary override",
     toolbar: {
       title: "Primary",
       icon: "paintbrush",
       items: [
-        { value: "",                      title: "Layer default" },
-        { value: "oklch(0.205 0 0)",       title: "Neutral" },
-        { value: "oklch(0.5 0.2 264)",     title: "Blue" },
-        { value: "oklch(0.55 0.22 142)",   title: "Green" },
-        { value: "oklch(0.55 0.25 27)",    title: "Red" },
-        { value: "oklch(0.6 0.22 303)",    title: "Purple" },
-        { value: "oklch(0.65 0.22 55)",    title: "Amber" },
-        { value: "oklch(0.55 0.2 200)",    title: "Teal" },
+        { value: "",                     title: "Layer default" },
+        { value: "oklch(0.205 0 0)",      title: "Neutral" },
+        { value: "oklch(0.5 0.2 264)",    title: "Blue" },
+        { value: "oklch(0.55 0.22 142)",  title: "Green" },
+        { value: "oklch(0.55 0.25 27)",   title: "Red" },
+        { value: "oklch(0.6 0.22 303)",   title: "Purple" },
+        { value: "oklch(0.65 0.22 55)",   title: "Amber" },
+        { value: "oklch(0.55 0.2 200)",   title: "Teal" },
       ],
       dynamicTitle: true,
     },
@@ -211,56 +285,26 @@ const preview: Preview = {
         { name: "transparent", value: "transparent" },
       ],
     },
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date:  /Date$/i,
-      },
-      expanded: true,
-    },
+    controls: { matchers: { color: /(background|color)$/i, date: /Date$/i }, expanded: true },
     layout: "centered",
   },
 
   decorators: [
-    // 1. Apply design-system token layer, then individual overrides on top
     (Story, context) => {
       const { designSystem, radius, primaryColor, density } = context.globals as {
-        designSystem: string;
-        radius: string;
-        primaryColor: string;
-        density: string;
+        designSystem: string; radius: string; primaryColor: string; density: string;
       };
-
-      // Start with the selected design system preset
       const preset = DS_TOKENS[designSystem] ?? {};
-
-      // Individual overrides take priority when explicitly set
       const style: React.CSSProperties & Record<string, string> = {
         ...preset,
         ...(radius       ? { "--radius":  radius       } : {}),
         ...(primaryColor ? { "--primary": primaryColor } : {}),
         fontSize: densityScale[density] ?? "14px",
       };
-
-      return (
-        <div style={style} className="contents">
-          <Story />
-        </div>
-      );
+      return <div style={style} className="contents"><Story /></div>;
     },
-
-    // 2. TooltipProvider
-    (Story) => (
-      <TooltipProvider>
-        <Story />
-      </TooltipProvider>
-    ),
-
-    // 3. Light / dark toggle
-    withThemeByClassName({
-      themes: { light: "", dark: "dark" },
-      defaultTheme: "light",
-    }),
+    (Story) => <TooltipProvider><Story /></TooltipProvider>,
+    withThemeByClassName({ themes: { light: "", dark: "dark" }, defaultTheme: "light" }),
   ],
 };
 
