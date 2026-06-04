@@ -22,8 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+          cache: ''
+      - run: npm install
       - name: Build Storybook
         run: npm run build-storybook -- --output-dir storybook-static
       - uses: actions/upload-pages-artifact@v3
