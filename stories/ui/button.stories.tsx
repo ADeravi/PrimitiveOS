@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn } from "@storybook/test";
-import { userEvent, within, expect } from "@storybook/test";
+import { fn } from "storybook/test";
+import { userEvent, within, expect } from "storybook/test";
 import { Button } from "@/components/ui/button";
 import { Mail, Loader2 } from "lucide-react";
 

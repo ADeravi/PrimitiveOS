@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn } from "@storybook/test";
-import { userEvent, within, expect } from "@storybook/test";
+import { fn } from "storybook/test";
+import { userEvent, within, expect } from "storybook/test";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const meta: Meta<typeof Accordion> = {

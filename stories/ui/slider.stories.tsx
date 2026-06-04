@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn } from "@storybook/test";
+import { fn } from "storybook/test";
 import { Slider } from "@/components/ui/slider";
 
 const meta: Meta<typeof Slider> = {

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn } from "@storybook/test";
-import { userEvent, within, expect } from "@storybook/test";
+import { fn } from "storybook/test";
+import { userEvent, within, expect } from "storybook/test";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const meta: Meta = {
