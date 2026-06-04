@@ -1,6 +1,6 @@
 import type { Preview } from "@storybook/nextjs-vite";
 import { withThemeByClassName } from "@storybook/addon-themes";
-import { create } from "@storybook/theming/create";
+import { create } from "storybook/theming";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "../app/globals.css";
 
@@ -84,37 +84,28 @@ const densityScale: Record<string, string> = {
 
 const preview: Preview = {
   parameters: {
-    // Docs panel uses the dark theme
-    docs: {
-      theme: docsTheme,
-    },
-
-    // Background swatches in the toolbar (☀️ / 🌙 icon)
+    docs: { theme: docsTheme },
     backgrounds: {
       default: "white",
       values: [
-        { name: "white",     value: "#ffffff" },
-        { name: "zinc-50",   value: "#fafafa" },
-        { name: "zinc-100",  value: "#f4f4f5" },
-        { name: "zinc-950",  value: "#09090b" },
+        { name: "white",       value: "#ffffff" },
+        { name: "zinc-50",     value: "#fafafa" },
+        { name: "zinc-100",    value: "#f4f4f5" },
+        { name: "zinc-950",    value: "#09090b" },
         { name: "transparent", value: "transparent" },
       ],
     },
-
     controls: {
       matchers: {
         color: /(background|color)$/i,
         date:  /Date$/i,
       },
-      // Show full control panel expanded by default
       expanded: true,
     },
-
     layout: "centered",
   },
 
   decorators: [
-    // 1. Inject global design-token overrides as inline CSS custom properties
     (Story, context) => {
       const { radius, primaryColor, density } = context.globals as {
         radius: string;
@@ -132,15 +123,11 @@ const preview: Preview = {
         </div>
       );
     },
-
-    // 2. TooltipProvider required by Tooltip component
     (Story) => (
       <TooltipProvider>
         <Story />
       </TooltipProvider>
     ),
-
-    // 3. Light / dark .dark class toggle
     withThemeByClassName({
       themes: { light: "", dark: "dark" },
       defaultTheme: "light",
