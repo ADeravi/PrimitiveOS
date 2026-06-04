@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { userEvent, within, expect } from "storybook/test";
+import { userEvent, within, expect, waitFor } from "storybook/test";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
@@ -45,9 +45,13 @@ export const OpenInteraction: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: /delete account/i }));
-    const body = within(document.body);
-    await expect(body.getByRole("alertdialog")).toBeVisible();
-    await expect(body.getByText("Delete account?")).toBeVisible();
-    await userEvent.click(body.getByRole("button", { name: /cancel/i }));
+    // waitFor retries until the Radix portal animation completes
+    await waitFor(() =>
+      expect(within(document.body).getByRole("alertdialog")).toBeVisible()
+    );
+    await waitFor(() =>
+      expect(within(document.body).getByText("Delete account?")).toBeVisible()
+    );
+    await userEvent.click(within(document.body).getByRole("button", { name: /cancel/i }));
   },
 };

@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn } from "storybook/test";
-import { userEvent, within, expect } from "storybook/test";
+import { fn, userEvent, within, expect, waitFor } from "storybook/test";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const meta: Meta = {
@@ -41,7 +40,9 @@ export const OpenInteraction: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("combobox"));
-    const body = within(document.body);
-    await expect(body.getByRole("option", { name: "Apple" })).toBeVisible();
+    // waitFor retries until the Radix portal dropdown animation completes
+    await waitFor(() =>
+      expect(within(document.body).getByRole("option", { name: "Apple" })).toBeVisible()
+    );
   },
 };
