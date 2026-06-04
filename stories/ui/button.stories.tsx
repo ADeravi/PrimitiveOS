@@ -1,8 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { fn } from "@storybook/test";
+import { userEvent, within, expect } from "@storybook/test";
 import { Button } from "@/components/ui/button";
 import { Mail, Loader2 } from "lucide-react";
 
-const meta: Meta<typeof Button> = { title: "UI/Button", component: Button, tags: ["autodocs"] };
+const meta: Meta<typeof Button> = {
+  title: "UI/Button",
+  component: Button,
+  tags: ["autodocs"],
+  args: { onClick: fn() },
+};
 export default meta;
 type Story = StoryObj<typeof Button>;
 
@@ -32,17 +39,21 @@ export const Sizes: Story = {
 };
 
 export const WithIcon: Story = {
-  render: () => (
-    <Button><Mail /> Login with Email</Button>
-  ),
+  render: () => <Button><Mail /> Login with Email</Button>,
 };
 
 export const Loading: Story = {
-  render: () => (
-    <Button disabled><Loader2 className="animate-spin" /> Please wait</Button>
-  ),
+  render: () => <Button disabled><Loader2 className="animate-spin" /> Please wait</Button>,
 };
 
-export const Disabled: Story = {
-  render: () => <Button disabled>Disabled</Button>,
+export const Disabled: Story = { render: () => <Button disabled>Disabled</Button> };
+
+export const ClickInteraction: Story = {
+  name: "Interaction: Click fires action",
+  args: { children: "Click me" },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button"));
+    await expect(args.onClick).toHaveBeenCalledOnce();
+  },
 };
