@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { userEvent, within, expect } from "storybook/test";
+import { userEvent, within, expect, waitFor } from "storybook/test";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,8 +47,12 @@ export const OpenInteraction: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: /open dialog/i }));
-    const body = within(document.body);
-    await expect(body.getByRole("dialog")).toBeVisible();
-    await expect(body.getByText("Dialog Title")).toBeVisible();
+    // waitFor retries until the Radix portal animation completes
+    await waitFor(() =>
+      expect(within(document.body).getByRole("dialog")).toBeVisible()
+    );
+    await waitFor(() =>
+      expect(within(document.body).getByText("Dialog Title")).toBeVisible()
+    );
   },
 };
