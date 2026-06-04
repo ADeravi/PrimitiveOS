@@ -1,7 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { fn } from "@storybook/test";
 import { Slider } from "@/components/ui/slider";
 
-const meta: Meta<typeof Slider> = { title: "UI/Slider", component: Slider, tags: ["autodocs"] };
+const meta: Meta<typeof Slider> = {
+  title: "UI/Slider",
+  component: Slider,
+  tags: ["autodocs"],
+  args: { onValueChange: fn() },
+};
 export default meta;
 type Story = StoryObj<typeof Slider>;
 
