@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { userEvent, within, expect } from "storybook/test";
+import { userEvent, within, expect, waitFor } from "storybook/test";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
@@ -42,8 +42,11 @@ export const OpenInteraction: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: /options/i }));
-    const body = within(document.body);
-    await expect(body.getByRole("menuitem", { name: /profile/i })).toBeVisible();
-    await expect(body.getByRole("menuitem", { name: /log out/i })).toBeVisible();
+    await waitFor(() =>
+      expect(within(document.body).getByRole("menuitem", { name: /profile/i })).toBeVisible()
+    );
+    await waitFor(() =>
+      expect(within(document.body).getByRole("menuitem", { name: /log out/i })).toBeVisible()
+    );
   },
 };
