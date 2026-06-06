@@ -331,6 +331,17 @@ const preview: Preview = {
     },
     controls: { matchers: { color: /(background|color)$/i, date: /Date$/i }, expanded: true },
     layout: "centered",
+    options: {
+      storySort: {
+        order: [
+          "Introduction",
+          "Design System",
+          ["Color Palette", "Typography", "Spacing", "Elevation", "Radius", "Motion"],
+          "Patterns",
+          "UI",
+        ],
+      },
+    },
   },
 
   decorators: [

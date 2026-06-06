@@ -1,0 +1,55 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# ScnTw Design System
+
+A **shadcn/ui + Tailwind CSS v4** design system with a three-tier token
+architecture, multi-brand design layers, and full light/dark theming —
+documented and tested in Storybook.
+
+## Token architecture
+
+The system is built on three tiers of CSS custom properties, defined in
+`app/globals.css`:
+
+| Tier | What | Examples |
+|------|------|----------|
+| **1 — Primitives** | Raw 11-step colour ladders (50 → 950), plus elevation and motion values. No semantic meaning. | `--neutral-500`, `--blue-600`, `--shadow-md`, `--duration-fast` |
+| **2 — Semantic** | Role-based aliases used by every component. | `--primary`, `--card`, `--border`, `--ring` |
+| **3 — Functional** | Status colours with paired foregrounds. | `--success`, `--warning`, `--info`, `--destructive` |
+
+Components only ever reference Tier 2 and Tier 3 tokens, which means an
+entire re-brand is a token swap — no component changes.
+
+## Design Layers
+
+Use the **Design Layer** dropdown in the toolbar to re-skin every component
+live with one of six token presets:
+
+- **shadcn Neutral** — the zero-chroma baseline
+- **Material Design 3** — blue / teal / purple, 12px radius
+- **Fluent Design 2** — Microsoft blues, 4px radius
+- **Carbon** — IBM blue, square corners
+- **Apple HIG** — Apple system colours
+- **Expressive** — maximally vivid demo palette
+
+The toolbar also offers **Radius**, **Primary colour** and **Density**
+overrides, plus a light/dark theme switch.
+
+## Explore
+
+- **Design System** — foundations: Color Palette, Typography, Spacing, Elevation, Radius, Motion
+- **Patterns** — composed, real-world screens built from the components
+- **UI** — all 45 components with variants, states and interaction tests
+
+## Getting started
+
+```bash
+npm install
+npm run storybook   # Storybook on :6006
+npm run dev         # Next.js app on :3000
+```
+
+Components live in `components/ui`, tokens in `app/globals.css`, stories in
+`stories/`. Built with Next 16, React 19, Tailwind v4, Storybook 10.
