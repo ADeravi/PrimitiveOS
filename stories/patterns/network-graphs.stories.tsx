@@ -7,6 +7,10 @@ import dagre from "cytoscape-dagre";
 import cola from "cytoscape-cola";
 import cise from "cytoscape-cise";
 import avsdf from "cytoscape-avsdf";
+import elk from "cytoscape-elk";
+import euler from "cytoscape-euler";
+import Graphology from "graphology";
+import forceAtlas2 from "graphology-layout-forceatlas2";
 import {
   Card,
   CardContent,
@@ -22,6 +26,8 @@ try {
   cytoscape.use(cola);
   cytoscape.use(cise);
   cytoscape.use(avsdf);
+  cytoscape.use(elk);
+  cytoscape.use(euler);
 } catch {
   /* already registered */
 }
@@ -82,6 +88,43 @@ const CLUSTERS = [0, 1, 2].map((g) =>
 );
 
 // ---------------------------------------------------------------------------
+// Precomputed position maps for preset-based layouts
+// ---------------------------------------------------------------------------
+// Gephi's ForceAtlas2 via graphology — positions computed once, served preset.
+const FA2_POSITIONS = (() => {
+  const g = new Graphology();
+  NODES.forEach((n, i) => {
+    const a = (i / NODES.length) * 2 * Math.PI;
+    g.addNode(n.id, { x: Math.cos(a) * 100, y: Math.sin(a) * 100 });
+  });
+  EDGES.forEach(([s, t]) => g.addEdge(s, t));
+  const pos = forceAtlas2(g, {
+    iterations: 400,
+    settings: { gravity: 1, scalingRatio: 6, adjustSizes: false },
+  });
+  return Object.fromEntries(
+    Object.entries(pos).map(([id, p]) => [id, { x: p.x, y: p.y }])
+  );
+})();
+
+// Bipartite: hubs in the left column, leaves in the right.
+const BIPARTITE_POSITIONS = (() => {
+  const hubs = NODES.filter((n) => n.id.startsWith("h"));
+  const leaves = NODES.filter((n) => !n.id.startsWith("h"));
+  const pos: Record<string, { x: number; y: number }> = {};
+  hubs.forEach((n, i) => (pos[n.id] = { x: 0, y: 60 + i * 110 }));
+  leaves.forEach((n, i) => (pos[n.id] = { x: 260, y: i * 32 }));
+  return pos;
+})();
+
+// Timeline: x = ordinal position, y = attribute group row.
+const TIMELINE_POSITIONS = (() => {
+  const pos: Record<string, { x: number; y: number }> = {};
+  NODES.forEach((n, i) => (pos[n.id] = { x: i * 36, y: n.group * 90 }));
+  return pos;
+})();
+
+// ---------------------------------------------------------------------------
 // Token bridge: resolve CSS vars (oklch) to rgb for the canvas renderer
 // ---------------------------------------------------------------------------
 function toRgb(color: string): string {
@@ -107,7 +150,7 @@ function readTheme(el: HTMLElement) {
 
 type Theme = ReturnType<typeof readTheme>;
 
-function buildStyle(t: Theme) {
+function buildStyle(t: Theme, curve: "bezier" | "taxi" = "bezier") {
   return [
     {
       selector: "node",
@@ -128,7 +171,7 @@ function buildStyle(t: Theme) {
       style: {
         "line-color": t.edge,
         width: 1.5,
-        "curve-style": "bezier" as const,
+        "curve-style": curve,
       },
     },
   ];
@@ -137,7 +180,13 @@ function buildStyle(t: Theme) {
 // ---------------------------------------------------------------------------
 // Graph card
 // ---------------------------------------------------------------------------
-function Graph({ layout }: { layout: Record<string, unknown> }) {
+function Graph({
+  layout,
+  curve = "bezier",
+}: {
+  layout: Record<string, unknown>;
+  curve?: "bezier" | "taxi";
+}) {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -148,7 +197,7 @@ function Graph({ layout }: { layout: Record<string, unknown> }) {
     const cy = cytoscape({
       container: el,
       elements: ELEMENTS,
-      style: buildStyle(theme) as unknown as cytoscape.StylesheetJson,
+      style: buildStyle(theme, curve) as unknown as cytoscape.StylesheetJson,
       layout: { padding: 12, animate: false, ...layout } as cytoscape.LayoutOptions,
       userZoomingEnabled: false,
       userPanningEnabled: false,
@@ -160,7 +209,7 @@ function Graph({ layout }: { layout: Record<string, unknown> }) {
       const next = readTheme(el);
       if (JSON.stringify(next) !== JSON.stringify(theme)) {
         theme = next;
-        cy.style(buildStyle(theme) as unknown as cytoscape.StylesheetJson);
+        cy.style(buildStyle(theme, curve) as unknown as cytoscape.StylesheetJson);
       }
     }, 1200);
 
@@ -168,7 +217,7 @@ function Graph({ layout }: { layout: Record<string, unknown> }) {
       clearInterval(sync);
       cy.destroy();
     };
-  }, [layout]);
+  }, [layout, curve]);
 
   return <div ref={ref} className="h-64 w-full" />;
 }
@@ -178,11 +227,13 @@ function GraphCard({
   manualName,
   description,
   layout,
+  curve,
 }: {
   title: string;
   manualName: string;
   description: string;
   layout: Record<string, unknown>;
+  curve?: "bezier" | "taxi";
 }) {
   return (
     <Card>
@@ -193,7 +244,7 @@ function GraphCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Graph layout={layout} />
+        <Graph layout={layout} curve={curve} />
       </CardContent>
     </Card>
   );
@@ -302,6 +353,64 @@ const LAYOUTS = [
     description: "Breadth-first levels wrapped onto concentric circles.",
     layout: { name: "breadthfirst", roots: ["h1"], circle: true, spacingFactor: 1.4 },
   },
+  {
+    title: "Layered (ELK)",
+    manualName: "ELK layered / Graphviz dot",
+    description: "Eclipse Layout Kernel's reference Sugiyama implementation.",
+    layout: { name: "elk", elk: { algorithm: "layered", "elk.direction": "DOWN" } },
+  },
+  {
+    title: "Orthogonal (ELK)",
+    manualName: "yFiles Orthogonal (ELK layered + taxi edges)",
+    description: "Layered placement with right-angle (taxi) edge routing.",
+    layout: {
+      name: "elk",
+      elk: { algorithm: "layered", "elk.direction": "RIGHT" },
+    },
+    curve: "taxi" as const,
+  },
+  {
+    title: "Tidy Tree (ELK)",
+    manualName: "yFiles Tree / ELK mrtree",
+    description: "Compact tree placement (Reingold–Tilford family).",
+    layout: { name: "elk", elk: { algorithm: "mrtree" } },
+  },
+  {
+    title: "Radial (ELK)",
+    manualName: "yFiles Radial / Graphviz twopi",
+    description: "True radial placement around the structural centre.",
+    layout: { name: "elk", elk: { algorithm: "radial" } },
+  },
+  {
+    title: "Stress (ELK)",
+    manualName: "Stress majorisation / MDS",
+    description: "Distance-preserving embedding — the academic standard.",
+    layout: { name: "elk", elk: { algorithm: "stress" } },
+  },
+  {
+    title: "Euler",
+    manualName: "Fast force-directed (euler)",
+    description: "Lightweight spring simulation tuned for larger graphs.",
+    layout: { name: "euler", animate: false, randomize: true },
+  },
+  {
+    title: "ForceAtlas2",
+    manualName: "Gephi ForceAtlas2 (graphology)",
+    description: "Positions computed by graphology's FA2, served as preset.",
+    layout: { name: "preset", positions: FA2_POSITIONS },
+  },
+  {
+    title: "Bipartite",
+    manualName: "Two-column / bipartite (preset)",
+    description: "Hubs in one column, leaves in the other.",
+    layout: { name: "preset", positions: BIPARTITE_POSITIONS },
+  },
+  {
+    title: "Timeline",
+    manualName: "Attribute-mapped axes (preset)",
+    description: "x = ordinal position, y = attribute group row.",
+    layout: { name: "preset", positions: TIMELINE_POSITIONS },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -329,6 +438,7 @@ export const LayoutGallery: Story = {
               manualName={l.manualName}
               description={l.description}
               layout={l.layout}
+              curve={(l as { curve?: "bezier" | "taxi" }).curve}
             />
           ))}
         </div>
