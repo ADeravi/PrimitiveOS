@@ -2,6 +2,11 @@
 import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import cytoscape from "cytoscape";
+import fcose from "cytoscape-fcose";
+import dagre from "cytoscape-dagre";
+import cola from "cytoscape-cola";
+import cise from "cytoscape-cise";
+import avsdf from "cytoscape-avsdf";
 import {
   Card,
   CardContent,
@@ -10,6 +15,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Register layout extensions once (guarded against HMR re-registration).
+try {
+  cytoscape.use(fcose);
+  cytoscape.use(dagre);
+  cytoscape.use(cola);
+  cytoscape.use(cise);
+  cytoscape.use(avsdf);
+} catch {
+  /* already registered */
+}
+
 const meta: Meta = {
   title: "Patterns/Network Graphs",
   parameters: {
@@ -17,7 +33,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "Graph layout families from the Cytoscape manual, rendered with Cytoscape.js (MIT). Node colours map groups to the --chart-* tokens and edges use --border, so every layout re-themes with the Design Layer and dark mode. yFiles layouts are proprietary and excluded.",
+          "Graph layout families from the Cytoscape manual, rendered with Cytoscape.js (MIT) plus the open layout extensions fCoSE, dagre, cola, CiSE and AVSDF. Node colours map groups to the --chart-* tokens and edges use --border, so every layout re-themes with the Design Layer and dark mode. The proprietary yFiles layouts are represented by their open equivalents (dagre ≈ Hierarchic, fCoSE ≈ Organic, AVSDF ≈ Circular).",
       },
     },
   },
@@ -59,6 +75,11 @@ const ELEMENTS = [
   ...NODES.map((n) => ({ data: { id: n.id, group: n.group } })),
   ...EDGES.map(([s, t]) => ({ data: { id: `${s}-${t}`, source: s, target: t } })),
 ];
+
+// Node-id clusters per attribute group (used by the CiSE layout).
+const CLUSTERS = [0, 1, 2].map((g) =>
+  NODES.filter((n) => n.group === g).map((n) => n.id)
+);
 
 // ---------------------------------------------------------------------------
 // Token bridge: resolve CSS vars (oklch) to rgb for the canvas renderer
@@ -232,6 +253,54 @@ const LAYOUTS = [
     manualName: "Random Layout",
     description: "Uniformly random positions — the before picture.",
     layout: { name: "random" },
+  },
+  {
+    title: "Organic (fCoSE)",
+    manualName: "Compound Spring Embedder / yFiles Organic",
+    description: "The modern CoSE — faster, with cleaner cluster separation.",
+    layout: { name: "fcose", animate: false, randomize: true, quality: "default" },
+  },
+  {
+    title: "Spring Embedded (Cola)",
+    manualName: "Edge-weighted Spring Embedded Layout",
+    description: "Constraint-based springs; cross-group edges kept longer.",
+    layout: {
+      name: "cola",
+      animate: false,
+      maxSimulationTime: 1500,
+      edgeLength: (edge: cytoscape.EdgeSingular) =>
+        edge.source().data("group") === edge.target().data("group") ? 45 : 90,
+    },
+  },
+  {
+    title: "Layered (Dagre)",
+    manualName: "Hierarchical Layout / yFiles Hierarchic",
+    description: "Sugiyama-style layers with edge-crossing minimisation.",
+    layout: { name: "dagre", rankDir: "TB", nodeSep: 18, rankSep: 42 },
+  },
+  {
+    title: "Cluster Circles (CiSE)",
+    manualName: "Group Attributes Layout / Community Cluster (GLay)",
+    description: "One circle per attribute group, springs between circles.",
+    layout: {
+      name: "cise",
+      animate: false,
+      clusters: CLUSTERS,
+      allowNodesInsideCircle: false,
+      nodeSeparation: 10,
+    },
+  },
+  {
+    title: "Circular (AVSDF)",
+    manualName: "Circular Layout / yFiles Circular",
+    description: "Single ring ordered to minimise edge crossings.",
+    layout: { name: "avsdf", animate: false, nodeSeparation: 28 },
+  },
+  {
+    title: "Radial Tree",
+    manualName: "Radial / yFiles Tree (radial)",
+    description: "Breadth-first levels wrapped onto concentric circles.",
+    layout: { name: "breadthfirst", roots: ["h1"], circle: true, spacingFactor: 1.4 },
   },
 ];
 
