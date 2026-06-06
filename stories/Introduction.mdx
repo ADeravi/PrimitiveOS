@@ -13,11 +13,13 @@ documented and tested in Storybook.
 The system is built on three tiers of CSS custom properties, defined in
 `app/globals.css`:
 
-| Tier | What | Examples |
-|------|------|----------|
-| **1 — Primitives** | Raw 11-step colour ladders (50 → 950), plus elevation and motion values. No semantic meaning. | `--neutral-500`, `--blue-600`, `--shadow-md`, `--duration-fast` |
-| **2 — Semantic** | Role-based aliases used by every component. | `--primary`, `--card`, `--border`, `--ring` |
-| **3 — Functional** | Status colours with paired foregrounds. | `--success`, `--warning`, `--info`, `--destructive` |
+- **Tier 1 — Primitives.** Raw 11-step colour ladders (50 → 950), plus elevation
+  and motion values. No semantic meaning. Examples: `--neutral-500`, `--blue-600`,
+  `--shadow-md`, `--duration-fast`
+- **Tier 2 — Semantic.** Role-based aliases used by every component.
+  Examples: `--primary`, `--card`, `--border`, `--ring`
+- **Tier 3 — Functional.** Status colours with paired foregrounds.
+  Examples: `--success`, `--warning`, `--info`, `--destructive`
 
 Components only ever reference Tier 2 and Tier 3 tokens, which means an
 entire re-brand is a token swap — no component changes.
