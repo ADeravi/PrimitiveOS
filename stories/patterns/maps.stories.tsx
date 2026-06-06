@@ -16,6 +16,7 @@ const meta: Meta = {
   title: "Patterns/Maps",
   parameters: {
     layout: "fullscreen",
+    chromatic: { delay: 1800 },
     docs: {
       description: {
         component:
@@ -93,6 +94,23 @@ function ChartCard({
   );
 }
 
+// Entrance/hover styles driven by the motion tokens.
+function VizStyles() {
+  return (
+    <style>{`
+      @keyframes viz-fade { from { opacity: 0; } }
+      @keyframes viz-pop { from { transform: scale(0); } }
+      .viz-fade { animation: viz-fade var(--duration-slow) var(--ease-enter) backwards; }
+      .viz-pop { animation: viz-pop var(--duration-normal) var(--ease-spring) backwards; transform-box: fill-box; transform-origin: center; }
+      .viz-hit { transition: opacity var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); cursor: default; }
+      .viz-hit:hover { opacity: 1 !important; filter: brightness(1.15); }
+      @media (prefers-reduced-motion: reduce) {
+        .viz-fade, .viz-pop { animation: none; }
+      }
+    `}</style>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Choropleth
 // ---------------------------------------------------------------------------
@@ -105,12 +123,16 @@ function Choropleth() {
         return (
           <path
             key={`${f.id}-${i}`}
+            className="viz-fade viz-hit"
+            style={{ animationDelay: `${(i % 30) * 25}ms` }}
             d={path(f as never) ?? ""}
             fill="var(--chart-1)"
             opacity={0.12 + v * 0.8}
             stroke="var(--background)"
             strokeWidth={0.5}
-          />
+          >
+            <title>{`${f.properties?.name ?? f.id}: ${Math.round(v * 100)}`}</title>
+          </path>
         );
       })}
     </svg>
@@ -134,12 +156,13 @@ function DotMap() {
           strokeWidth={0.5}
         />
       ))}
-      {CITIES.map((c) => {
+      {CITIES.map((c, ci) => {
         const p = (projection as (c: [number, number]) => [number, number] | null)([c.lon, c.lat]);
         if (!p) return null;
         const r = Math.sqrt(c.pop) * 1.5;
         return (
-          <g key={c.name}>
+          <g key={c.name} className="viz-pop viz-hit" style={{ animationDelay: `${250 + ci * 60}ms` }}>
+            <title>{`${c.name} — ${c.pop}M`}</title>
             <circle cx={p[0]} cy={p[1]} r={r} fill="var(--chart-1)" opacity={0.7} stroke="var(--background)" strokeWidth={0.8} />
             {c.pop >= 20 && (
               <text
@@ -167,6 +190,7 @@ export const MapGallery: Story = {
   name: "Map Gallery",
   render: () => (
     <div className="bg-background min-h-screen">
+      <VizStyles />
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Maps</h1>

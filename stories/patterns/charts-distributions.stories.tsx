@@ -14,10 +14,11 @@ const meta: Meta = {
   title: "Patterns/Charts Distributions",
   parameters: {
     layout: "fullscreen",
+    chromatic: { delay: 1800 },
     docs: {
       description: {
         component:
-          "Distribution and comparison families — histogram, box, violin, ridgeline, beeswarm, hexbin, parallel coordinates, slope, dumbbell, lollipop and waffle. Hand-rolled token-themed SVG; deterministic pseudo-random data so visual tests stay stable.",
+          "Distribution and comparison families — histogram, box, violin, ridgeline, beeswarm, hexbin, parallel coordinates, slope, dumbbell, lollipop and waffle. Hand-rolled token-themed SVG with motion-token entrance animations and hover tooltips; deterministic pseudo-random data so visual tests stay stable.",
       },
     },
   },
@@ -45,6 +46,27 @@ function ChartCard({
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  );
+}
+
+// Shared entrance/hover styles driven by the motion tokens.
+function VizStyles() {
+  return (
+    <style>{`
+      @keyframes viz-fade { from { opacity: 0; } }
+      @keyframes viz-grow-y { from { transform: scaleY(0); } }
+      @keyframes viz-grow-x { from { transform: scaleX(0); } }
+      @keyframes viz-pop { from { transform: scale(0); } }
+      .viz-fade { animation: viz-fade var(--duration-slow) var(--ease-enter) backwards; }
+      .viz-grow-y { animation: viz-grow-y var(--duration-slow) var(--ease-enter) backwards; transform-box: fill-box; transform-origin: bottom; }
+      .viz-grow-x { animation: viz-grow-x var(--duration-slow) var(--ease-enter) backwards; transform-box: fill-box; transform-origin: left; }
+      .viz-pop { animation: viz-pop var(--duration-normal) var(--ease-spring) backwards; transform-box: fill-box; transform-origin: center; }
+      .viz-hit { transition: opacity var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); cursor: default; }
+      .viz-hit:hover { opacity: 1 !important; filter: brightness(1.15); }
+      @media (prefers-reduced-motion: reduce) {
+        .viz-fade, .viz-grow-y, .viz-grow-x, .viz-pop { animation: none; }
+      }
+    `}</style>
   );
 }
 
@@ -97,7 +119,20 @@ function Histogram() {
       {counts.map((c, i) => {
         const h = (c / peak) * (H - 26);
         return (
-          <rect key={i} x={i * bw + 2} y={H - 14 - h} width={bw - 4} height={h} rx={3} fill={C[0]} opacity={0.85} />
+          <rect
+            key={i}
+            className="viz-grow-y viz-hit"
+            style={{ animationDelay: `${i * 35}ms` }}
+            x={i * bw + 2}
+            y={H - 14 - h}
+            width={bw - 4}
+            height={h}
+            rx={3}
+            fill={C[0]}
+            opacity={0.85}
+          >
+            <title>{`${c} values`}</title>
+          </rect>
         );
       })}
       <text x={2} y={H - 2} fontSize={8} fontFamily="monospace" fill="var(--muted-foreground)">{Math.round(min)}</text>
@@ -123,7 +158,8 @@ function BoxPlot() {
         const wLo = Math.max(s[0], q1 - 1.5 * iqr), wHi = Math.min(s[s.length - 1], q3 + 1.5 * iqr);
         const cx = 80 + i * 130;
         return (
-          <g key={g.name}>
+          <g key={g.name} className="viz-fade viz-hit" style={{ animationDelay: `${i * 130}ms` }}>
+            <title>{`${g.name} — median ${Math.round(q2)}, IQR ${Math.round(q1)}–${Math.round(q3)}`}</title>
             <line x1={cx} x2={cx} y1={y(wHi)} y2={y(wLo)} stroke={C[i]} strokeWidth={1.5} />
             <line x1={cx - 16} x2={cx + 16} y1={y(wHi)} y2={y(wHi)} stroke={C[i]} strokeWidth={1.5} />
             <line x1={cx - 16} x2={cx + 16} y1={y(wLo)} y2={y(wLo)} stroke={C[i]} strokeWidth={1.5} />
@@ -156,7 +192,8 @@ function Violin() {
         const right = steps.map((v) => `${cx + half(v)},${y(v)}`).join(" L");
         const left = [...steps].reverse().map((v) => `${cx - half(v)},${y(v)}`).join(" L");
         return (
-          <g key={g.name}>
+          <g key={g.name} className="viz-fade viz-hit" style={{ animationDelay: `${i * 130}ms` }}>
+            <title>{`${g.name} — n=${g.values.length}`}</title>
             <path d={`M${right} L${left} Z`} fill={C[i]} opacity={0.5} stroke={C[i]} strokeWidth={1.2} />
             <text x={cx} y={H - 6} textAnchor="middle" fontSize={9} fill="var(--muted-foreground)">{g.name}</text>
           </g>
@@ -189,7 +226,8 @@ function Ridgeline() {
         const peak = Math.max(...steps.map(f));
         const pts = steps.map((v) => `${x(v)},${base - (f(v) / peak) * amp}`).join(" L");
         return (
-          <g key={sr.name}>
+          <g key={sr.name} className="viz-fade viz-hit" style={{ animationDelay: `${i * 110}ms` }}>
+            <title>{sr.name}</title>
             <path d={`M${x(lo)},${base} L${pts} L${x(hi)},${base} Z`} fill={C[i % 5]} opacity={0.55} stroke={C[i % 5]} strokeWidth={1.2} />
             <text x={44} y={base} textAnchor="end" fontSize={9} fontFamily="monospace" fill="var(--muted-foreground)">{sr.name}</text>
           </g>
@@ -226,7 +264,18 @@ function Beeswarm() {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
       <line x1={8} x2={W - 8} y1={H / 2} y2={H / 2} stroke="var(--border)" strokeDasharray="3 3" />
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={R} fill={C[0]} opacity={0.8} />
+        <circle
+          key={i}
+          className="viz-pop viz-hit"
+          style={{ animationDelay: `${i * 8}ms` }}
+          cx={p.x}
+          cy={p.y}
+          r={R}
+          fill={C[0]}
+          opacity={0.8}
+        >
+          <title>{p.v.toFixed(1)}</title>
+        </circle>
       ))}
     </svg>
   );
@@ -252,11 +301,15 @@ function HexbinDensity() {
       {bins.map((b, i) => (
         <path
           key={i}
+          className="viz-fade viz-hit"
+          style={{ animationDelay: `${i * 14}ms` }}
           d={hb.hexagon(12)}
           transform={`translate(${b.x},${b.y})`}
           fill={C[0]}
           opacity={0.15 + (b.length / peak) * 0.85}
-        />
+        >
+          <title>{`${b.length} points`}</title>
+        </path>
       ))}
     </svg>
   );
@@ -286,12 +339,16 @@ function ParallelCoords() {
       {PC_ROWS.map((r, i) => (
         <polyline
           key={i}
+          className="viz-fade viz-hit"
+          style={{ animationDelay: `${i * 45}ms` }}
           points={r.vals.map((v, d) => `${ax(d)},${y(v)}`).join(" ")}
           fill="none"
           stroke={C[r.group === 0 ? 0 : 2]}
           strokeWidth={1.4}
           opacity={0.55}
-        />
+        >
+          <title>{`Record ${i + 1} (${r.group === 0 ? "Plan A" : "Plan B"})`}</title>
+        </polyline>
       ))}
     </svg>
   );
@@ -318,11 +375,11 @@ function SlopeGraph() {
           {i === 0 ? "2024" : "2026"}
         </text>
       ))}
-      {SLOPE.map((s) => {
+      {SLOPE.map((s, i) => {
         const up = s.b >= s.a;
         const col = up ? C[1] : C[4];
         return (
-          <g key={s.name}>
+          <g key={s.name} className="viz-fade viz-hit" style={{ animationDelay: `${i * 90}ms` }}>
             <line x1={120} x2={300} y1={y(s.a)} y2={y(s.b)} stroke={col} strokeWidth={2} />
             <circle cx={120} cy={y(s.a)} r={4} fill={col} />
             <circle cx={300} cy={y(s.b)} r={4} fill={col} />
@@ -354,7 +411,8 @@ function Dumbbell() {
       {DUMBBELL.map((d, i) => {
         const yy = 24 + i * 32;
         return (
-          <g key={d.name}>
+          <g key={d.name} className="viz-fade viz-hit" style={{ animationDelay: `${i * 90}ms` }}>
+            <title>{`${d.name}: ${d.a} → ${d.b}`}</title>
             <text x={62} y={yy + 3} textAnchor="end" fontSize={9} fill="var(--muted-foreground)">{d.name}</text>
             <line x1={x(d.a)} x2={x(d.b)} y1={yy} y2={yy} stroke="var(--border)" strokeWidth={2.5} />
             <circle cx={x(d.a)} cy={yy} r={5.5} fill={C[0]} />
@@ -392,7 +450,8 @@ function Lollipop() {
       {LOLLI.map((d, i) => {
         const yy = 18 + i * 28;
         return (
-          <g key={d.name}>
+          <g key={d.name} className="viz-fade viz-hit" style={{ animationDelay: `${i * 70}ms` }}>
+            <title>{`${d.name}: ${d.v}`}</title>
             <text x={68} y={yy + 3} textAnchor="end" fontSize={9} fill="var(--muted-foreground)">{d.name}</text>
             <line x1={76} x2={x(d.v)} y1={yy} y2={yy} stroke={C[0]} strokeWidth={2} opacity={0.5} />
             <circle cx={x(d.v)} cy={yy} r={6} fill={C[0]} />
@@ -413,21 +472,25 @@ function Waffle() {
     { name: "Paid", n: 32, color: C[2] },
     { name: "Referral", n: 22, color: C[1] },
   ];
-  const cells = parts.flatMap((p) => Array(p.n).fill(p.color));
+  const cells = parts.flatMap((p) => Array(p.n).fill(p) as typeof parts);
   const size = 15;
   return (
     <div className="flex h-56 items-center justify-center gap-8">
       <svg viewBox={`0 0 ${10 * size} ${10 * size}`} className="h-44">
-        {cells.map((color, i) => (
+        {cells.map((p, i) => (
           <rect
             key={i}
+            className="viz-pop viz-hit"
+            style={{ animationDelay: `${i * 7}ms` }}
             x={(i % 10) * size + 1.5}
             y={Math.floor(i / 10) * size + 1.5}
             width={size - 3}
             height={size - 3}
             rx={3}
-            fill={color}
-          />
+            fill={p.color}
+          >
+            <title>{`${p.name} — ${p.n}%`}</title>
+          </rect>
         ))}
       </svg>
       <div className="space-y-2">
@@ -464,6 +527,7 @@ export const DistributionsGallery: Story = {
   name: "Distributions Gallery",
   render: () => (
     <div className="bg-background min-h-screen">
+      <VizStyles />
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Charts — Distributions & Comparisons</h1>
