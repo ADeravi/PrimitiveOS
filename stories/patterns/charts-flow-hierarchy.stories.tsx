@@ -40,6 +40,7 @@ const meta: Meta = {
   title: "Patterns/Charts Flow & Hierarchy",
   parameters: {
     layout: "fullscreen",
+    chromatic: { delay: 1800 },
     docs: {
       description: {
         component:
@@ -71,6 +72,21 @@ function ChartCard({
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  );
+}
+
+// Entrance/hover styles driven by the motion tokens.
+function VizStyles() {
+  return (
+    <style>{`
+      @keyframes viz-fade { from { opacity: 0; } }
+      .viz-fade { animation: viz-fade var(--duration-slow) var(--ease-enter) backwards; }
+      .viz-hit { transition: opacity var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); cursor: default; }
+      .viz-hit:hover { opacity: 1 !important; filter: brightness(1.15); }
+      @media (prefers-reduced-motion: reduce) {
+        .viz-fade { animation: none; }
+      }
+    `}</style>
   );
 }
 
@@ -229,13 +245,17 @@ function Sunburst() {
   );
   return (
     <svg viewBox="-105 -105 210 210" className="w-full max-h-64 mx-auto">
-      {nodes.map((n) => (
+      {nodes.map((n, i) => (
         <path
           key={n.data.id}
+          className="viz-fade viz-hit"
+          style={{ animationDelay: `${n.depth * 160 + i * 20}ms` }}
           d={arcGen(n) ?? ""}
           fill={GROUP_COLOR[groupIndex(n)]}
           opacity={n.depth === 1 ? 0.95 : 0.55}
-        />
+        >
+          <title>{`${n.data.id}: ${n.value}`}</title>
+        </path>
       ))}
       {nodes
         .filter((n) => n.depth === 1)
@@ -270,8 +290,9 @@ function Icicle() {
   );
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-      {nodes.map((n) => (
-        <g key={n.data.id}>
+      {nodes.map((n, i) => (
+        <g key={n.data.id} className="viz-fade viz-hit" style={{ animationDelay: `${n.depth * 160 + i * 20}ms` }}>
+          <title>{`${n.data.id}: ${n.value}`}</title>
           <rect
             x={n.x0 + 1}
             y={n.y0 + 1}
@@ -336,7 +357,16 @@ function Streamgraph() {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
       {layers.map((l, i) => (
-        <path key={l.key} d={areaGen(l as unknown as [number, number][]) ?? ""} fill={GROUP_COLOR[i % 5]} opacity={0.8} />
+        <path
+          key={l.key}
+          className="viz-fade viz-hit"
+          style={{ animationDelay: `${i * 130}ms` }}
+          d={areaGen(l as unknown as [number, number][]) ?? ""}
+          fill={GROUP_COLOR[i % 5]}
+          opacity={0.8}
+        >
+          <title>{`Series ${l.key}`}</title>
+        </path>
       ))}
     </svg>
   );
@@ -349,6 +379,7 @@ export const FlowHierarchyGallery: Story = {
   name: "Flow & Hierarchy Gallery",
   render: () => (
     <div className="bg-background min-h-screen">
+      <VizStyles />
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Charts — Flow & Hierarchy</h1>
@@ -364,8 +395,7 @@ export const FlowHierarchyGallery: Story = {
               <Treemap
                 data={TREEMAP_DATA}
                 dataKey="size"
-                isAnimationActive={false}
-                content={<TreemapCell />}
+                               content={<TreemapCell />}
               />
             </ChartContainer>
           </ChartCard>
@@ -386,7 +416,7 @@ export const FlowHierarchyGallery: Story = {
             <ChartContainer config={{}} className="h-56 w-full">
               <FunnelChart margin={{ left: 8, right: 90 }}>
                 <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Funnel dataKey="value" data={FUNNEL_DATA} isAnimationActive={false}>
+                <Funnel dataKey="value" data={FUNNEL_DATA}>
                   <LabelList position="right" dataKey="name" className="fill-foreground" fontSize={11} />
                 </Funnel>
               </FunnelChart>
@@ -398,8 +428,8 @@ export const FlowHierarchyGallery: Story = {
               <BarChart data={WATERFALL}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
-                <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
-                <Bar dataKey="delta" stackId="w" radius={4} isAnimationActive={false}>
+                <Bar dataKey="base" stackId="w" fill="transparent" />
+                <Bar dataKey="delta" stackId="w" radius={4}>
                   {WATERFALL.map((d) => (
                     <Cell key={d.name} fill={waterfallFill(d.kind)} />
                   ))}
