@@ -36,6 +36,7 @@ const meta: Meta = {
   title: "Patterns/Charts KPI & Time",
   parameters: {
     layout: "fullscreen",
+    chromatic: { delay: 1800 },
     docs: {
       description: {
         component:
@@ -68,6 +69,23 @@ function ChartCard({
   );
 }
 
+// Entrance/hover styles driven by the motion tokens.
+function VizStyles() {
+  return (
+    <style>{`
+      @keyframes viz-fade { from { opacity: 0; } }
+      @keyframes viz-grow-x { from { transform: scaleX(0); } }
+      .viz-fade { animation: viz-fade var(--duration-slow) var(--ease-enter) backwards; }
+      .viz-grow-x { animation: viz-grow-x var(--duration-slow) var(--ease-enter) backwards; transform-box: fill-box; transform-origin: left; }
+      .viz-hit { transition: opacity var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); cursor: default; }
+      .viz-hit:hover { opacity: 1 !important; filter: brightness(1.15); }
+      @media (prefers-reduced-motion: reduce) {
+        .viz-fade, .viz-grow-x { animation: none; }
+      }
+    `}</style>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Gauge
 // ---------------------------------------------------------------------------
@@ -88,8 +106,7 @@ function Gauge({ value }: { value: number }) {
             fill="var(--chart-1)"
             background={{ fill: "var(--muted)" }}
             cornerRadius={8}
-            isAnimationActive={false}
-          />
+                     />
         </RadialBarChart>
       </ChartContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -119,7 +136,8 @@ function BulletChart() {
         const y = i * rowH + 14;
         const px = (v: number) => 70 + (v / 100) * (W - 80);
         return (
-          <g key={b.label}>
+          <g key={b.label} className="viz-hit">
+            <title>{`${b.label}: ${b.value} (target ${b.target})`}</title>
             <text x={62} y={y + barH - 2} textAnchor="end" fontSize={10} fill="var(--muted-foreground)">
               {b.label}
             </text>
@@ -137,7 +155,16 @@ function BulletChart() {
                 />
               );
             })}
-            <rect x={px(0)} y={y + 3} width={px(b.value) - px(0)} height={barH - 6} rx={2} fill="var(--chart-1)" />
+            <rect
+              className="viz-grow-x"
+              style={{ animationDelay: `${i * 140}ms` }}
+              x={px(0)}
+              y={y + 3}
+              width={px(b.value) - px(0)}
+              height={barH - 6}
+              rx={2}
+              fill="var(--chart-1)"
+            />
             <line
               x1={px(b.target)}
               x2={px(b.target)}
@@ -170,15 +197,15 @@ function Sparkline({ dataKey, kind }: { dataKey: "a" | "b" | "c"; kind: "area" |
     <ChartContainer config={sparkConfig} className="h-10 w-full">
       {kind === "area" ? (
         <AreaChart data={SPARK} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
-          <Area dataKey={dataKey} type="monotone" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.2} strokeWidth={1.5} isAnimationActive={false} />
+          <Area dataKey={dataKey} type="monotone" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.2} strokeWidth={1.5} />
         </AreaChart>
       ) : kind === "line" ? (
         <LineChart data={SPARK} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
-          <Line dataKey={dataKey} type="monotone" stroke="var(--chart-2)" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+          <Line dataKey={dataKey} type="monotone" stroke="var(--chart-2)" dot={false} strokeWidth={1.5} />
         </LineChart>
       ) : (
         <BarChart data={SPARK} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
-          <Bar dataKey={dataKey} fill="var(--chart-3)" radius={1} isAnimationActive={false} />
+          <Bar dataKey={dataKey} fill="var(--chart-3)" radius={1} />
         </BarChart>
       )}
     </ChartContainer>
@@ -259,7 +286,8 @@ function Candlestick() {
         const up = d.c >= d.o;
         const color = up ? "var(--chart-2)" : "var(--chart-5)";
         return (
-          <g key={i}>
+          <g key={i} className="viz-fade viz-hit" style={{ animationDelay: `${i * 45}ms` }}>
+            <title>{`O ${d.o.toFixed(1)}  H ${d.h.toFixed(1)}  L ${d.l.toFixed(1)}  C ${d.c.toFixed(1)}`}</title>
             <line x1={cx} x2={cx} y1={y(d.h)} y2={y(d.l)} stroke={color} strokeWidth={1.2} />
             <rect
               x={cx - step * 0.28}
@@ -292,12 +320,15 @@ function WordCloud() {
       {WORDS.map(([w, weight], i) => (
         <span
           key={w}
+          className="viz-fade viz-hit"
           style={{
             fontSize: 11 + weight * 5,
             color: `var(--chart-${(i % 5) + 1})`,
             fontWeight: weight >= 4 ? 700 : 500,
             opacity: 0.55 + weight * 0.09,
+            animationDelay: `${i * 45}ms`,
           }}
+          title={`${w} — weight ${weight}`}
         >
           {w}
         </span>
@@ -313,6 +344,7 @@ export const KpiTimeGallery: Story = {
   name: "KPI & Time Gallery",
   render: () => (
     <div className="bg-background min-h-screen">
+      <VizStyles />
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Charts — KPI & Time</h1>
@@ -345,8 +377,8 @@ export const KpiTimeGallery: Story = {
                 <XAxis dataKey="x" tickLine={false} axisLine={false} tickMargin={8} />
                 <YAxis tickLine={false} axisLine={false} width={30} />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Area dataKey="range" stroke="none" fill="var(--color-range)" fillOpacity={0.18} isAnimationActive={false} />
-                <Line dataKey="mean" type="monotone" stroke="var(--color-mean)" strokeWidth={2} isAnimationActive={false}>
+                <Area dataKey="range" stroke="none" fill="var(--color-range)" fillOpacity={0.18} />
+                <Line dataKey="mean" type="monotone" stroke="var(--color-mean)" strokeWidth={2}>
                   <ErrorBar dataKey="err" width={4} strokeWidth={1.2} stroke="var(--chart-3)" />
                 </Line>
               </ComposedChart>
@@ -360,7 +392,7 @@ export const KpiTimeGallery: Story = {
                 <XAxis dataKey="x" tickLine={false} axisLine={false} tickMargin={8} minTickGap={24} />
                 <YAxis tickLine={false} axisLine={false} width={30} />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Line dataKey="v" type="monotone" stroke="var(--color-v)" strokeWidth={2} dot={false} isAnimationActive={false} />
+                <Line dataKey="v" type="monotone" stroke="var(--color-v)" strokeWidth={2} dot={false} />
                 <Brush dataKey="x" height={20} travellerWidth={8} stroke="var(--chart-1)" fill="var(--muted)" />
               </LineChart>
             </ChartContainer>
