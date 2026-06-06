@@ -19,6 +19,8 @@ const docsTheme = create({
 // Design-system token presets
 // Secondary, accent and tertiary now carry real chromatic values so that
 // secondary buttons, hover states and badges all look visually distinct.
+// Functional tokens (success / warning / info) are tuned per layer so status
+// components match each design language. shadcn inherits the globals.css base.
 // ---------------------------------------------------------------------------
 type TokenMap = Record<string, string>;
 
@@ -26,6 +28,7 @@ const DS_TOKENS: Record<string, TokenMap> = {
 
   // ---- shadcn Neutral (default) -------------------------------------------
   // Kept as the canonical neutral baseline — zero chroma everywhere.
+  // Functional tokens come from the globals.css :root / .dark base.
   shadcn: {},
 
   // ---- Material Design 3 (Material You) ------------------------------------
@@ -42,6 +45,14 @@ const DS_TOKENS: Record<string, TokenMap> = {
     // Accent = tertiary purple (hover, focus rings, badges)
     "--accent":               "oklch(0.55 0.18 303)",
     "--accent-foreground":    "oklch(1 0 0)",
+
+    // Functional — Material green / amber / blue
+    "--success":              "oklch(0.55 0.14 150)",
+    "--success-foreground":   "oklch(1 0 0)",
+    "--warning":              "oklch(0.75 0.16 80)",
+    "--warning-foreground":   "oklch(0.2 0.04 80)",
+    "--info":                 "oklch(0.49 0.17 264)",
+    "--info-foreground":      "oklch(1 0 0)",
 
     // Surfaces — subtly tinted blue-grey
     "--background":           "oklch(0.99 0.004 264)",
@@ -77,6 +88,14 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--accent":               "oklch(0.75 0.18 70)",
     "--accent-foreground":    "oklch(0.15 0.04 70)",
 
+    // Functional
+    "--success":              "oklch(0.55 0.13 150)",
+    "--success-foreground":   "oklch(1 0 0)",
+    "--warning":              "oklch(0.75 0.18 70)",
+    "--warning-foreground":   "oklch(0.15 0.04 70)",
+    "--info":                 "oklch(0.5 0.19 250)",
+    "--info-foreground":      "oklch(1 0 0)",
+
     "--background":           "oklch(1 0 0)",
     "--foreground":           "oklch(0.13 0 0)",
     "--card":                 "oklch(0.98 0 0)",
@@ -108,6 +127,14 @@ const DS_TOKENS: Record<string, TokenMap> = {
     // Accent = IBM Purple 60
     "--accent":               "oklch(0.5 0.2 303)",
     "--accent-foreground":    "oklch(1 0 0)",
+
+    // Functional — IBM green / amber / blue
+    "--success":              "oklch(0.55 0.13 150)",
+    "--success-foreground":   "oklch(1 0 0)",
+    "--warning":              "oklch(0.7 0.16 75)",
+    "--warning-foreground":   "oklch(0.15 0.04 70)",
+    "--info":                 "oklch(0.55 0.19 250)",
+    "--info-foreground":      "oklch(1 0 0)",
 
     "--background":           "oklch(0.97 0 0)",
     "--foreground":           "oklch(0.1 0 0)",
@@ -141,6 +168,14 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--accent":               "oklch(0.7 0.2 55)",
     "--accent-foreground":    "oklch(0.15 0.04 55)",
 
+    // Functional — Apple system green / orange / blue
+    "--success":              "oklch(0.56 0.18 142)",
+    "--success-foreground":   "oklch(1 0 0)",
+    "--warning":              "oklch(0.7 0.2 55)",
+    "--warning-foreground":   "oklch(0.15 0.04 55)",
+    "--info":                 "oklch(0.55 0.2 250)",
+    "--info-foreground":      "oklch(1 0 0)",
+
     "--background":           "oklch(1 0 0)",
     "--foreground":           "oklch(0.07 0 0)",
     "--card":                 "oklch(0.98 0 0)",
@@ -169,6 +204,15 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--secondary-foreground": "oklch(1 0 0)",
     "--accent":               "oklch(0.6 0.22 303)",   // Vivid purple
     "--accent-foreground":    "oklch(1 0 0)",
+
+    // Functional — vivid green / amber / blue
+    "--success":              "oklch(0.6 0.2 150)",
+    "--success-foreground":   "oklch(1 0 0)",
+    "--warning":              "oklch(0.75 0.19 75)",
+    "--warning-foreground":   "oklch(0.15 0.04 70)",
+    "--info":                 "oklch(0.55 0.22 264)",
+    "--info-foreground":      "oklch(1 0 0)",
+
     "--background":           "oklch(0.98 0 0)",
     "--foreground":           "oklch(0.1 0 0)",
     "--card":                 "oklch(1 0 0)",

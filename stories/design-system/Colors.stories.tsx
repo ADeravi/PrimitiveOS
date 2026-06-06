@@ -11,7 +11,20 @@ export default meta;
 type Story = StoryObj;
 
 // ---------------------------------------------------------------------------
-// Token definitions
+// Tier 1 — Primitive scales
+// Raw colour ladders. Mode-independent; read straight from CSS variables.
+// ---------------------------------------------------------------------------
+const PRIMITIVE_STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const PRIMITIVE_HUES = [
+  { name: "Neutral", token: "neutral" },
+  { name: "Blue", token: "blue" },
+  { name: "Green", token: "green" },
+  { name: "Red", token: "red" },
+  { name: "Amber", token: "amber" },
+];
+
+// ---------------------------------------------------------------------------
+// Tier 2 + Tier 3 — Semantic + functional token definitions
 // ---------------------------------------------------------------------------
 const GROUPS = [
   {
@@ -24,6 +37,18 @@ const GROUPS = [
       { name: "Secondary Foreground", bg: "--secondary-foreground", fg: "--secondary" },
       { name: "Accent",               bg: "--accent",               fg: "--accent-foreground" },
       { name: "Accent Foreground",    bg: "--accent-foreground",    fg: "--accent" },
+    ],
+  },
+  {
+    title: "Functional",
+    description: "Status colours for success, warning, info and destructive states. These also shift per design layer.",
+    tokens: [
+      { name: "Success",              bg: "--success",              fg: "--success-foreground" },
+      { name: "Success Foreground",   bg: "--success-foreground",   fg: "--success" },
+      { name: "Warning",              bg: "--warning",              fg: "--warning-foreground" },
+      { name: "Warning Foreground",   bg: "--warning-foreground",   fg: "--warning" },
+      { name: "Info",                 bg: "--info",                 fg: "--info-foreground" },
+      { name: "Info Foreground",      bg: "--info-foreground",      fg: "--info" },
       { name: "Destructive",          bg: "--destructive",          fg: "--background" },
     ],
   },
@@ -89,6 +114,10 @@ function useCSSVar(variable: string): string {
   return value;
 }
 
+function copyVar(variable: string, done: () => void) {
+  navigator.clipboard.writeText(`var(${variable})`).then(done);
+}
+
 // ---------------------------------------------------------------------------
 // Swatch component
 // ---------------------------------------------------------------------------
@@ -96,12 +125,10 @@ function Swatch({ name, bg, fg }: { name: string; bg: string; fg: string }) {
   const rawValue = useCSSVar(bg);
   const [copied, setCopied] = React.useState(false);
 
-  const copy = () => {
-    navigator.clipboard.writeText(`var(${bg})`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  };
+  const copy = () => copyVar(bg, () => {
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  });
 
   return (
     <button
@@ -160,6 +187,76 @@ function ColorGroup({
 }
 
 // ---------------------------------------------------------------------------
+// Primitive ladder components
+// ---------------------------------------------------------------------------
+function PrimitiveCell({ token, step }: { token: string; step: number }) {
+  const varName = `--${token}-${step}`;
+  const rawValue = useCSSVar(varName);
+  const [copied, setCopied] = React.useState(false);
+  // Light text on the darker half of the ladder.
+  const dark = step >= 500;
+
+  return (
+    <button
+      onClick={() => copyVar(varName, () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      })}
+      title={`Copy var(${varName})`}
+      className="group relative flex-1 h-16 first:rounded-l-lg last:rounded-r-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:z-10"
+      style={{ background: `var(${varName})` }}
+    >
+      <span
+        className={`absolute inset-x-0 bottom-1 text-center text-[9px] font-mono opacity-0 group-hover:opacity-100 transition-opacity ${dark ? "text-white" : "text-black"}`}
+      >
+        {copied ? "Copied!" : step}
+      </span>
+      {/* Persistent step label */}
+      <span
+        className={`absolute inset-x-0 top-1 text-center text-[9px] font-semibold ${dark ? "text-white/80" : "text-black/70"}`}
+      >
+        {step}
+      </span>
+    </button>
+  );
+}
+
+function PrimitiveLadder({ name, token }: { name: string; token: string }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-semibold text-foreground">{name}</p>
+        <p className="text-[10px] font-mono text-muted-foreground">--{token}-50 → --{token}-950</p>
+      </div>
+      <div className="flex gap-0.5">
+        {PRIMITIVE_STEPS.map((step) => (
+          <PrimitiveCell key={step} token={token} step={step} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PrimitiveScalesSection() {
+  return (
+    <section className="space-y-5">
+      <div>
+        <h2 className="text-lg font-semibold">Primitive Scale</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Tier 1 — raw colour ladders (50 → 950) with no semantic meaning. These are the absolute
+          palette the semantic and functional tokens reference. Click any step to copy its CSS variable.
+        </p>
+      </div>
+      <div className="space-y-5">
+        {PRIMITIVE_HUES.map((h) => (
+          <PrimitiveLadder key={h.token} name={h.name} token={h.token} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Stories
 // ---------------------------------------------------------------------------
 export const AllTokens: Story = {
@@ -170,17 +267,72 @@ export const AllTokens: Story = {
       <div className="border-b border-border pb-6">
         <h1 className="text-3xl font-bold text-foreground">Color Palette</h1>
         <p className="mt-2 text-muted-foreground max-w-2xl">
-          Live token swatches for the active design layer. Switch the{" "}
+          A three-tier token architecture: primitive ladders (Tier 1), semantic brand and surface
+          tokens (Tier 2), and functional status colours (Tier 3). Switch the{" "}
           <span className="font-medium text-foreground">Design Layer</span> in the toolbar
           to see Material Design 3, Fluent, Carbon, Apple HIG or Expressive palettes.
           Click any swatch to copy its CSS variable.
         </p>
       </div>
 
-      {/* Token groups */}
+      {/* Tier 1 */}
+      <PrimitiveScalesSection />
+
+      {/* Tier 2 + Tier 3 token groups */}
       {GROUPS.map((g) => (
         <ColorGroup key={g.title} title={g.title} description={g.description} tokens={g.tokens} />
       ))}
+    </div>
+  ),
+};
+
+export const PrimitiveScales: Story = {
+  name: "Primitive Scale",
+  render: () => (
+    <div className="bg-background min-h-screen p-8 space-y-8">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-3xl font-bold text-foreground">Primitive Scale</h1>
+        <p className="mt-2 text-muted-foreground max-w-2xl">
+          Tier 1 of the token system — the raw 11-step colour ladders that everything else is built
+          from. These values are mode-independent and do not change with the Design Layer.
+        </p>
+      </div>
+      <PrimitiveScalesSection />
+    </div>
+  ),
+};
+
+export const FunctionalColors: Story = {
+  name: "Functional Colors",
+  render: () => (
+    <div className="bg-background min-h-screen p-8 space-y-8">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-3xl font-bold text-foreground">Functional Colors</h1>
+        <p className="mt-2 text-muted-foreground max-w-2xl">
+          Tier 3 — status colours that communicate meaning: success, warning, info and destructive.
+          Each pairs with a foreground token for accessible text and shifts per design layer.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { name: "Success",     bg: "--success",     fg: "--success-foreground",     label: "Confirmations, completed states" },
+          { name: "Warning",     bg: "--warning",     fg: "--warning-foreground",     label: "Caution, needs attention" },
+          { name: "Info",        bg: "--info",        fg: "--info-foreground",        label: "Neutral notices, tips" },
+          { name: "Destructive", bg: "--destructive", fg: "--primary-foreground",     label: "Errors, danger, delete actions" },
+        ].map(({ name, bg, fg, label }) => (
+          <div key={bg} className="rounded-2xl overflow-hidden border border-border">
+            <div className="h-28 flex items-center justify-center" style={{ background: `var(${bg})` }}>
+              <span className="text-sm font-semibold" style={{ color: `var(${fg})` }}>{name}</span>
+            </div>
+            <div className="p-4 bg-card">
+              <p className="font-semibold text-card-foreground">{name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+              <p className="text-xs font-mono text-muted-foreground mt-2">{bg}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   ),
 };
