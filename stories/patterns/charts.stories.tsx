@@ -45,6 +45,7 @@ const meta: Meta = {
   title: "Patterns/Charts",
   parameters: {
     layout: "fullscreen",
+    chromatic: { delay: 1800 },
     docs: {
       description: {
         component:
@@ -153,6 +154,21 @@ const HEAT_WEEKS = 14;
 const heat = (d: number, w: number) =>
   (Math.sin(d * 3.7 + w * 1.3) + Math.cos(d * 1.9 - w * 2.3) + 2) / 4;
 
+// Entrance/hover styles driven by the motion tokens.
+function VizStyles() {
+  return (
+    <style>{`
+      @keyframes viz-pop { from { transform: scale(0); } }
+      .viz-pop { animation: viz-pop var(--duration-normal) var(--ease-spring) backwards; transform-box: fill-box; transform-origin: center; }
+      .viz-hit { transition: opacity var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard); cursor: default; }
+      .viz-hit:hover { opacity: 1 !important; filter: brightness(1.15); }
+      @media (prefers-reduced-motion: reduce) {
+        .viz-pop { animation: none; }
+      }
+    `}</style>
+  );
+}
+
 function Heatmap() {
   const cell = 16;
   const pad = 30;
@@ -193,6 +209,8 @@ function Heatmap() {
           return (
             <rect
               key={`${d}-${w}`}
+              className="viz-pop viz-hit"
+              style={{ animationDelay: `${(w * 7 + d) * 6}ms` }}
               x={pad + w * cell}
               y={18 + d * cell}
               width={cell - 2}
@@ -200,7 +218,9 @@ function Heatmap() {
               rx={3}
               fill={v < 0.18 ? "var(--muted)" : "var(--chart-1)"}
               opacity={v < 0.18 ? 0.7 : 0.25 + v * 0.75}
-            />
+            >
+              <title>{`${HEAT_DAYS[d]} W${w + 1}: ${(v * 10).toFixed(1)}`}</title>
+            </rect>
           );
         })
       )}
@@ -235,6 +255,7 @@ export const ChartGallery: Story = {
   name: "Chart Gallery",
   render: () => (
     <div className="bg-background min-h-screen">
+      <VizStyles />
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Charts</h1>
