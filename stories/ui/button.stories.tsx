@@ -2,16 +2,42 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { fn } from "storybook/test";
 import { userEvent, within, expect } from "storybook/test";
 import { Button } from "@/components/ui/button";
-import { Mail, Loader2 } from "lucide-react";
+import { Mail, Loader2, ChevronRight, Trash2 } from "lucide-react";
 
 const meta: Meta<typeof Button> = {
   title: "UI/Button",
   component: Button,
   tags: ["autodocs"],
-  args: { onClick: fn() },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Triggers an action. Use `default` for the primary action on a view (one per view), `outline`/`secondary` for supporting actions, `destructive` for irreversible ones, and `ghost`/`link` for low-emphasis actions.",
+      },
+    },
+  },
+  argTypes: {
+    variant: {
+      control: "select",
+      options: ["default", "secondary", "destructive", "outline", "ghost", "link"],
+      description: "Visual emphasis of the action",
+      table: { defaultValue: { summary: "default" } },
+    },
+    size: {
+      control: "select",
+      options: ["xs", "sm", "default", "lg", "icon"],
+      description: "Control height and padding",
+      table: { defaultValue: { summary: "default" } },
+    },
+    disabled: { control: "boolean" },
+    asChild: { control: false, description: "Render as the child element (e.g. a link)" },
+  },
+  args: { onClick: fn(), children: "Button", variant: "default", size: "default" },
 };
 export default meta;
 type Story = StoryObj<typeof Button>;
+
+export const Playground: Story = {};
 
 export const Variants: Story = {
   render: () => (
@@ -38,15 +64,25 @@ export const Sizes: Story = {
   ),
 };
 
+export const States: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button>Enabled</Button>
+      <Button disabled>Disabled</Button>
+      <Button disabled><Loader2 className="animate-spin" /> Loading</Button>
+    </div>
+  ),
+};
+
 export const WithIcon: Story = {
-  render: () => <Button><Mail /> Login with Email</Button>,
+  render: () => (
+    <div className="flex flex-wrap gap-2">
+      <Button><Mail /> Login with Email</Button>
+      <Button variant="outline">Continue <ChevronRight /></Button>
+      <Button variant="destructive"><Trash2 /> Delete</Button>
+    </div>
+  ),
 };
-
-export const Loading: Story = {
-  render: () => <Button disabled><Loader2 className="animate-spin" /> Please wait</Button>,
-};
-
-export const Disabled: Story = { render: () => <Button disabled>Disabled</Button> };
 
 export const ClickInteraction: Story = {
   name: "Interaction: Click fires action",

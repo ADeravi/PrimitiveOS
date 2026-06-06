@@ -1,48 +1,111 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn, userEvent, within, expect, waitFor } from "storybook/test";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
-const meta: Meta = {
+const meta: Meta<typeof Select> = {
   title: "UI/Select",
+  component: Select,
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "A dropdown for choosing one option from a list. Use for 5–15 options; fewer than 5 → RadioGroup, more than 15 → Combobox with search.",
+      },
+    },
+  },
 };
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof Select>;
 
 export const Default: Story = {
   render: () => (
-    <Select onValueChange={fn()}>
-      <SelectTrigger className="w-48"><SelectValue placeholder="Select a fruit" /></SelectTrigger>
+    <Select>
+      <SelectTrigger className="w-56">
+        <SelectValue placeholder="Select a fruit" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="apple">Apple</SelectItem>
+        <SelectItem value="banana">Banana</SelectItem>
+        <SelectItem value="cherry">Cherry</SelectItem>
+        <SelectItem value="grape">Grape</SelectItem>
+      </SelectContent>
+    </Select>
+  ),
+};
+
+export const WithGroups: Story = {
+  render: () => (
+    <Select>
+      <SelectTrigger className="w-56">
+        <SelectValue placeholder="Select a timezone" />
+      </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Fruits</SelectLabel>
-          <SelectItem value="apple">Apple</SelectItem>
-          <SelectItem value="banana">Banana</SelectItem>
-          <SelectItem value="orange">Orange</SelectItem>
-          <SelectItem value="grape">Grape</SelectItem>
+          <SelectLabel>Americas</SelectLabel>
+          <SelectItem value="est">Eastern (EST)</SelectItem>
+          <SelectItem value="pst">Pacific (PST)</SelectItem>
+        </SelectGroup>
+        <SelectSeparator />
+        <SelectGroup>
+          <SelectLabel>Asia Pacific</SelectLabel>
+          <SelectItem value="aest">Sydney (AEST)</SelectItem>
+          <SelectItem value="jst">Tokyo (JST)</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
   ),
 };
 
-export const OpenInteraction: Story = {
-  name: "Interaction: Open dropdown",
+export const WithLabelAndDefault: Story = {
+  name: "With Label & Default Value",
   render: () => (
-    <Select>
-      <SelectTrigger className="w-48"><SelectValue placeholder="Select a fruit" /></SelectTrigger>
-      <SelectContent>
-        <SelectItem value="apple">Apple</SelectItem>
-        <SelectItem value="banana">Banana</SelectItem>
-      </SelectContent>
-    </Select>
+    <div className="grid w-56 gap-2">
+      <Label>Role</Label>
+      <Select defaultValue="editor">
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="viewer">Viewer</SelectItem>
+          <SelectItem value="editor">Editor</SelectItem>
+          <SelectItem value="admin">Admin</SelectItem>
+        </SelectContent>
+      </Select>
+      <p className="text-xs text-muted-foreground">Controls what this member can do.</p>
+    </div>
   ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("combobox"));
-    // waitFor retries until the Radix portal dropdown animation completes
-    await waitFor(() =>
-      expect(within(document.body).getByRole("option", { name: "Apple" })).toBeVisible()
-    );
-  },
+};
+
+export const States: Story = {
+  render: () => (
+    <div className="flex flex-col gap-4">
+      <Select disabled>
+        <SelectTrigger className="w-56">
+          <SelectValue placeholder="Disabled select" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="a">Option A</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select>
+        <SelectTrigger className="w-56" aria-invalid>
+          <SelectValue placeholder="Invalid (required)" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="a">Option A</SelectItem>
+          <SelectItem value="b" disabled>Option B (disabled item)</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  ),
 };

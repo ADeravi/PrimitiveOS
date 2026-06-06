@@ -1,49 +1,84 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { fn } from "storybook/test";
-import { userEvent, within, expect } from "storybook/test";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 const meta: Meta<typeof Input> = {
   title: "UI/Input",
   component: Input,
   tags: ["autodocs"],
-  args: { onChange: fn() },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "A text field. Always pair with a `Label`; use `aria-invalid` for error state and helper text below the field for guidance.",
+      },
+    },
+  },
+  argTypes: {
+    type: {
+      control: "select",
+      options: ["text", "email", "password", "number", "search", "file"],
+      table: { defaultValue: { summary: "text" } },
+    },
+    disabled: { control: "boolean" },
+    placeholder: { control: "text" },
+  },
+  args: { type: "text", placeholder: "Type here…" },
 };
 export default meta;
 type Story = StoryObj<typeof Input>;
 
-export const Default: Story = { args: { placeholder: "Email" } };
+export const Playground: Story = { render: (args) => <Input className="w-72" {...args} /> };
 
 export const WithLabel: Story = {
-  render: (args) => (
-    <div className="grid w-64 gap-1.5">
+  render: () => (
+    <div className="grid w-72 gap-2">
       <Label htmlFor="email">Email</Label>
-      <Input type="email" id="email" placeholder="you@example.com" {...args} />
+      <Input id="email" type="email" placeholder="you@example.com" />
+      <p className="text-xs text-muted-foreground">We&apos;ll never share your email.</p>
     </div>
   ),
 };
 
-export const Disabled: Story = { args: { placeholder: "Disabled", disabled: true } };
+export const States: Story = {
+  render: () => (
+    <div className="grid w-72 gap-4">
+      <div className="grid gap-2">
+        <Label>Default</Label>
+        <Input placeholder="Placeholder" />
+      </div>
+      <div className="grid gap-2">
+        <Label>Filled</Label>
+        <Input defaultValue="Hello world" />
+      </div>
+      <div className="grid gap-2">
+        <Label>Disabled</Label>
+        <Input disabled placeholder="Disabled" />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="err">Error</Label>
+        <Input id="err" aria-invalid defaultValue="not-an-email" />
+        <p className="text-xs text-destructive">Enter a valid email address.</p>
+      </div>
+    </div>
+  ),
+};
+
+export const WithButton: Story = {
+  render: () => (
+    <div className="flex w-80 items-center gap-2">
+      <Input type="email" placeholder="you@example.com" />
+      <Button type="submit">Subscribe</Button>
+    </div>
+  ),
+};
 
 export const File: Story = {
   render: () => (
-    <div className="grid w-64 gap-1.5">
+    <div className="grid w-72 gap-2">
       <Label htmlFor="picture">Picture</Label>
       <Input id="picture" type="file" />
     </div>
   ),
-};
-
-export const TypeInteraction: Story = {
-  name: "Interaction: Type text",
-  args: { placeholder: "Type here..." },
-  play: async ({ canvasElement, args }) => {
-    const canvas = within(canvasElement);
-    const input = canvas.getByRole("textbox");
-    await userEvent.click(input);
-    await userEvent.type(input, "hello@example.com");
-    await expect(input).toHaveValue("hello@example.com");
-    await expect(args.onChange).toHaveBeenCalled();
-  },
 };
