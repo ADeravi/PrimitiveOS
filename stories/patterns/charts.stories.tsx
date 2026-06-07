@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/chart";
 
 const meta: Meta = {
-  title: "Patterns/Charts",
+  title: "Charts/Overview",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1800 },

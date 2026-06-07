@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 
 const meta: Meta = {
-  title: "Patterns/Maps",
+  title: "Charts/Maps",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1800 },
