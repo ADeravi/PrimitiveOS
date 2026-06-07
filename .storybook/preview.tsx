@@ -551,11 +551,25 @@ const preview: Preview = {
 
   decorators: [
     (Story, context) => {
-      const { designSystem, radius, primaryColor, density } = context.globals as {
-        designSystem: string; radius: string; primaryColor: string; density: string;
+      const { designSystem, radius, primaryColor, density, theme } = context.globals as {
+        designSystem: string; radius: string; primaryColor: string; density: string; theme?: string;
       };
       const look = LOOK[designSystem] ?? LOOK.shadcn;
-      const preset = DS_TOKENS[designSystem] ?? {};
+      const preset: TokenMap = { ...(DS_TOKENS[designSystem] ?? {}) };
+      // In dark mode, hand the surface tokens back to the `.dark` class —
+      // inline vars would otherwise override it and lock the canvas light.
+      // Brand, functional, chart, radius, primitives, fonts and motion stay.
+      if (theme === "dark") {
+        for (const key of [
+          "--background", "--foreground",
+          "--card", "--card-foreground",
+          "--popover", "--popover-foreground",
+          "--muted", "--muted-foreground",
+          "--border", "--input",
+        ]) {
+          delete preset[key];
+        }
+      }
       const style: React.CSSProperties & Record<string, string> = {
         // Tier 1: regenerated primitive ladders for this design language
         ...look.primitives,
