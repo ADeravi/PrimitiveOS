@@ -339,6 +339,7 @@ const preview: Preview = {
           ["Color Palette", "Typography", "Spacing", "Elevation", "Radius", "Motion"],
           "Charts",
           [
+            "Index",
             "Choosing a Chart",
             "Interactive",
             ["Core", "Flow & Hierarchy", "KPI & Time", "Distributions", "Linked Dashboard"],
