@@ -1,3 +1,4 @@
+import * as React from "react";
 import type { Preview } from "@storybook/nextjs-vite";
 import { withThemeByClassName } from "@storybook/addon-themes";
 import { create } from "storybook/theming";
@@ -500,6 +501,17 @@ export const globalTypes = {
   },
 };
 
+// Canvas (iframe body) backdrop per layer — SB10 ignores appPreviewBg, so the
+// preview paints its own backdrop and keeps it in sync with the dark toggle.
+const CANVAS_DARK_BG: Record<string, string> = {
+  shadcn: "#0a0a0a",
+  material: "#141218",
+  fluent: "#1f1f1f",
+  carbon: "#161616",
+  apple: "#161617",
+  expressive: "#1a1025",
+};
+
 const densityScale: Record<string, string> = {
   compact: "13px",
   default: "14px",
@@ -571,6 +583,15 @@ const preview: Preview = {
           delete preset[key];
         }
       }
+      // Keep the canvas backdrop in sync with the layer + dark toggle, so the
+      // area AROUND the story never disagrees with the story's own surface.
+      React.useEffect(() => {
+        const dark = theme === "dark";
+        const light = (DS_TOKENS[designSystem] ?? {})["--background"] ?? "#ffffff";
+        document.body.style.backgroundColor = dark
+          ? (CANVAS_DARK_BG[designSystem] ?? "#0a0a0a")
+          : light;
+      }, [designSystem, theme]);
       const style: React.CSSProperties & Record<string, string> = {
         // Tier 1: regenerated primitive ladders for this design language
         ...look.primitives,
