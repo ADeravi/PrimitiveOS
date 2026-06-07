@@ -5,13 +5,11 @@ import { create } from "storybook/theming";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "../app/globals.css";
 
+// Docs pages render with the default light theme; preview-head.html flips
+// them dark via `.dark .sbdocs` CSS so they follow the dark toggle too.
 const docsTheme = create({
-  base: "dark",
+  base: "light",
   brandTitle: "ScnTw Design System",
-  appBg: "#09090b",
-  appContentBg: "#09090b",
-  appBorderColor: "#27272a",
-  textColor: "#fafafa",
   fontBase: '"Inter", system-ui, sans-serif',
   fontCode: '"JetBrains Mono", monospace',
 });
