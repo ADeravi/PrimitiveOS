@@ -1,0 +1,78 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Charts/Choosing a Chart" />
+
+# Choosing a Chart
+
+Start from the **question the reader is asking**, not from the data shape. Every idiom below ships in this system —
+the interactive component name is shown in `code`, gallery-only idioms are named in *italics*.
+
+## "How has it changed over time?"
+
+- **One series, the trend matters** → `ChartLine`. Use the step curve for discrete events (pricing, releases).
+- **Magnitude matters as much as trend** → `ChartArea` (single series, stacked = off).
+- **Several series, composition over time** → `ChartArea` stacked, or `ChartStreamgraph` for many series where the organic shape is the story.
+- **Long range that needs zooming** → `ChartBrush`.
+- **Open/high/low/close sessions** → `ChartCandlestick`.
+- **Tiny space inside a stat card** → `ChartSparkline`.
+- **Only two time points** → *Slope graph* (Distributions gallery) beats a two-point line chart.
+
+## "How do categories compare?"
+
+- **Plain comparison** → `ChartBar`. Horizontal when labels are long; sort by value unless the category order is meaningful.
+- **Two periods per category** → `ChartBar` grouped, or `ChartDumbbell` when the *change* is the story.
+- **Ranking with many categories** → *Lollipop* (Distributions gallery) is lighter than bars.
+- **Comparison across 4–8 dimensions** → `ChartRadar`, max three series.
+- **Measure vs target vs acceptable bands** → `ChartBullet`.
+
+## "What are the parts of the whole?"
+
+- **A handful of parts** → `ChartDonut`. Five slices max; merge the rest into "Other".
+- **Exact percentages should be readable** → `ChartWaffle` — 100 squares are more honest than angles.
+- **Hierarchical parts** → `ChartTreemap` (area = share) or `ChartSunburst` (depth = level).
+- **Parts changing over time** → `ChartArea` in 100% mode.
+
+## "How does it flow between stages?"
+
+- **Sequential stage conversion** → `ChartFunnel`.
+- **Branching flows with magnitudes** → `ChartSankey`.
+- **Running total decomposed into gains and losses** → `ChartWaterfall`.
+
+## "How is it distributed?"
+
+- **One sample's shape** → `ChartHistogram`; tune the bin count — it changes the story.
+- **Compare distributions across groups** → `ChartBoxPlot` (summary) or `ChartViolin` (shape).
+- **Every point should stay visible** → `ChartBeeswarm` (≤ a few hundred points).
+- **Dense 2-D point clouds** → *Hexbin* (Distributions gallery).
+- **Distribution drift across periods** → *Ridgeline* (Distributions gallery).
+
+## "How do two (or three) measures relate?"
+
+- **Two numeric variables** → `ChartScatter`; add bubble size for a third.
+- **Two measures with different units over time** → `ChartDualAxis` — but prefer two stacked panels when honesty beats compactness.
+- **A measure across two categorical dimensions** → `ChartHeatmap`.
+
+## "How are things connected?"
+
+- **Explore network topology** → Network Graphs gallery (fCoSE/organic for clusters, dagre/ELK layered for hierarchy).
+- **Dense networks that turn into hairballs** → *Adjacency matrix* (Graph Idioms).
+- **Aggregated flows between groups** → *Chord diagram* (Graph Idioms).
+- **Hierarchy without links** → *Circle packing* or *Tidy tree* (Graph Idioms).
+
+## "Where is it?"
+
+- **Value per geographic area** → *Choropleth* (Maps gallery) — one hue, opacity ramp.
+- **Values at points** → *Dot map* with square-root symbol scaling.
+
+## "How is one KPI doing right now?"
+
+- **Single bounded value** → `ChartGauge` — status colour comes from the functional tokens.
+- **KPI with context** → `ChartBullet` or `ChartSparkline`.
+
+## House rules
+
+1. Series colours come from `--chart-1…5`; status colours from `--success` / `--warning` / `--destructive`. Never hardcode.
+2. Symbols scale by **area** (square root), not radius.
+3. Don't relayout on filter — dim or hide in place.
+4. Merge small categories into "Other" rather than rendering unreadable slivers.
+5. Every chart needs an empty, loading and error state — see **Charts/States**.
