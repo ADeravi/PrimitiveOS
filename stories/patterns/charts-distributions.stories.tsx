@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 const meta: Meta = {
-  title: "Patterns/Charts Distributions",
+  title: "Charts/Distributions",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1800 },
