@@ -1,0 +1,60 @@
+<!-- Chrome fonts for the per-layer Storybook shells. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  /* ------------------------------------------------------------------------
+     Per-design-language shell styling beyond Storybook's theme API.
+     manager.ts sets `ds-<layer>` on <html> when the Design Layer changes.
+     Selectors stick to stable Storybook ids/attributes only.
+  ------------------------------------------------------------------------ */
+  html { transition: background-color 240ms ease; }
+
+  /* Material 3 — pill-shaped selection (navigation-drawer style), roomier rows */
+  .ds-material #storybook-explorer-tree a,
+  .ds-material #storybook-explorer-tree button {
+    border-radius: 9999px;
+  }
+  .ds-material .sidebar-item,
+  .ds-material [data-selected="true"] {
+    border-radius: 9999px !important;
+  }
+  .ds-material ::-webkit-scrollbar { width: 10px; }
+  .ds-material ::-webkit-scrollbar-thumb { background: #cac4d0; border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+
+  /* Apple HIG — gentle 8px rounding, hairline focus, SF letter-spacing */
+  .ds-apple #storybook-explorer-tree a,
+  .ds-apple #storybook-explorer-tree button,
+  .ds-apple [data-selected="true"] {
+    border-radius: 8px !important;
+    letter-spacing: -0.01em;
+  }
+  .ds-apple ::-webkit-scrollbar { width: 8px; }
+  .ds-apple ::-webkit-scrollbar-thumb { background: #c7c7cc; border-radius: 8px; }
+
+  /* Fluent 2 — 4px corners everywhere */
+  .ds-fluent #storybook-explorer-tree a,
+  .ds-fluent #storybook-explorer-tree button,
+  .ds-fluent [data-selected="true"] {
+    border-radius: 4px !important;
+  }
+
+  /* Carbon — sharp corners, flat */
+  .ds-carbon #storybook-explorer-tree a,
+  .ds-carbon #storybook-explorer-tree button,
+  .ds-carbon [data-selected="true"],
+  .ds-carbon button {
+    border-radius: 0 !important;
+  }
+
+  /* Expressive — chunky 14px rounding, heavier weights */
+  .ds-expressive #storybook-explorer-tree a,
+  .ds-expressive #storybook-explorer-tree button,
+  .ds-expressive [data-selected="true"] {
+    border-radius: 14px !important;
+    font-weight: 600;
+  }
+</style>
