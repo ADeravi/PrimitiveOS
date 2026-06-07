@@ -1,6 +1,6 @@
 {
   "name": "scntw-ds",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "typecheck": "tsc --noEmit",
+    "test-storybook": "test-storybook",
+    "tokens": "node scripts/export-tokens.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -68,6 +71,7 @@
     "eslint-plugin-storybook": "*",
     "storybook": "^10.4.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@storybook/test-runner": "^0.24.4"
   }
 }
