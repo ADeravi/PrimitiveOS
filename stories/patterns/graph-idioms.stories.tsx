@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 
 const meta: Meta = {
-  title: "Patterns/Graph Idioms",
+  title: "Charts/Graph Idioms",
   parameters: {
     layout: "fullscreen",
     docs: {
@@ -29,7 +29,7 @@ export default meta;
 type Story = StoryObj;
 
 // ---------------------------------------------------------------------------
-// Shared data (same network as Patterns/Network Graphs)
+// Shared data (same network as Charts/Network Graphs)
 // ---------------------------------------------------------------------------
 const NODES = [
   { id: "h1", group: 0 },
