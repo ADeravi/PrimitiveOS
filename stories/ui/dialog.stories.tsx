@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, screen, userEvent, waitFor, within } from "storybook/test";
 import {
   Dialog,
   DialogClose,
@@ -84,6 +85,35 @@ export const FormDialog: Story = {
       </DialogContent>
     </Dialog>
   ),
+};
+
+export const OpenCloseInteraction: Story = {
+  name: "Interaction: open & close",
+  render: () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">Open it</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Hello dialog</DialogTitle>
+          <DialogDescription>An accessible modal window.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="ghost">Dismiss</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Open it" }));
+    await waitFor(async () => expect(screen.getByText("Hello dialog")).toBeVisible());
+    await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    await waitFor(async () => expect(screen.queryByText("Hello dialog")).not.toBeInTheDocument());
+  },
 };
 
 export const DestructiveConfirm: Story = {

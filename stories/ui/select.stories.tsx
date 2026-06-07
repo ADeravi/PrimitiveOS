@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, screen, userEvent, waitFor, within } from "storybook/test";
 import {
   Select,
   SelectContent,
@@ -84,6 +85,32 @@ export const WithLabelAndDefault: Story = {
       <p className="text-xs text-muted-foreground">Controls what this member can do.</p>
     </div>
   ),
+};
+
+export const OpenSelectInteraction: Story = {
+  name: "Interaction: open & select",
+  render: () => (
+    <Select>
+      <SelectTrigger className="w-56">
+        <SelectValue placeholder="Select a fruit" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="apple">Apple</SelectItem>
+        <SelectItem value="banana">Banana</SelectItem>
+      </SelectContent>
+    </Select>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("combobox"));
+    await waitFor(async () =>
+      expect(screen.getByRole("option", { name: "Banana" })).toBeInTheDocument()
+    );
+    await userEvent.click(screen.getByRole("option", { name: "Banana" }));
+    await waitFor(async () =>
+      expect(canvas.getByRole("combobox")).toHaveTextContent("Banana")
+    );
+  },
 };
 
 export const States: Story = {

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, userEvent, within } from "storybook/test";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -81,4 +82,15 @@ export const File: Story = {
       <Input id="picture" type="file" />
     </div>
   ),
+};
+
+export const TypingInteraction: Story = {
+  name: "Interaction: typing updates value",
+  render: () => <Input placeholder="Type here" className="w-72" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByPlaceholderText("Type here");
+    await userEvent.type(input, "hello tokens");
+    await expect(input).toHaveValue("hello tokens");
+  },
 };

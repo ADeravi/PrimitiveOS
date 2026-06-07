@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, userEvent, within } from "storybook/test";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,26 @@ export const WithBadgesAndDisabled: Story = {
       </TabsContent>
     </Tabs>
   ),
+};
+
+export const SwitchInteraction: Story = {
+  name: "Interaction: switch tab",
+  render: () => (
+    <Tabs defaultValue="one" className="w-96">
+      <TabsList>
+        <TabsTrigger value="one">One</TabsTrigger>
+        <TabsTrigger value="two">Two</TabsTrigger>
+      </TabsList>
+      <TabsContent value="one">Panel one</TabsContent>
+      <TabsContent value="two">Panel two</TabsContent>
+    </Tabs>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("tab", { name: "Two" }));
+    await expect(canvas.getByText("Panel two")).toBeVisible();
+    await expect(canvas.getByRole("tab", { name: "Two" })).toHaveAttribute("aria-selected", "true");
+  },
 };
 
 export const FullWidth: Story = {
