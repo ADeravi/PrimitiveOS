@@ -16,14 +16,204 @@ const docsTheme = create({
 });
 
 // ---------------------------------------------------------------------------
-// Design-system token presets
-// Secondary, accent and tertiary now carry real chromatic values so that
-// secondary buttons, hover states and badges all look visually distinct.
-// Functional tokens (success / warning / info) are tuned per layer so status
-// components match each design language. shadcn inherits the globals.css base.
+// Tier 1 primitive ladders, generated per design language.
+// The lightness/chroma curves are taken from the base ladders in globals.css,
+// so every layer's ladders keep the same perceptual rhythm — only hue and
+// chroma scale change. Switching the Design Layer therefore re-themes the
+// PRIMITIVES too (Color Palette page, Alert warning text, anything referencing
+// --blue-*/--green-*/--red-*/--amber-*/--neutral-*).
 // ---------------------------------------------------------------------------
+const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+// Neutral lightness curve (achromatic ladder in globals.css)
+const NEUTRAL_L = [0.985, 0.967, 0.922, 0.87, 0.708, 0.556, 0.439, 0.371, 0.269, 0.205, 0.145];
+// Chromatic lightness + chroma curves (blue ladder in globals.css)
+const CHROMA_L = [0.97, 0.932, 0.882, 0.809, 0.707, 0.623, 0.546, 0.488, 0.424, 0.379, 0.282];
+const CHROMA_C = [0.014, 0.032, 0.059, 0.105, 0.155, 0.188, 0.215, 0.2, 0.16, 0.123, 0.087];
+
 type TokenMap = Record<string, string>;
 
+function chromaticLadder(name: string, hue: number, chromaScale = 1): TokenMap {
+  return Object.fromEntries(
+    STEPS.map((step, i) => [
+      `--${name}-${step}`,
+      `oklch(${CHROMA_L[i]} ${(CHROMA_C[i] * chromaScale).toFixed(3)} ${hue})`,
+    ])
+  );
+}
+
+function neutralLadder(hue: number, chroma: number): TokenMap {
+  return Object.fromEntries(
+    STEPS.map((step, i) => [
+      `--neutral-${step}`,
+      chroma === 0
+        ? `oklch(${NEUTRAL_L[i]} 0 0)`
+        : `oklch(${NEUTRAL_L[i]} ${chroma} ${hue})`,
+    ])
+  );
+}
+
+interface LadderSpec {
+  neutral: { hue: number; chroma: number };
+  blue: number;
+  green: number;
+  red: number;
+  amber: number;
+  chromaScale?: number;
+}
+
+function primitives(spec: LadderSpec): TokenMap {
+  const s = spec.chromaScale ?? 1;
+  return {
+    ...neutralLadder(spec.neutral.hue, spec.neutral.chroma),
+    ...chromaticLadder("blue", spec.blue, s),
+    ...chromaticLadder("green", spec.green, s),
+    ...chromaticLadder("red", spec.red, s),
+    ...chromaticLadder("amber", spec.amber, s),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Per-layer look: typography, primitives, elevation and motion physics.
+// Semantic colour presets live in DS_TOKENS below; LOOK carries everything
+// else that makes a design language feel like itself.
+// ---------------------------------------------------------------------------
+interface Look {
+  font: string;
+  primitives: TokenMap;
+  shadows: TokenMap;
+  motion: TokenMap;
+}
+
+const LOOK: Record<string, Look> = {
+  // shadcn inherits everything from globals.css — zero overrides.
+  shadcn: { font: '"Inter", ui-sans-serif, system-ui, sans-serif', primitives: {}, shadows: {}, motion: {} },
+
+  // Material 3 — Roboto, tinted neutrals, soft layered elevation,
+  // emphasized-decelerate easing, slightly slower durations.
+  material: {
+    font: '"Roboto", system-ui, sans-serif',
+    primitives: primitives({
+      neutral: { hue: 264, chroma: 0.012 },
+      blue: 259, green: 145, red: 27, amber: 85,
+    }),
+    shadows: {
+      "--shadow-sm": "0 1px 2px 0 oklch(0 0 0 / 30%), 0 1px 3px 1px oklch(0 0 0 / 15%)",
+      "--shadow-md": "0 1px 2px 0 oklch(0 0 0 / 30%), 0 2px 6px 2px oklch(0 0 0 / 15%)",
+      "--shadow-lg": "0 4px 8px 3px oklch(0 0 0 / 15%), 0 1px 3px 0 oklch(0 0 0 / 30%)",
+      "--shadow-xl": "0 8px 12px 6px oklch(0 0 0 / 15%), 0 4px 4px 0 oklch(0 0 0 / 30%)",
+    },
+    motion: {
+      "--duration-fast": "200ms",
+      "--duration-normal": "300ms",
+      "--duration-slow": "500ms",
+      "--ease-standard": "cubic-bezier(0.2, 0, 0, 1)",
+      "--ease-enter": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+      "--ease-exit": "cubic-bezier(0.3, 0, 0.8, 0.15)",
+    },
+  },
+
+  // Fluent 2 — Segoe UI, cool sharp neutrals, tight shadows, quick motion.
+  fluent: {
+    font: '"Segoe UI", system-ui, sans-serif',
+    primitives: primitives({
+      neutral: { hue: 250, chroma: 0.005 },
+      blue: 245, green: 150, red: 25, amber: 70,
+    }),
+    shadows: {
+      "--shadow-sm": "0 1px 2px 0 oklch(0 0 0 / 14%)",
+      "--shadow-md": "0 2px 4px 0 oklch(0 0 0 / 14%)",
+      "--shadow-lg": "0 4px 8px 0 oklch(0 0 0 / 14%)",
+      "--shadow-xl": "0 8px 16px 0 oklch(0 0 0 / 14%)",
+    },
+    motion: {
+      "--duration-fast": "100ms",
+      "--duration-normal": "200ms",
+      "--duration-slow": "300ms",
+      "--ease-standard": "cubic-bezier(0.33, 0, 0.67, 1)",
+      "--ease-enter": "cubic-bezier(0, 0, 0, 1)",
+      "--ease-exit": "cubic-bezier(1, 0, 1, 1)",
+    },
+  },
+
+  // IBM Carbon — IBM Plex Sans, vivid IBM Blue ladder, flat surfaces
+  // (minimal shadow), productive easing.
+  carbon: {
+    font: '"IBM Plex Sans", system-ui, sans-serif',
+    primitives: primitives({
+      neutral: { hue: 260, chroma: 0.004 },
+      blue: 262, green: 150, red: 22, amber: 80,
+      chromaScale: 1.08,
+    }),
+    shadows: {
+      "--shadow-sm": "0 0 0 1px oklch(0 0 0 / 6%)",
+      "--shadow-md": "0 1px 2px 0 oklch(0 0 0 / 12%)",
+      "--shadow-lg": "0 2px 6px 0 oklch(0 0 0 / 16%)",
+      "--shadow-xl": "0 4px 8px 0 oklch(0 0 0 / 20%)",
+    },
+    motion: {
+      "--duration-fast": "110ms",
+      "--duration-normal": "240ms",
+      "--duration-slow": "400ms",
+      "--ease-standard": "cubic-bezier(0.2, 0, 0.38, 0.9)",
+      "--ease-enter": "cubic-bezier(0, 0, 0.38, 0.9)",
+      "--ease-exit": "cubic-bezier(0.2, 0, 1, 0.9)",
+    },
+  },
+
+  // Apple HIG — SF system stack, pure neutrals, system colours
+  // (systemBlue/Green/Red/Orange), diffuse soft shadows, sheet-style easing.
+  apple: {
+    font: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif',
+    primitives: primitives({
+      neutral: { hue: 0, chroma: 0 },
+      blue: 248, green: 152, red: 22, amber: 60,
+      chromaScale: 1.05,
+    }),
+    shadows: {
+      "--shadow-sm": "0 1px 4px 0 oklch(0 0 0 / 8%)",
+      "--shadow-md": "0 4px 12px 0 oklch(0 0 0 / 10%)",
+      "--shadow-lg": "0 10px 30px 0 oklch(0 0 0 / 12%)",
+      "--shadow-xl": "0 20px 50px 0 oklch(0 0 0 / 16%)",
+    },
+    motion: {
+      "--duration-fast": "180ms",
+      "--duration-normal": "300ms",
+      "--duration-slow": "450ms",
+      "--ease-standard": "cubic-bezier(0.32, 0.72, 0, 1)",
+      "--ease-enter": "cubic-bezier(0.32, 0.72, 0, 1)",
+      "--ease-exit": "cubic-bezier(0.4, 0, 1, 1)",
+    },
+  },
+
+  // Expressive — Nunito, warm tinted neutrals, saturated ladders,
+  // big playful shadows, springy motion.
+  expressive: {
+    font: '"Nunito", "Inter", system-ui, sans-serif',
+    primitives: primitives({
+      neutral: { hue: 280, chroma: 0.01 },
+      blue: 264, green: 142, red: 20, amber: 55,
+      chromaScale: 1.25,
+    }),
+    shadows: {
+      "--shadow-sm": "0 2px 4px 0 oklch(0.5 0.22 264 / 10%)",
+      "--shadow-md": "0 4px 10px 0 oklch(0.5 0.22 264 / 14%)",
+      "--shadow-lg": "0 10px 24px -4px oklch(0.5 0.22 264 / 20%)",
+      "--shadow-xl": "0 20px 40px -8px oklch(0.5 0.22 264 / 25%)",
+    },
+    motion: {
+      "--duration-fast": "180ms",
+      "--duration-normal": "320ms",
+      "--duration-slow": "520ms",
+      "--ease-standard": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      "--ease-enter": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      "--ease-exit": "cubic-bezier(0.36, 0, 0.66, -0.56)",
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Tier 2/3 semantic + functional presets per design language.
+// ---------------------------------------------------------------------------
 const DS_TOKENS: Record<string, TokenMap> = {
 
   // ---- shadcn Neutral (default) -------------------------------------------
@@ -364,11 +554,22 @@ const preview: Preview = {
       const { designSystem, radius, primaryColor, density } = context.globals as {
         designSystem: string; radius: string; primaryColor: string; density: string;
       };
+      const look = LOOK[designSystem] ?? LOOK.shadcn;
       const preset = DS_TOKENS[designSystem] ?? {};
       const style: React.CSSProperties & Record<string, string> = {
+        // Tier 1: regenerated primitive ladders for this design language
+        ...look.primitives,
+        // Elevation + motion physics
+        ...look.shadows,
+        ...look.motion,
+        // Tier 2/3: semantic + functional colour preset
         ...preset,
+        // Toolbar overrides on top
         ...(radius       ? { "--radius":  radius       } : {}),
         ...(primaryColor ? { "--primary": primaryColor } : {}),
+        // Typography
+        "--font-sans": look.font,
+        fontFamily: look.font,
         fontSize: densityScale[density] ?? "14px",
       };
       return <div style={style} className="contents"><Story /></div>;
