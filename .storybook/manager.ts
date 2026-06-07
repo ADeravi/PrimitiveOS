@@ -197,33 +197,78 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
 
 const LAYER_CLASSES = Object.keys(MANAGER_THEMES).map((k) => `ds-${k}`);
 
-function applyShell(layer: string) {
-  const theme = MANAGER_THEMES[layer] ?? MANAGER_THEMES.shadcn;
+// Canvas backdrop per layer when the preview's dark toggle is on, so the
+// area AROUND the story matches the story's own dark surface.
+const DARK_PREVIEW_BG: Record<string, string> = {
+  shadcn: "#0a0a0a",
+  material: "#141218", // M3 dark surface
+  fluent: "#1f1f1f",
+  carbon: "#161616",
+  apple: "#161617",
+  expressive: "#1a1025",
+};
+
+function buildTheme(layer: string, dark: boolean): ThemeVars {
+  const base = MANAGER_THEMES[layer] ?? MANAGER_THEMES.shadcn;
+  return {
+    ...base,
+    appPreviewBg: dark ? (DARK_PREVIEW_BG[layer] ?? "#0a0a0a") : base.appPreviewBg,
+  };
+}
+
+function applyShell(layer: string, dark: boolean): ThemeVars {
+  const safe = layer in MANAGER_THEMES ? layer : "shadcn";
+  const theme = buildTheme(safe, dark);
   addons.setConfig({ theme });
   // Class hook for the deeper per-layer CSS in manager-head.html.
   const html = document.documentElement;
   html.classList.remove(...LAYER_CLASSES);
-  html.classList.add(`ds-${layer in MANAGER_THEMES ? layer : "shadcn"}`);
+  html.classList.add(`ds-${safe}`);
   return theme;
 }
 
+// Bootstrap the shell synchronously from the URL so the very first paint is
+// already in the right design language (no neutral flash, no missed sync).
+function globalsFromUrl(): { layer: string; dark: boolean } {
+  try {
+    const raw = new URLSearchParams(window.location.search).get("globals") ?? "";
+    const map: Record<string, string> = {};
+    for (const pair of raw.split(";")) {
+      const [k, v] = pair.split(":").map(decodeURIComponent);
+      if (k) map[k] = v ?? "";
+    }
+    return { layer: map.designSystem ?? "shadcn", dark: map.theme === "dark" };
+  } catch {
+    return { layer: "shadcn", dark: false };
+  }
+}
+
+const initial = globalsFromUrl();
+
 addons.setConfig({
-  theme: MANAGER_THEMES.shadcn,
+  theme: buildTheme(initial.layer in MANAGER_THEMES ? initial.layer : "shadcn", initial.dark),
   sidebar: {
     showRoots: true,
   },
 });
+applyShell(initial.layer, initial.dark);
 
-// Sync the whole shell with the preview's `designSystem` global.
+// Keep the whole shell in sync with the preview's `designSystem` global and
+// its light/dark toggle. IMPORTANT: read globals from the EVENT PAYLOAD —
+// api.getGlobals() can still hold the previous values when the event fires.
 addons.register("scntw/dynamic-manager-theme", (api) => {
-  let current = "";
-  const sync = () => {
+  let current = `${initial.layer}/${initial.dark}`;
+  const sync = (args?: { globals?: Record<string, unknown> }) => {
     try {
-      const globals = (api.getGlobals?.() ?? {}) as { designSystem?: string };
-      const layer = globals.designSystem ?? "shadcn";
-      if (layer === current) return;
-      current = layer;
-      const theme = applyShell(layer);
+      const globals =
+        (args && args.globals) ??
+        ((api.getGlobals?.() ?? {}) as Record<string, unknown>);
+      const layer = (globals.designSystem as string) ?? "shadcn";
+      const dark = globals.theme === "dark";
+      const key = `${layer}/${dark}`;
+      if (key === current) return;
+      current = key;
+      const theme = applyShell(layer, dark);
       // setOptions forces an immediate re-render of the manager UI.
       (api as unknown as { setOptions?: (o: object) => void }).setOptions?.({ theme });
     } catch {

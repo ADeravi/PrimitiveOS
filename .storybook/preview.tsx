@@ -510,7 +510,8 @@ const preview: Preview = {
   parameters: {
     docs: { theme: docsTheme },
     backgrounds: {
-      default: "white",
+      // No forced default: the backdrop comes from the manager theme's
+      // appPreviewBg, which follows the Design Layer and the dark toggle.
       values: [
         { name: "white",       value: "#ffffff" },
         { name: "zinc-50",     value: "#fafafa" },
