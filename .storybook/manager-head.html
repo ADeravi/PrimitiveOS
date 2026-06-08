@@ -11,7 +11,22 @@
      manager.ts sets `ds-<layer>` on <html> when the Design Layer changes.
      Selectors stick to stable Storybook ids/attributes only.
   ------------------------------------------------------------------------ */
-  html { transition: background-color 240ms ease; }
+  html { transition: background-color 280ms ease; }
+  /* Soft fade for the shell when the Design Layer / dark toggle changes.
+     Scoped to colour properties only so layout/transform motion is untouched;
+     remounted elements simply paint fresh (no animation), persistent ones ease. */
+  @media (prefers-reduced-motion: no-preference) {
+    body,
+    #root,
+    .sidebar-container,
+    .sidebar-header,
+    #storybook-explorer-tree a,
+    #storybook-explorer-tree button,
+    [role="main"],
+    [role="tablist"] {
+      transition: background-color 280ms ease, color 280ms ease, border-color 280ms ease;
+    }
+  }
 
   /* Material 3 — pill-shaped selection (navigation-drawer style), roomier rows */
   .ds-material #storybook-explorer-tree a,

@@ -25,13 +25,26 @@
     try {
       var params = new URLSearchParams(window.location.search);
       var globals = params.get("globals") || "";
-      var layer = "shadcn";
-      var dark = false;
+      var layer = "";
+      var dark = null;
       globals.split(";").forEach(function (pair) {
         var kv = pair.split(":");
         if (kv[0] === "designSystem" && DOCS[kv[1]]) layer = kv[1];
-        if (kv[0] === "theme" && kv[1] === "dark") dark = true;
+        if (kv[0] === "theme") dark = kv[1] === "dark";
       });
+      // The iframe can (re)load WITHOUT globals in its URL — e.g. when the
+      // manager re-renders after a shell theme change. Falling back to light
+      // here is what caused the white flash, so fall back to the last known
+      // scheme persisted by preview.tsx instead.
+      if (!layer || dark === null) {
+        try {
+          var saved = JSON.parse(window.localStorage.getItem("scntw-globals") || "{}");
+          if (!layer && DOCS[saved.layer]) layer = saved.layer;
+          if (dark === null && typeof saved.dark === "boolean") dark = saved.dark;
+        } catch (e2) { /* ignore */ }
+      }
+      if (!layer) layer = "shadcn";
+      if (dark === null) dark = false;
       var d = DOCS[layer];
       var root = document.documentElement;
       root.classList.toggle("dark", dark);
@@ -50,6 +63,35 @@
   })();
 </script>
 <style>
+  /* ------------------------------------------------------------------ */
+  /* Soft fade between Design Layers / dark modes.                       */
+  /* Persistent surfaces always ease their backdrop; everything else     */
+  /* only transitions while html carries .theme-fade — preview.tsx adds  */
+  /* it for ~500ms around each layer/dark switch, so normal interactions */
+  /* (hover, dialogs, charts) keep their own motion.                     */
+  /* ------------------------------------------------------------------ */
+  @media (prefers-reduced-motion: no-preference) {
+    html, body,
+    .sbdocs.sbdocs-wrapper,
+    .sbdocs-preview,
+    .sbdocs-preview > *,
+    .docs-story {
+      transition: background-color 280ms ease, border-color 280ms ease;
+    }
+    html.theme-fade #storybook-root,
+    html.theme-fade #storybook-root *,
+    html.theme-fade .sbdocs-wrapper,
+    html.theme-fade .sbdocs-wrapper * {
+      transition:
+        background-color 280ms ease,
+        border-color 280ms ease,
+        color 280ms ease,
+        fill 280ms ease,
+        stroke 280ms ease,
+        box-shadow 280ms ease !important;
+    }
+  }
+
   /* ------------------------------------------------------------------ */
   /* Docs pages follow the dark toggle AND the Design Layer: every       */
   /* surface below uses the per-layer --sbdocs-* palette set by the      */
