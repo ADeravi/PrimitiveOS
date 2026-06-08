@@ -44,13 +44,45 @@ export function ChartCard({
   children,
 }: ChartCardProps) {
   const bodyRef = React.useRef<HTMLDivElement>(null);
+  const wrapRef = React.useRef<HTMLDivElement>(null);
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const grab = () => bodyRef.current?.querySelector("svg") ?? null;
 
+  // Fade each chart in when it scrolls into view and out when it leaves, so a
+  // page of charts reveals gently rather than popping. Falls back to "shown"
+  // where IntersectionObserver is unavailable; reduced-motion users skip it.
+  const [shown, setShown] = React.useState(false);
+  React.useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setShown(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => setShown(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
+    <div ref={wrapRef} className="chart-fade" data-shown={shown}>
     <Card className={cn("w-[620px] max-w-full", className)}>
       <style>{`
+        .chart-fade {
+          opacity: 0;
+          transform: translateY(10px) scale(0.99);
+          transition:
+            opacity var(--duration-slow, 420ms) var(--ease-standard),
+            transform var(--duration-slow, 420ms) var(--ease-standard);
+          will-change: opacity, transform;
+        }
+        .chart-fade[data-shown="true"] { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+          .chart-fade { opacity: 1; transform: none; transition: none; }
+        }
         .chart-card-body svg :is(rect, circle, line) {
           transition:
             x var(--duration-normal) var(--ease-standard),
@@ -115,6 +147,7 @@ export function ChartCard({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
 
