@@ -1,0 +1,156 @@
+/* =========================================================================
+   component-themes.css — BESPOKE per-design-language component treatments.
+
+   Tokens (colour, radius, shadow, motion, font-family) re-theme components
+   automatically; this file adds the SHAPE and TYPE personality that makes a
+   Tab read as Material vs Apple vs Carbon, etc. Keyed on the `ds-<layer>`
+   class the preview decorator puts on the story wrapper, scoped to the stable
+   shadcn `data-slot` hooks + Radix `data-state` attributes — so it overrides
+   the components without editing their source.
+
+   Layers: shadcn (baseline, no rules) · neutral (baseline) · material ·
+   fluent · carbon · apple · expressive.
+   ========================================================================= */
+
+/* ============================== TYPE PERSONALITY ========================= */
+/* Each language has a voice beyond its font family: weight, tracking, case. */
+.ds-apple      { letter-spacing: -0.01em; }
+.ds-carbon     { letter-spacing: 0; }
+.ds-expressive { letter-spacing: 0.005em; }
+
+.ds-material   h1, .ds-material  h2, .ds-material  h3 { letter-spacing: 0; font-weight: 500; }
+.ds-apple      h1, .ds-apple     h2, .ds-apple     h3 { letter-spacing: -0.02em; font-weight: 600; }
+.ds-carbon     h1, .ds-carbon    h2, .ds-carbon    h3 { letter-spacing: 0; font-weight: 600; }
+.ds-expressive h1, .ds-expressive h2, .ds-expressive h3 { font-weight: 800; }
+
+/* Material & Carbon uppercase their small action labels; Apple never does. */
+.ds-material [data-slot="button"],
+.ds-material [data-slot="tabs-trigger"],
+.ds-material [data-slot="badge"] {
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500;
+}
+.ds-carbon [data-slot="badge"] { text-transform: uppercase; letter-spacing: 0.04em; }
+.ds-apple [data-slot="button"] { letter-spacing: -0.01em; font-weight: 500; }
+.ds-expressive [data-slot="button"],
+.ds-expressive [data-slot="tabs-trigger"] { font-weight: 700; }
+
+/* =================================== TABS ================================ */
+/* Material 3 — no pill track; active tab marked by a sliding underline bar. */
+.ds-material [data-slot="tabs-list"] { background: transparent; padding: 0; gap: 4px; height: auto; }
+.ds-material [data-slot="tabs-trigger"] {
+  border-radius: 0; background: transparent; padding: 8px 16px;
+}
+.ds-material [data-slot="tabs-trigger"][data-state="active"] {
+  background: transparent; box-shadow: none; color: var(--primary);
+}
+.ds-material [data-slot="tabs-trigger"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--primary); opacity: 0; transition: opacity var(--duration-fast, .2s) ease;
+}
+.ds-material [data-slot="tabs-trigger"][data-state="active"]::after { opacity: 1; }
+
+/* Apple HIG — segmented control: rounded track, raised white active capsule. */
+.ds-apple [data-slot="tabs-list"] { background: var(--muted); border-radius: 9px; padding: 2px; }
+.ds-apple [data-slot="tabs-trigger"] { border-radius: 7px; }
+.ds-apple [data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--background); box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 0.5px rgba(0,0,0,.04);
+}
+
+/* Fluent 2 — 4px corners, active tab gets a short bottom accent bar. */
+.ds-fluent [data-slot="tabs-list"] { background: transparent; border-radius: 4px; }
+.ds-fluent [data-slot="tabs-trigger"] { border-radius: 4px; background: transparent; }
+.ds-fluent [data-slot="tabs-trigger"][data-state="active"] { background: transparent; box-shadow: none; color: var(--primary); }
+.ds-fluent [data-slot="tabs-trigger"]::after {
+  content: ""; position: absolute; left: 25%; right: 25%; bottom: 2px; height: 2px;
+  border-radius: 2px; background: var(--primary); opacity: 0; transition: opacity .1s ease;
+}
+.ds-fluent [data-slot="tabs-trigger"][data-state="active"]::after { opacity: 1; }
+
+/* IBM Carbon — flat, sharp, contained; active tab a 2px bottom border. */
+.ds-carbon [data-slot="tabs-list"] { background: transparent; border-radius: 0; padding: 0; gap: 0; border-bottom: 1px solid var(--border); }
+.ds-carbon [data-slot="tabs-trigger"] { border-radius: 0; background: transparent; border-bottom: 2px solid transparent; }
+.ds-carbon [data-slot="tabs-trigger"][data-state="active"] {
+  background: transparent; box-shadow: none; border-bottom-color: var(--primary); color: var(--foreground); font-weight: 600;
+}
+
+/* Expressive — chunky pill tabs, big radius, heavier weight. */
+.ds-expressive [data-slot="tabs-list"] { border-radius: 14px; padding: 4px; }
+.ds-expressive [data-slot="tabs-trigger"] { border-radius: 11px; }
+
+/* ================================= BUTTONS =============================== */
+.ds-material [data-slot="button"] { border-radius: 9999px; }       /* M3 full pill */
+.ds-fluent   [data-slot="button"] { border-radius: 4px; }          /* Fluent 4px */
+.ds-carbon   [data-slot="button"] { border-radius: 0; }            /* Carbon square */
+.ds-apple    [data-slot="button"] { border-radius: 9px; }          /* HIG rounded */
+.ds-expressive [data-slot="button"] { border-radius: 14px; }       /* chunky */
+
+/* ============================ INPUT / SELECT ============================= */
+/* Carbon text fields = bottom rule only (no full box). */
+.ds-carbon [data-slot="input"],
+.ds-carbon [data-slot="select-trigger"] {
+  border-radius: 0; border-color: transparent; border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+.ds-carbon [data-slot="input"]:focus-visible,
+.ds-carbon [data-slot="select-trigger"]:focus-visible { border-bottom-color: var(--primary); box-shadow: none; }
+/* Material text fields = filled, rounded top, emphasised bottom rule. */
+.ds-material [data-slot="input"],
+.ds-material [data-slot="select-trigger"] {
+  border-radius: 6px 6px 0 0; border-color: transparent; border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+.ds-material [data-slot="input"]:focus-visible,
+.ds-material [data-slot="select-trigger"]:focus-visible { border-bottom: 2px solid var(--primary); box-shadow: none; }
+.ds-fluent [data-slot="input"], .ds-fluent [data-slot="select-trigger"] { border-radius: 4px; }
+.ds-apple  [data-slot="input"], .ds-apple  [data-slot="select-trigger"] { border-radius: 8px; }
+.ds-expressive [data-slot="input"], .ds-expressive [data-slot="select-trigger"] { border-radius: 12px; }
+
+/* =============================== SWITCH ================================= */
+/* Apple / Material = fully-rounded iOS/M3 track; Carbon = squared. */
+.ds-apple    [data-slot="switch"] { border-radius: 9999px; }
+.ds-material [data-slot="switch"] { border-radius: 9999px; }
+.ds-carbon   [data-slot="switch"] { border-radius: 0; }
+.ds-carbon   [data-slot="switch-thumb"] { border-radius: 0; }
+.ds-fluent   [data-slot="switch"] { border-radius: 9999px; }
+
+/* ============================== CHECKBOX =============================== */
+.ds-carbon   [data-slot="checkbox"] { border-radius: 0; }
+.ds-material [data-slot="checkbox"] { border-radius: 2px; }
+.ds-expressive [data-slot="checkbox"] { border-radius: 6px; }
+
+/* =============================== SLIDER ================================ */
+.ds-carbon [data-slot="slider-track"], .ds-carbon [data-slot="slider-range"] { border-radius: 0; }
+.ds-carbon [data-slot="slider-thumb"] { border-radius: 0; }
+.ds-material [data-slot="slider-thumb"] { width: 1.15rem; height: 1.15rem; }
+
+/* ============================ DIALOG / SHEET =========================== */
+.ds-carbon   [data-slot="dialog-content"] { border-radius: 0; }
+.ds-material [data-slot="dialog-content"] { border-radius: 1.25rem; }   /* M3 large */
+.ds-apple    [data-slot="dialog-content"] { border-radius: 0.9rem; }
+.ds-expressive [data-slot="dialog-content"] { border-radius: 1.25rem; }
+
+/* ================================= CARD =============================== */
+.ds-carbon   [data-slot="card"] { border-radius: 0; box-shadow: none; }
+.ds-material [data-slot="card"] { border-radius: 0.85rem; box-shadow: var(--shadow-md); border-color: transparent; }
+.ds-apple    [data-slot="card"] { border-radius: 0.85rem; box-shadow: var(--shadow-sm); }
+.ds-expressive [data-slot="card"] { border-radius: 1rem; box-shadow: var(--shadow-lg); }
+.ds-fluent   [data-slot="card"] { border-radius: 4px; }
+
+/* =========================== DROPDOWN / MENU ========================== */
+.ds-carbon   [data-slot="dropdown-menu-content"] { border-radius: 0; }
+.ds-carbon   [data-slot="dropdown-menu-item"] { border-radius: 0; }
+.ds-material [data-slot="dropdown-menu-content"] { border-radius: 0.75rem; }
+.ds-material [data-slot="dropdown-menu-item"] { border-radius: 9999px; }
+.ds-apple    [data-slot="dropdown-menu-content"] { border-radius: 0.7rem; }
+.ds-expressive [data-slot="dropdown-menu-content"] { border-radius: 1rem; }
+
+/* ================================ BADGE =============================== */
+.ds-carbon   [data-slot="badge"] { border-radius: 0; }
+.ds-material [data-slot="badge"] { border-radius: 9999px; }
+.ds-fluent   [data-slot="badge"] { border-radius: 4px; }
+.ds-expressive [data-slot="badge"] { border-radius: 9999px; font-weight: 700; }
+
+/* =============================== TOOLTIP ============================== */
+.ds-carbon   [data-slot="tooltip-content"] { border-radius: 0; }
+.ds-material [data-slot="tooltip-content"] { border-radius: 0.5rem; }
+.ds-expressive [data-slot="tooltip-content"] { border-radius: 0.75rem; }
