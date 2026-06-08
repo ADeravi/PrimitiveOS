@@ -96,6 +96,13 @@
     box-shadow: none !important;
   }
   html.dark .sbdocs-preview svg { color: var(--sbdocs-muted, #a1a1aa); }
+  /* The toolbar row and story panel inside the preview frame carry their own
+     white backgrounds from the (light) docs theme — flatten them onto the
+     layer surface so no light strip survives in dark mode. */
+  html.dark .sbdocs-preview > * {
+    background: var(--sbdocs-bg, #0a0a0a) !important;
+    border-color: var(--sbdocs-border, #27272a) !important;
+  }
   html.dark .docs-story { background: var(--sbdocs-bg, #0a0a0a) !important; }
 
   /* "Show code" toggle + source blocks */
