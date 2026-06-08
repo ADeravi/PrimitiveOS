@@ -28,6 +28,28 @@
     }
   }
 
+  /* ------------------------------------------------------------------------
+     Top toolbar (Design Layer · Radius · Primary · Density · theme) — make
+     the global switchers read as proper controls, not quiet text. Chips use
+     color-mix on currentColor so they adapt to every shell theme, light or
+     dark, without hard-coded colours.
+  ------------------------------------------------------------------------ */
+  .sb-bar button {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 5px 10px !important;
+    border-radius: 8px !important;
+    background: color-mix(in srgb, currentColor 7%, transparent) !important;
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent) !important;
+    margin-inline: 2px;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+  .sb-bar button:hover {
+    background: color-mix(in srgb, currentColor 14%, transparent) !important;
+    border-color: color-mix(in srgb, currentColor 30%, transparent) !important;
+  }
+  .sb-bar button svg { width: 15px; height: 15px; }
+
   /* Material 3 — pill-shaped selection (navigation-drawer style), roomier rows */
   .ds-material #storybook-explorer-tree a,
   .ds-material #storybook-explorer-tree button {
