@@ -4,6 +4,8 @@ import { withThemeByClassName } from "@storybook/addon-themes";
 import { create } from "storybook/theming";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "../app/globals.css";
+// Per-layer bespoke component shapes + font personality, keyed on `ds-<layer>`.
+import "./component-themes.css";
 
 // Docs pages render with the default light theme; preview-head.html flips
 // them dark via `.dark .sbdocs` CSS so they follow the dark toggle too.
@@ -277,29 +279,20 @@ const DS_TOKENS: Record<string, TokenMap> = {
   },
 
   // ---- Material Design 3 (Material You) ------------------------------------
-  // Primary = blue, Secondary = teal, Tertiary/Accent = purple.
-  // Container tokens map to shadcn secondary/accent (light fill + dark text).
+  // Primary = M3 purple, Secondary = neutral container, Accent = soft purple.
   material: {
     "--primary":              "oklch(0.49 0.12 303)",
     "--primary-foreground":   "oklch(1 0 0)",
-
-    // Secondary = teal (on secondary buttons, chips)
     "--secondary":            "oklch(0.95 0.012 303)",
     "--secondary-foreground": "oklch(0.3 0.03 303)",
-
-    // Accent = tertiary purple (hover, focus rings, badges)
     "--accent":               "oklch(0.94 0.03 303)",
     "--accent-foreground":    "oklch(0.3 0.08 303)",
-
-    // Functional — Material green / amber / blue
     "--success":              "oklch(0.55 0.14 150)",
     "--success-foreground":   "oklch(1 0 0)",
     "--warning":              "oklch(0.75 0.16 80)",
     "--warning-foreground":   "oklch(0.2 0.04 80)",
     "--info":                 "oklch(0.49 0.17 264)",
     "--info-foreground":      "oklch(1 0 0)",
-
-    // Surfaces — subtly tinted blue-grey
     "--background":           "oklch(0.99 0.004 264)",
     "--foreground":           "oklch(0.18 0.02 264)",
     "--card":                 "oklch(0.97 0.008 264)",
@@ -311,7 +304,6 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--ring":                 "oklch(0.49 0.12 303)",
     "--destructive":          "oklch(0.53 0.22 27)",
     "--radius":               "0.75rem",
-    // Chart palette — blue, teal, purple, amber, red
     "--chart-1":              "oklch(0.49 0.17 264)",
     "--chart-2":              "oklch(0.52 0.13 195)",
     "--chart-3":              "oklch(0.55 0.18 303)",
@@ -320,27 +312,19 @@ const DS_TOKENS: Record<string, TokenMap> = {
   },
 
   // ---- Fluent Design 2 (Microsoft) ----------------------------------------
-  // Primary = cornflower blue, Secondary = teal, Accent = warm amber.
   fluent: {
     "--primary":              "oklch(0.5 0.19 250)",
     "--primary-foreground":   "oklch(1 0 0)",
-
-    // Secondary = Fluent teal (Teams sidebar accent)
     "--secondary":            "oklch(0.96 0.006 250)",
     "--secondary-foreground": "oklch(0.3 0.02 250)",
-
-    // Accent = Fluent amber/gold (warning, highlights)
     "--accent":               "oklch(0.95 0.02 250)",
     "--accent-foreground":    "oklch(0.3 0.06 250)",
-
-    // Functional
     "--success":              "oklch(0.55 0.13 150)",
     "--success-foreground":   "oklch(1 0 0)",
     "--warning":              "oklch(0.75 0.18 70)",
     "--warning-foreground":   "oklch(0.15 0.04 70)",
     "--info":                 "oklch(0.5 0.19 250)",
     "--info-foreground":      "oklch(1 0 0)",
-
     "--background":           "oklch(1 0 0)",
     "--foreground":           "oklch(0.13 0 0)",
     "--card":                 "oklch(0.98 0 0)",
@@ -360,27 +344,19 @@ const DS_TOKENS: Record<string, TokenMap> = {
   },
 
   // ---- IBM Carbon Design System -------------------------------------------
-  // Primary = IBM blue, Secondary = teal/cyan, Accent = purple.
   carbon: {
     "--primary":              "oklch(0.55 0.19 250)",
     "--primary-foreground":   "oklch(1 0 0)",
-
-    // Secondary = IBM Cyan 60
     "--secondary":            "oklch(0.95 0 0)",
     "--secondary-foreground": "oklch(0.25 0 0)",
-
-    // Accent = IBM Purple 60
     "--accent":               "oklch(0.93 0.02 250)",
     "--accent-foreground":    "oklch(0.25 0.06 250)",
-
-    // Functional — IBM green / amber / blue
     "--success":              "oklch(0.55 0.13 150)",
     "--success-foreground":   "oklch(1 0 0)",
     "--warning":              "oklch(0.7 0.16 75)",
     "--warning-foreground":   "oklch(0.15 0.04 70)",
     "--info":                 "oklch(0.55 0.19 250)",
     "--info-foreground":      "oklch(1 0 0)",
-
     "--background":           "oklch(0.97 0 0)",
     "--foreground":           "oklch(0.1 0 0)",
     "--card":                 "oklch(1 0 0)",
@@ -400,27 +376,19 @@ const DS_TOKENS: Record<string, TokenMap> = {
   },
 
   // ---- Apple Human Interface Guidelines -----------------------------------
-  // Primary = Apple blue, Secondary = green, Accent = orange/amber.
   apple: {
     "--primary":              "oklch(0.55 0.2 250)",
     "--primary-foreground":   "oklch(1 0 0)",
-
-    // Secondary = Apple Green
     "--secondary":            "oklch(0.96 0.004 250)",
     "--secondary-foreground": "oklch(0.3 0 0)",
-
-    // Accent = Apple Orange
     "--accent":               "oklch(0.95 0.02 250)",
     "--accent-foreground":    "oklch(0.3 0.06 250)",
-
-    // Functional — Apple system green / orange / blue
     "--success":              "oklch(0.56 0.18 142)",
     "--success-foreground":   "oklch(1 0 0)",
     "--warning":              "oklch(0.7 0.2 55)",
     "--warning-foreground":   "oklch(0.15 0.04 55)",
     "--info":                 "oklch(0.55 0.2 250)",
     "--info-foreground":      "oklch(1 0 0)",
-
     "--background":           "oklch(1 0 0)",
     "--foreground":           "oklch(0.07 0 0)",
     "--card":                 "oklch(0.98 0 0)",
@@ -440,24 +408,19 @@ const DS_TOKENS: Record<string, TokenMap> = {
   },
 
   // ---- Expressive (vibrant 3-colour palette) -------------------------------
-  // No specific design language — maximally chromatic to show full component
-  // colour range. Good for demoing badges, charts and status components.
   expressive: {
-    "--primary":              "oklch(0.5 0.22 264)",   // Vivid blue
+    "--primary":              "oklch(0.5 0.22 264)",
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.95 0.012 264)",   // Vivid green
+    "--secondary":            "oklch(0.95 0.012 264)",
     "--secondary-foreground": "oklch(0.3 0.03 264)",
-    "--accent":               "oklch(0.94 0.04 264)",   // Vivid purple
+    "--accent":               "oklch(0.94 0.04 264)",
     "--accent-foreground":    "oklch(0.3 0.1 264)",
-
-    // Functional — vivid green / amber / blue
     "--success":              "oklch(0.6 0.2 150)",
     "--success-foreground":   "oklch(1 0 0)",
     "--warning":              "oklch(0.75 0.19 75)",
     "--warning-foreground":   "oklch(0.15 0.04 70)",
     "--info":                 "oklch(0.55 0.22 264)",
     "--info-foreground":      "oklch(1 0 0)",
-
     "--background":           "oklch(0.98 0 0)",
     "--foreground":           "oklch(0.1 0 0)",
     "--card":                 "oklch(1 0 0)",
@@ -467,7 +430,7 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--border":               "oklch(0.87 0.02 264)",
     "--input":                "oklch(0.87 0.02 264)",
     "--ring":                 "oklch(0.5 0.22 264)",
-    "--destructive":          "oklch(0.55 0.25 27)",   // Vivid red
+    "--destructive":          "oklch(0.55 0.25 27)",
     "--radius":               "0.75rem",
     "--chart-1":              "oklch(0.5 0.22 264)",
     "--chart-2":              "oklch(0.55 0.2 142)",
@@ -480,10 +443,7 @@ const DS_TOKENS: Record<string, TokenMap> = {
 // ---------------------------------------------------------------------------
 // DARK semantic presets — each layer's own dark scheme, not generic zinc.
 // In dark mode these are merged OVER the light preset, so every layer keeps
-// its identity: M3 tonal dark surfaces + light-tone brand colours, Fluent
-// graphite + #479ef5, Carbon Gray-90 + Blue-40, Apple #1d1d1f + systemBlue
-// dark, Expressive deep violet. shadcn stays {} → handled by `.dark` class.
-// All `*-foreground` pairs are chosen for WCAG-readable contrast.
+// its identity. All `*-foreground` pairs are chosen for WCAG-readable contrast.
 // ---------------------------------------------------------------------------
 const DS_DARK: Record<string, TokenMap> = {
   shadcn: {},
@@ -763,9 +723,7 @@ export const globalTypes = {
 
 // Canvas + docs-page surfaces per layer — SB10 ignores appPreviewBg, so the
 // preview paints its own backdrop, sets html.dark and publishes the
-// --sbdocs-* variables consumed by preview-head.html's docs CSS. The
-// bootstrap script in preview-head.html applies the same values BEFORE first
-// paint (no flash); this map keeps them in sync on every globals change.
+// --sbdocs-* variables consumed by preview-head.html's docs CSS.
 const DOCS_SURFACES: Record<
   string,
   { bg: string; card: string; border: string; text: string; muted: string; lightBg: string }
@@ -780,13 +738,8 @@ const DOCS_SURFACES: Record<
 };
 
 // Density has TWO levers, so type and spacing scale independently:
-//   1. rootFont  — the root rem base. Tailwind text-* (and anything rem-based)
-//      follows it. Set on <html> in the effect (rem ignores ancestors).
-//   2. spacing   — Tailwind v4's `--spacing` token (default 0.25rem). EVERY
-//      gap-*, p-*, m-*, space-x/y-* utility is calc(var(--spacing) * N), so
-//      this one variable scales the space BETWEEN groups and BETWEEN items
-//      at once. It's a custom property, so it cascades from the wrapper.
-// Compact tightens both; Relaxed opens both up; Default = framework defaults.
+//   1. rootFont  — the root rem base (Tailwind text-* + rem-based utilities).
+//   2. spacing   — Tailwind v4's `--spacing` token (gap/padding/margin).
 const densityScale: Record<string, { rootFont: string; spacing: string }> = {
   compact: { rootFont: "14px", spacing: "0.2rem" },
   default: { rootFont: "16px", spacing: "0.25rem" },
@@ -794,9 +747,7 @@ const densityScale: Record<string, { rootFont: string; spacing: string }> = {
 };
 
 // Soft fade between Design Layers / dark modes: `.theme-fade` on <html>
-// enables colour transitions (CSS in preview-head.html) for the duration of
-// the switch only. It must be set BEFORE the new tokens paint, so the
-// decorator toggles it synchronously during render when the key changes.
+// enables colour transitions for the duration of the switch only.
 let lastThemeKey: string | null = null;
 let themeFadeTimer: ReturnType<typeof setTimeout> | undefined;
 function pulseThemeFade(themeKey: string) {
@@ -816,8 +767,6 @@ const preview: Preview = {
   parameters: {
     docs: { theme: docsTheme },
     backgrounds: {
-      // No forced default: the backdrop comes from the manager theme's
-      // appPreviewBg, which follows the Design Layer and the dark toggle.
       values: [
         { name: "white",       value: "#ffffff" },
         { name: "zinc-50",     value: "#fafafa" },
@@ -869,12 +818,8 @@ const preview: Preview = {
       if (dark) {
         const darkPreset = DS_DARK[designSystem] ?? {};
         if (Object.keys(darkPreset).length > 0) {
-          // The layer has its OWN dark scheme — merge it over the light
-          // preset so surfaces, brand colours and charts all go layer-dark.
           Object.assign(preset, darkPreset);
         } else {
-          // shadcn: hand the surface tokens back to the `.dark` class —
-          // inline vars would otherwise override it and lock the canvas light.
           for (const key of [
             "--background", "--foreground",
             "--card", "--card-foreground",
@@ -886,16 +831,12 @@ const preview: Preview = {
           }
         }
       }
-      // Keep the page around the story in sync with the layer + dark toggle:
-      // html.dark (docs CSS hook), color-scheme, the --sbdocs-* surface vars
-      // and the body/root backdrop. Mirrors preview-head.html's bootstrap.
       React.useEffect(() => {
         const docs = DOCS_SURFACES[designSystem] ?? DOCS_SURFACES.shadcn;
         const bg = dark ? docs.bg : docs.lightBg;
         const rootEl = document.documentElement;
         rootEl.classList.toggle("dark", dark);
         rootEl.style.colorScheme = dark ? "dark" : "light";
-        // Density — scale the root rem base (drives rem-based type).
         rootEl.style.fontSize = (densityScale[density] ?? densityScale.default).rootFont;
         rootEl.style.backgroundColor = bg;
         rootEl.style.setProperty("--sbdocs-bg", docs.bg);
@@ -904,8 +845,6 @@ const preview: Preview = {
         rootEl.style.setProperty("--sbdocs-text", docs.text);
         rootEl.style.setProperty("--sbdocs-muted", docs.muted);
         document.body.style.backgroundColor = bg;
-        // Persist the scheme so a reloading iframe (e.g. after a manager
-        // shell re-render) boots straight into it — no white flash.
         try {
           window.localStorage.setItem(
             "scntw-globals",
@@ -916,25 +855,19 @@ const preview: Preview = {
         }
       }, [designSystem, dark, density]);
       const style: React.CSSProperties & Record<string, string> = {
-        // Tier 1: regenerated primitive ladders for this design language
         ...look.primitives,
-        // Elevation + motion physics
         ...look.shadows,
         ...look.motion,
-        // Tier 2/3: semantic + functional colour preset
         ...preset,
-        // Toolbar overrides on top
         ...(radius       ? { "--radius":  radius       } : {}),
         ...(primaryColor ? { "--primary": primaryColor } : {}),
-        // Typography (root font-size for density type lives in the effect)
         "--font-sans": look.font,
         fontFamily: look.font,
-        // Density spacing: Tailwind v4 derives every gap/padding/margin from
-        // --spacing, so this scales group AND item spacing together. Cascades
-        // from the wrapper (custom properties inherit, unlike font-size→rem).
         "--spacing": (densityScale[density] ?? densityScale.default).spacing,
       };
-      return <div style={style} className="contents"><Story /></div>;
+      // ds-<layer> class lets component-themes.css apply per-layer SHAPE and
+      // type personality (not just tokens) to the rendered components.
+      return <div style={style} className={`contents ds-${designSystem}`}><Story /></div>;
     },
     (Story) => <TooltipProvider><Story /></TooltipProvider>,
     withThemeByClassName({ themes: { light: "", dark: "dark" }, defaultTheme: "light" }),
