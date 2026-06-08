@@ -34,14 +34,19 @@
      color-mix on currentColor so they adapt to every shell theme, light or
      dark, without hard-coded colours.
   ------------------------------------------------------------------------ */
+  /* Give the toolbar room to breathe so the chips aren't squished. */
+  .sb-bar { min-height: 44px !important; align-items: center; }
   .sb-bar button {
     font-size: 13px !important;
     font-weight: 600 !important;
-    padding: 5px 10px !important;
+    padding: 8px 12px !important;
+    height: auto !important;
+    line-height: 1.2 !important;
     border-radius: 8px !important;
     background: color-mix(in srgb, currentColor 7%, transparent) !important;
     border: 1px solid color-mix(in srgb, currentColor 16%, transparent) !important;
     margin-inline: 2px;
+    margin-block: 5px;
     transition: background-color 160ms ease, border-color 160ms ease;
   }
   .sb-bar button:hover {
