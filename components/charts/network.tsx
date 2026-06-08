@@ -78,7 +78,7 @@ export function ChartNetwork({
   const [layout, setLayout] = React.useState<LayoutKey>("force");
   const [gravity, setGravity] = React.useState(45);      // force gravity
   const [linkDist, setLinkDist] = React.useState(60);     // ideal edge length
-  const [labelSize, setLabelSize] = React.useState(11);
+  const [labelSize, setLabelSize] = React.useState(12);
   const [nodeSize, setNodeSize] = React.useState(26);
   const [sizeByDegree, setSizeByDegree] = React.useState(true);
   const [labels, setLabels] = React.useState(true);
@@ -93,15 +93,19 @@ export function ChartNetwork({
       {
         selector: "node",
         style: {
-          "background-color": (n: cytoscape.NodeSingular) => t.c[(n.data("group") as number) % t.c.length],
+          // Per-group fill via data(color) — the canonical, reliable cytoscape
+          // mapping (function-value mappers silently render mono on canvas).
+          "background-color": "data(color)",
           width: sizeByDegree ? ("mapData(deg, 1, 7, " + nodeSize * 0.7 + ", " + nodeSize * 1.9 + ")" as unknown as number) : nodeSize,
           height: sizeByDegree ? ("mapData(deg, 1, 7, " + nodeSize * 0.7 + ", " + nodeSize * 1.9 + ")" as unknown as number) : nodeSize,
           label: labels ? "data(label)" : "",
           color: t.fg,
-          "font-size": labelSize,
+          "font-size": `${labelSize}px`,
           "font-family": "inherit",
+          "min-zoomed-font-size": 4,
           "text-valign": "bottom",
-          "text-margin-y": 3,
+          "text-halign": "center",
+          "text-margin-y": 4,
           "text-wrap": "ellipsis",
           "text-max-width": "90px",
           "border-width": 1.5,
@@ -175,13 +179,14 @@ export function ChartNetwork({
       deg.set(s, (deg.get(s) ?? 0) + 1);
       deg.set(t, (deg.get(t) ?? 0) + 1);
     });
+    const t0 = readTokens(host);
     const cy = cytoscape({
       container: host,
       elements: [
-        ...NODES.map((n) => ({ data: { ...n, deg: deg.get(n.id) ?? 1 } })),
+        ...NODES.map((n) => ({ data: { ...n, deg: deg.get(n.id) ?? 1, color: t0.c[n.group % t0.c.length] } })),
         ...EDGES.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } })),
       ],
-      style: buildStyle(readTokens(host)),
+      style: buildStyle(t0),
       layout: layoutOpts(),
       minZoom: 0.3,
       maxZoom: 2.5,
@@ -216,7 +221,12 @@ export function ChartNetwork({
     });
 
     const restyle = () => {
-      if (hostRef.current) cy.style(buildStyle(readTokens(hostRef.current)) as cytoscape.Stylesheet[]);
+      const el = hostRef.current;
+      if (!el) return;
+      const tk = readTokens(el);
+      cy.batch(() => cy.nodes().forEach((n) => n.data("color", tk.c[(n.data("group") as number) % tk.c.length])));
+      cy.style(buildStyle(tk) as cytoscape.Stylesheet[]);
+      cy.resize(); // clears the label texture cache so font-size changes re-raster
     };
     const mo = new MutationObserver(restyle);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
@@ -243,10 +253,17 @@ export function ChartNetwork({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Restyle when styling controls change.
+  // Restyle when styling controls change (label/node size, edges, …). Re-apply
+  // the stylesheet AND force a re-raster so font-size visibly changes the glyph
+  // (cytoscape caches label textures by their previous size otherwise).
   React.useEffect(() => {
     const cy = cyRef.current;
-    if (cy && hostRef.current) cy.style(buildStyle(readTokens(hostRef.current)) as cytoscape.Stylesheet[]);
+    const el = hostRef.current;
+    if (!cy || !el) return;
+    const tk = readTokens(el);
+    cy.batch(() => cy.nodes().forEach((n) => n.data("color", tk.c[(n.data("group") as number) % tk.c.length])));
+    cy.style(buildStyle(tk) as cytoscape.Stylesheet[]);
+    cy.resize();
   }, [buildStyle]);
 
   // Hide nodes below the min-degree threshold.
@@ -310,7 +327,7 @@ export function ChartNetwork({
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">Label size</Label>
-          <Slider value={[labelSize]} onValueChange={([v]) => setLabelSize(v)} min={8} max={16} step={1} className="w-20" disabled={!labels} />
+          <Slider value={[labelSize]} onValueChange={([v]) => setLabelSize(v)} min={9} max={24} step={1} className="w-20" disabled={!labels} />
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">Min degree</Label>
