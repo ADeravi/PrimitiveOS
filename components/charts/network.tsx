@@ -54,8 +54,19 @@ type EdgeKey = (typeof EDGE_STYLES)[number];
 
 function readTokens(el: HTMLElement) {
   const cs = getComputedStyle(el);
-  const v = (n: string, fb: string) => cs.getPropertyValue(n).trim() || fb;
-  return {
+  // Resolve each token to a concrete rgb() string. Cytoscape paints to <canvas>;
+  // feeding raw oklch() risks a silent fallback to one colour ("mono"), so we
+  // round-trip every value through a probe element to get a canvas-safe colour.
+  const probe = document.createElement("span");
+  probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
+  el.appendChild(probe);
+  const v = (n: string, fb: string) => {
+    const raw = cs.getPropertyValue(n).trim() || fb;
+    probe.style.color = "";
+    probe.style.color = raw;
+    return getComputedStyle(probe).color || raw;
+  };
+  const t = {
     c: [1, 2, 3, 4, 5].map((i) => v(`--chart-${i}`, "#888")),
     border: v("--border", "#ddd"),
     fg: v("--foreground", "#111"),
@@ -63,6 +74,8 @@ function readTokens(el: HTMLElement) {
     bg: v("--background", "#fff"),
     primary: v("--primary", "#333"),
   };
+  el.removeChild(probe);
+  return t;
 }
 
 export function ChartNetwork({
@@ -140,7 +153,9 @@ export function ChartNetwork({
   );
 
   const layoutOpts = React.useCallback((): cytoscape.LayoutOptions => {
-    const animate = true as const;
+    // Non-animated: positions resolve synchronously (no rAF), so the graph lays
+    // out reliably even in throttled tabs, and layout switches feel snappy.
+    const animate = false as const;
     switch (layout) {
       case "hierarchy":
         return { name: "dagre", rankDir: "TB", nodeSep: 26, rankSep: 18 + linkDist, animate } as unknown as cytoscape.LayoutOptions;
@@ -231,20 +246,21 @@ export function ChartNetwork({
     const mo = new MutationObserver(restyle);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
 
-    // The container often has no height yet at init (Storybook/centered timing),
-    // which piles the graph in a corner — resize + fit whenever it changes size.
-    let fitRaf = 0;
+    // The container often has no height yet at init, which piles the graph in a
+    // corner — resize + fit whenever it changes size. Use a timeout (not rAF, so
+    // it still fires in throttled/background tabs) and a one-off settle fit.
+    let fitT: ReturnType<typeof setTimeout> | undefined;
+    const fitNow = () => { cy.resize(); cy.fit(undefined, 24); };
     const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(fitRaf);
-      fitRaf = requestAnimationFrame(() => {
-        cy.resize();
-        cy.fit(undefined, 24);
-      });
+      clearTimeout(fitT);
+      fitT = setTimeout(fitNow, 30);
     });
     ro.observe(host);
+    const settle = setTimeout(fitNow, 150);
 
     return () => {
-      cancelAnimationFrame(fitRaf);
+      clearTimeout(fitT);
+      clearTimeout(settle);
       ro.disconnect();
       mo.disconnect();
       cy.destroy();
