@@ -12,6 +12,15 @@
      Selectors stick to stable Storybook ids/attributes only.
   ------------------------------------------------------------------------ */
   html { transition: background-color 280ms ease; }
+
+  /* Brand title — render in the chosen layer's BODY text (regular weight),
+     not Storybook's default bold display weight. fontBase already comes from
+     the active manager theme, so this only normalises weight + tracking. */
+  .sidebar-header a,
+  .sidebar-header a * {
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+  }
   /* Soft fade for the shell when the Design Layer / dark toggle changes.
      Scoped to colour properties only so layout/transform motion is untouched;
      remounted elements simply paint fresh (no animation), persistent ones ease. */

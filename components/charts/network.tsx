@@ -150,7 +150,12 @@ export function ChartNetwork({
         style: {
           width: 1.4,
           "line-color": t.border,
-          "curve-style": edgeStyle === "curved" ? "bezier" : "haystack",
+          // A single bezier edge between two nodes renders straight (it only
+          // curves when several edges share a node pair). unbundled-bezier with
+          // an explicit control-point distance gives every edge a visible arc.
+          "curve-style": edgeStyle === "curved" ? "unbundled-bezier" : "straight",
+          "control-point-distances": edgeStyle === "curved" ? 32 : 0,
+          "control-point-weights": 0.5,
           "target-arrow-color": t.mutedF,
           "target-arrow-shape": arrows ? "triangle" : "none",
           "arrow-scale": 0.8,
@@ -363,7 +368,7 @@ export function ChartNetwork({
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">Label size</Label>
-          <Slider value={[labelSize]} onValueChange={([v]) => setLabelSize(v)} min={9} max={24} step={1} className="w-20" disabled={!labels} />
+          <Slider value={[labelSize]} onValueChange={([v]) => setLabelSize(v)} min={8} max={36} step={1} className="w-20" disabled={!labels} />
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">Min degree</Label>
