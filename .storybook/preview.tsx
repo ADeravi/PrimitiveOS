@@ -694,6 +694,25 @@ const densityScale: Record<string, string> = {
   relaxed: "16px",
 };
 
+// Soft fade between Design Layers / dark modes: `.theme-fade` on <html>
+// enables colour transitions (CSS in preview-head.html) for the duration of
+// the switch only. It must be set BEFORE the new tokens paint, so the
+// decorator toggles it synchronously during render when the key changes.
+let lastThemeKey: string | null = null;
+let themeFadeTimer: ReturnType<typeof setTimeout> | undefined;
+function pulseThemeFade(themeKey: string) {
+  if (typeof document === "undefined") return;
+  if (lastThemeKey !== null && lastThemeKey !== themeKey) {
+    document.documentElement.classList.add("theme-fade");
+    clearTimeout(themeFadeTimer);
+    themeFadeTimer = setTimeout(
+      () => document.documentElement.classList.remove("theme-fade"),
+      500
+    );
+  }
+  lastThemeKey = themeKey;
+}
+
 const preview: Preview = {
   parameters: {
     docs: { theme: docsTheme },
@@ -745,6 +764,8 @@ const preview: Preview = {
       };
       const look = LOOK[designSystem] ?? LOOK.shadcn;
       const dark = theme === "dark";
+      // Arm the soft fade BEFORE the new tokens hit the DOM.
+      pulseThemeFade(`${designSystem}/${dark}`);
       const preset: TokenMap = { ...(DS_TOKENS[designSystem] ?? {}) };
       if (dark) {
         const darkPreset = DS_DARK[designSystem] ?? {};
@@ -782,6 +803,16 @@ const preview: Preview = {
         rootEl.style.setProperty("--sbdocs-text", docs.text);
         rootEl.style.setProperty("--sbdocs-muted", docs.muted);
         document.body.style.backgroundColor = bg;
+        // Persist the scheme so a reloading iframe (e.g. after a manager
+        // shell re-render) boots straight into it — no white flash.
+        try {
+          window.localStorage.setItem(
+            "scntw-globals",
+            JSON.stringify({ layer: designSystem, dark })
+          );
+        } catch {
+          /* storage may be unavailable — cosmetic only */
+        }
       }, [designSystem, dark]);
       const style: React.CSSProperties & Record<string, string> = {
         // Tier 1: regenerated primitive ladders for this design language
