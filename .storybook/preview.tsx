@@ -688,14 +688,18 @@ const DOCS_SURFACES: Record<
   expressive: { bg: "#1a1025", card: "#241432", border: "#3b2353", text: "#f3e8ff", muted: "#c4b5fd", lightBg: "#ffffff" },
 };
 
-// Density scales the ROOT font size: Tailwind's text-* and spacing utilities
-// are rem-based, so this is the one knob that actually scales type AND
-// spacing together. (Setting font-size on a wrapper does nothing — rem
-// ignores ancestors.) Default = the browser-standard 16px.
-const densityScale: Record<string, string> = {
-  compact: "14px",
-  default: "16px",
-  relaxed: "18px",
+// Density has TWO levers, so type and spacing scale independently:
+//   1. rootFont  — the root rem base. Tailwind text-* (and anything rem-based)
+//      follows it. Set on <html> in the effect (rem ignores ancestors).
+//   2. spacing   — Tailwind v4's `--spacing` token (default 0.25rem). EVERY
+//      gap-*, p-*, m-*, space-x/y-* utility is calc(var(--spacing) * N), so
+//      this one variable scales the space BETWEEN groups and BETWEEN items
+//      at once. It's a custom property, so it cascades from the wrapper.
+// Compact tightens both; Relaxed opens both up; Default = framework defaults.
+const densityScale: Record<string, { rootFont: string; spacing: string }> = {
+  compact: { rootFont: "14px", spacing: "0.2rem" },
+  default: { rootFont: "16px", spacing: "0.25rem" },
+  relaxed: { rootFont: "18px", spacing: "0.32rem" },
 };
 
 // Soft fade between Design Layers / dark modes: `.theme-fade` on <html>
@@ -800,8 +804,8 @@ const preview: Preview = {
         const rootEl = document.documentElement;
         rootEl.classList.toggle("dark", dark);
         rootEl.style.colorScheme = dark ? "dark" : "light";
-        // Density — scale the rem base so type and spacing follow together.
-        rootEl.style.fontSize = densityScale[density] ?? "16px";
+        // Density — scale the root rem base (drives rem-based type).
+        rootEl.style.fontSize = (densityScale[density] ?? densityScale.default).rootFont;
         rootEl.style.backgroundColor = bg;
         rootEl.style.setProperty("--sbdocs-bg", docs.bg);
         rootEl.style.setProperty("--sbdocs-card", docs.card);
@@ -831,9 +835,13 @@ const preview: Preview = {
         // Toolbar overrides on top
         ...(radius       ? { "--radius":  radius       } : {}),
         ...(primaryColor ? { "--primary": primaryColor } : {}),
-        // Typography (density lives on the root font-size — see the effect)
+        // Typography (root font-size for density type lives in the effect)
         "--font-sans": look.font,
         fontFamily: look.font,
+        // Density spacing: Tailwind v4 derives every gap/padding/margin from
+        // --spacing, so this scales group AND item spacing together. Cascades
+        // from the wrapper (custom properties inherit, unlike font-size→rem).
+        "--spacing": (densityScale[density] ?? densityScale.default).spacing,
       };
       return <div style={style} className="contents"><Story /></div>;
     },
