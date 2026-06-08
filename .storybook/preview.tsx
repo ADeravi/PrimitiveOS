@@ -87,6 +87,24 @@ const LOOK: Record<string, Look> = {
   // shadcn inherits everything from globals.css — zero overrides.
   shadcn: { font: '"Inter", ui-sans-serif, system-ui, sans-serif', primitives: {}, shadows: {}, motion: {} },
 
+  // Neutral — strictly black / white / grey. Every primitive ladder is forced
+  // achromatic (chromaScale 0), so even the Color Palette page reads grey.
+  neutral: {
+    font: '"Inter", ui-sans-serif, system-ui, sans-serif',
+    primitives: primitives({
+      neutral: { hue: 0, chroma: 0 },
+      blue: 0, green: 0, red: 0, amber: 0,
+      chromaScale: 0,
+    }),
+    shadows: {
+      "--shadow-sm": "0 1px 2px 0 oklch(0 0 0 / 8%)",
+      "--shadow-md": "0 2px 6px 0 oklch(0 0 0 / 10%)",
+      "--shadow-lg": "0 6px 16px 0 oklch(0 0 0 / 12%)",
+      "--shadow-xl": "0 12px 32px 0 oklch(0 0 0 / 16%)",
+    },
+    motion: {},
+  },
+
   // Material 3 — Roboto, tinted neutrals, soft layered elevation,
   // emphasized-decelerate easing, slightly slower durations.
   material: {
@@ -219,6 +237,44 @@ const DS_TOKENS: Record<string, TokenMap> = {
   // Kept as the canonical neutral baseline — zero chroma everywhere.
   // Functional tokens come from the globals.css :root / .dark base.
   shadcn: {},
+
+  // ---- Neutral (black · white · grey, zero chroma everywhere) --------------
+  // Pure greyscale: primary is near-black, every functional token and the
+  // whole chart palette are distinct GREYS (separated by lightness only).
+  neutral: {
+    "--primary":              "oklch(0.22 0 0)",
+    "--primary-foreground":   "oklch(0.98 0 0)",
+    "--secondary":            "oklch(0.92 0 0)",
+    "--secondary-foreground": "oklch(0.25 0 0)",
+    "--accent":               "oklch(0.9 0 0)",
+    "--accent-foreground":    "oklch(0.25 0 0)",
+
+    // Functional — greys of decreasing lightness, no hue.
+    "--success":              "oklch(0.45 0 0)",
+    "--success-foreground":   "oklch(0.98 0 0)",
+    "--warning":              "oklch(0.7 0 0)",
+    "--warning-foreground":   "oklch(0.18 0 0)",
+    "--info":                 "oklch(0.5 0 0)",
+    "--info-foreground":      "oklch(0.98 0 0)",
+
+    "--background":           "oklch(1 0 0)",
+    "--foreground":           "oklch(0.15 0 0)",
+    "--card":                 "oklch(0.99 0 0)",
+    "--card-foreground":      "oklch(0.15 0 0)",
+    "--muted":                "oklch(0.96 0 0)",
+    "--muted-foreground":     "oklch(0.45 0 0)",
+    "--border":               "oklch(0.9 0 0)",
+    "--input":                "oklch(0.9 0 0)",
+    "--ring":                 "oklch(0.45 0 0)",
+    "--destructive":          "oklch(0.35 0 0)",
+    "--radius":               "0.5rem",
+    // Chart palette — 5 greys, lightest→darkest.
+    "--chart-1":              "oklch(0.2 0 0)",
+    "--chart-2":              "oklch(0.38 0 0)",
+    "--chart-3":              "oklch(0.55 0 0)",
+    "--chart-4":              "oklch(0.7 0 0)",
+    "--chart-5":              "oklch(0.84 0 0)",
+  },
 
   // ---- Material Design 3 (Material You) ------------------------------------
   // Primary = blue, Secondary = teal, Tertiary/Accent = purple.
@@ -432,6 +488,39 @@ const DS_TOKENS: Record<string, TokenMap> = {
 const DS_DARK: Record<string, TokenMap> = {
   shadcn: {},
 
+  // Neutral dark — inverted greyscale: near-white primary on near-black.
+  neutral: {
+    "--primary":              "oklch(0.92 0 0)",
+    "--primary-foreground":   "oklch(0.18 0 0)",
+    "--secondary":            "oklch(0.3 0 0)",
+    "--secondary-foreground": "oklch(0.96 0 0)",
+    "--accent":               "oklch(0.32 0 0)",
+    "--accent-foreground":    "oklch(0.96 0 0)",
+    "--success":              "oklch(0.72 0 0)",
+    "--success-foreground":   "oklch(0.16 0 0)",
+    "--warning":              "oklch(0.82 0 0)",
+    "--warning-foreground":   "oklch(0.16 0 0)",
+    "--info":                 "oklch(0.7 0 0)",
+    "--info-foreground":      "oklch(0.16 0 0)",
+    "--background":           "oklch(0.16 0 0)",
+    "--foreground":           "oklch(0.96 0 0)",
+    "--card":                 "oklch(0.2 0 0)",
+    "--card-foreground":      "oklch(0.96 0 0)",
+    "--popover":              "oklch(0.2 0 0)",
+    "--popover-foreground":   "oklch(0.96 0 0)",
+    "--muted":                "oklch(0.27 0 0)",
+    "--muted-foreground":     "oklch(0.72 0 0)",
+    "--border":               "oklch(0.32 0 0)",
+    "--input":                "oklch(0.32 0 0)",
+    "--ring":                 "oklch(0.7 0 0)",
+    "--destructive":          "oklch(0.7 0 0)",
+    "--chart-1":              "oklch(0.95 0 0)",
+    "--chart-2":              "oklch(0.8 0 0)",
+    "--chart-3":              "oklch(0.65 0 0)",
+    "--chart-4":              "oklch(0.5 0 0)",
+    "--chart-5":              "oklch(0.38 0 0)",
+  },
+
   material: {
     "--primary":              "oklch(0.8 0.12 264)",
     "--primary-foreground":   "oklch(0.27 0.09 264)",
@@ -604,6 +693,7 @@ export const globalTypes = {
       icon: "grid",
       items: [
         { value: "shadcn",      title: "shadcn Neutral (default)" },
+        { value: "neutral",     title: "Neutral (black · white · grey)" },
         { value: "material",    title: "Material Design 3" },
         { value: "fluent",      title: "Fluent Design 2 (Microsoft)" },
         { value: "carbon",      title: "Carbon Design (IBM)" },
@@ -681,6 +771,7 @@ const DOCS_SURFACES: Record<
   { bg: string; card: string; border: string; text: string; muted: string; lightBg: string }
 > = {
   shadcn:     { bg: "#0a0a0a", card: "#18181b", border: "#27272a", text: "#fafafa", muted: "#a1a1aa", lightBg: "#ffffff" },
+  neutral:    { bg: "#141414", card: "#1f1f1f", border: "#333333", text: "#f5f5f5", muted: "#a3a3a3", lightBg: "#ffffff" },
   material:   { bg: "#141218", card: "#211f26", border: "#49454f", text: "#e6e0e9", muted: "#cac4d0", lightBg: "#fef7ff" },
   fluent:     { bg: "#1f1f1f", card: "#292929", border: "#3d3d3d", text: "#ffffff", muted: "#adadad", lightBg: "#ffffff" },
   carbon:     { bg: "#161616", card: "#262626", border: "#393939", text: "#f4f4f4", muted: "#a8a8a8", lightBg: "#ffffff" },
