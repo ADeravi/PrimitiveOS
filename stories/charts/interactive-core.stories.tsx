@@ -31,7 +31,7 @@ type Story = StoryObj;
 export const LineStory: Story = { name: "Line", render: () => <ChartLine /> };
 export const AreaStory: Story = { name: "Area", render: () => <ChartArea /> };
 export const BarStory: Story = { name: "Bar", render: () => <ChartBar /> };
-export const DonutStory: Story = { name: "Donut", render: () => <ChartDonut /> };
+export const DonutStory: Story = { name: "Donut / Pie", render: () => <ChartDonut /> };
 export const RadarStory: Story = { name: "Radar", render: () => <ChartRadar /> };
 export const ScatterStory: Story = { name: "Scatter", render: () => <ChartScatter /> };
 export const HeatmapStory: Story = { name: "Heatmap", render: () => <ChartHeatmap /> };

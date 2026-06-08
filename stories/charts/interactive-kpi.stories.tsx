@@ -29,7 +29,7 @@ export const GaugeStory: Story = { name: "Gauge", render: () => <ChartGauge /> }
 export const BulletStory: Story = { name: "Bullet", render: () => <ChartBullet /> };
 export const SparklineStory: Story = { name: "Sparkline", render: () => <ChartSparkline /> };
 export const BrushStory: Story = { name: "Brush & Zoom", render: () => <ChartBrush /> };
-export const CandlestickStory: Story = { name: "Candlestick", render: () => <ChartCandlestick /> };
+export const CandlestickStory: Story = { name: "Candlestick (OHLC)", render: () => <ChartCandlestick /> };
 
 export const SparklineMetricInteraction: Story = {
   name: "Interaction: sparkline metric",

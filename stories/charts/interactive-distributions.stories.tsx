@@ -29,7 +29,7 @@ type Story = StoryObj;
 export const HistogramStory: Story = { name: "Histogram", render: () => <ChartHistogram /> };
 export const BoxPlotStory: Story = { name: "Box Plot", render: () => <ChartBoxPlot /> };
 export const ViolinStory: Story = { name: "Violin", render: () => <ChartViolin /> };
-export const BeeswarmStory: Story = { name: "Beeswarm", render: () => <ChartBeeswarm /> };
+export const BeeswarmStory: Story = { name: "Beeswarm (Dot Plot)", render: () => <ChartBeeswarm /> };
 export const WaffleStory: Story = { name: "Waffle", render: () => <ChartWaffle /> };
 export const DumbbellStory: Story = { name: "Dumbbell", render: () => <ChartDumbbell /> };
 

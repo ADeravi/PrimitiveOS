@@ -27,7 +27,7 @@ export default meta;
 type Story = StoryObj;
 
 export const TreemapStory: Story = { name: "Treemap", render: () => <ChartTreemap /> };
-export const SankeyStory: Story = { name: "Sankey", render: () => <ChartSankey /> };
+export const SankeyStory: Story = { name: "Sankey (Flow)", render: () => <ChartSankey /> };
 export const FunnelStory: Story = { name: "Funnel", render: () => <ChartFunnel /> };
 export const WaterfallStory: Story = { name: "Waterfall", render: () => <ChartWaterfall /> };
 export const StreamgraphStory: Story = { name: "Streamgraph", render: () => <ChartStreamgraph /> };

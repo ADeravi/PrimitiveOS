@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, userEvent, within } from "storybook/test";
 
 const meta: Meta = {
   title: "Charts/Index",
@@ -517,100 +518,100 @@ const GTripleAxis = (
 // ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
-type ThumbEntry = { label: string; story: string; glyph: React.ReactNode };
+type ThumbEntry = { label: string; story: string; glyph: React.ReactNode; kw: string };
 type Family = { name: string; items: ThumbEntry[] };
 
 const FAMILIES: Family[] = [
   {
     name: "Interactive · Core",
     items: [
-      { label: "Line", story: "charts-interactive-core--line-story", glyph: GLine },
-      { label: "Area", story: "charts-interactive-core--area-story", glyph: GArea },
-      { label: "Bar", story: "charts-interactive-core--bar-story", glyph: GBar },
-      { label: "Donut", story: "charts-interactive-core--donut-story", glyph: GDonut },
-      { label: "Radar", story: "charts-interactive-core--radar-story", glyph: GRadar },
-      { label: "Scatter / Bubble", story: "charts-interactive-core--scatter-story", glyph: GScatter },
-      { label: "Heatmap", story: "charts-interactive-core--heatmap-story", glyph: GHeatmap },
-      { label: "Dual Axis", story: "charts-interactive-core--dual-axis-story", glyph: GDualAxis },
+      { label: "Line", story: "charts-interactive-core--line-story", kw: "trend time series over-time growth", glyph: GLine },
+      { label: "Area", story: "charts-interactive-core--area-story", kw: "filled stacked composition trend", glyph: GArea },
+      { label: "Bar", story: "charts-interactive-core--bar-story", kw: "column compare ranking categories", glyph: GBar },
+      { label: "Donut", story: "charts-interactive-core--donut-story", kw: "pie share part-to-whole proportion percentage circle", glyph: GDonut },
+      { label: "Radar", story: "charts-interactive-core--radar-story", kw: "spider polygon multivariate compare plans", glyph: GRadar },
+      { label: "Scatter / Bubble", story: "charts-interactive-core--scatter-story", kw: "correlation xy points size dimension", glyph: GScatter },
+      { label: "Heatmap", story: "charts-interactive-core--heatmap-story", kw: "matrix calendar intensity grid activity", glyph: GHeatmap },
+      { label: "Dual Axis", story: "charts-interactive-core--dual-axis-story", kw: "combo two scales secondary axis revenue conversion", glyph: GDualAxis },
     ],
   },
   {
     name: "Interactive · Flow & Hierarchy",
     items: [
-      { label: "Treemap", story: "charts-interactive-flow-hierarchy--treemap-story", glyph: GTreemap },
-      { label: "Sankey", story: "charts-interactive-flow-hierarchy--sankey-story", glyph: GSankey },
-      { label: "Funnel", story: "charts-interactive-flow-hierarchy--funnel-story", glyph: GFunnel },
-      { label: "Waterfall", story: "charts-interactive-flow-hierarchy--waterfall-story", glyph: GWaterfall },
-      { label: "Streamgraph", story: "charts-interactive-flow-hierarchy--streamgraph-story", glyph: GStreamgraph },
-      { label: "Sunburst", story: "charts-interactive-flow-hierarchy--sunburst-story", glyph: GSunburst },
+      { label: "Treemap", story: "charts-interactive-flow-hierarchy--treemap-story", kw: "hierarchy nested rectangles area share", glyph: GTreemap },
+      { label: "Sankey", story: "charts-interactive-flow-hierarchy--sankey-story", kw: "flow alluvial stages links acquisition", glyph: GSankey },
+      { label: "Funnel", story: "charts-interactive-flow-hierarchy--funnel-story", kw: "conversion pipeline stages drop-off", glyph: GFunnel },
+      { label: "Waterfall", story: "charts-interactive-flow-hierarchy--waterfall-story", kw: "bridge running total variance gains losses", glyph: GWaterfall },
+      { label: "Streamgraph", story: "charts-interactive-flow-hierarchy--streamgraph-story", kw: "themeriver stacked flow organic baseline", glyph: GStreamgraph },
+      { label: "Sunburst", story: "charts-interactive-flow-hierarchy--sunburst-story", kw: "radial treemap hierarchy rings drill", glyph: GSunburst },
     ],
   },
   {
     name: "Interactive · KPI & Time",
     items: [
-      { label: "Gauge", story: "charts-interactive-kpi-time--gauge-story", glyph: GGauge },
-      { label: "Bullet", story: "charts-interactive-kpi-time--bullet-story", glyph: GBullet },
-      { label: "Sparkline", story: "charts-interactive-kpi-time--sparkline-story", glyph: GSparkline },
-      { label: "Brush & Zoom", story: "charts-interactive-kpi-time--brush-story", glyph: GBrush },
-      { label: "Candlestick", story: "charts-interactive-kpi-time--candlestick-story", glyph: GCandlestick },
+      { label: "Gauge", story: "charts-interactive-kpi-time--gauge-story", kw: "dial kpi meter speedometer health score", glyph: GGauge },
+      { label: "Bullet", story: "charts-interactive-kpi-time--bullet-story", kw: "target kpi benchmark bands measure", glyph: GBullet },
+      { label: "Sparkline", story: "charts-interactive-kpi-time--sparkline-story", kw: "micro mini stat card inline", glyph: GSparkline },
+      { label: "Brush & Zoom", story: "charts-interactive-kpi-time--brush-story", kw: "zoom pan range select smoothing window", glyph: GBrush },
+      { label: "Candlestick", story: "charts-interactive-kpi-time--candlestick-story", kw: "ohlc stocks trading finance sessions market", glyph: GCandlestick },
     ],
   },
   {
     name: "Interactive · Distributions",
     items: [
-      { label: "Histogram", story: "charts-interactive-distributions--histogram-story", glyph: GHistogram },
-      { label: "Box Plot", story: "charts-interactive-distributions--box-plot-story", glyph: GBoxPlot },
-      { label: "Violin", story: "charts-interactive-distributions--violin-story", glyph: GViolin },
-      { label: "Beeswarm", story: "charts-interactive-distributions--beeswarm-story", glyph: GBeeswarm },
-      { label: "Waffle", story: "charts-interactive-distributions--waffle-story", glyph: GWaffle },
-      { label: "Dumbbell", story: "charts-interactive-distributions--dumbbell-story", glyph: GDumbbell },
+      { label: "Histogram", story: "charts-interactive-distributions--histogram-story", kw: "distribution bins frequency sample", glyph: GHistogram },
+      { label: "Box Plot", story: "charts-interactive-distributions--box-plot-story", kw: "quartile iqr whisker median outliers boxplot", glyph: GBoxPlot },
+      { label: "Violin", story: "charts-interactive-distributions--violin-story", kw: "density kde distribution shape bandwidth", glyph: GViolin },
+      { label: "Beeswarm", story: "charts-interactive-distributions--beeswarm-story", kw: "dot plot jitter points packed swarm", glyph: GBeeswarm },
+      { label: "Waffle", story: "charts-interactive-distributions--waffle-story", kw: "percent grid squares pictogram honest pie", glyph: GWaffle },
+      { label: "Dumbbell", story: "charts-interactive-distributions--dumbbell-story", kw: "before after change comparison gap two points", glyph: GDumbbell },
     ],
   },
   {
     name: "Dashboards & States",
     items: [
-      { label: "Linked Dashboard", story: "charts-interactive-linked-dashboard--linked-dashboard-story", glyph: GDashboard },
-      { label: "States (loading / empty / error)", story: "charts-states--all-three", glyph: GStates },
+      { label: "Linked Dashboard", story: "charts-interactive-linked-dashboard--linked-dashboard-story", kw: "cross-filter drill down interactive sync crosshair kpis", glyph: GDashboard },
+      { label: "States (loading / empty / error)", story: "charts-states--all-three", kw: "skeleton placeholder retry no-data fallback", glyph: GStates },
     ],
   },
   {
     name: "Gallery · Time & KPI extras",
     items: [
-      { label: "Radial Bars", story: "charts-overview--chart-gallery", glyph: GRadialBars },
-      { label: "Triple Axis", story: "charts-overview--chart-gallery", glyph: GTripleAxis },
-      { label: "Confidence Band", story: "charts-kpi-time--kpi-time-gallery", glyph: GConfidence },
-      { label: "Word Cloud", story: "charts-kpi-time--kpi-time-gallery", glyph: GWordCloud },
-      { label: "Icicle", story: "charts-flow-hierarchy--flow-hierarchy-gallery", glyph: GIcicle },
+      { label: "Radial Bars", story: "charts-overview--chart-gallery", kw: "polar circular bars rings", glyph: GRadialBars },
+      { label: "Triple Axis", story: "charts-overview--chart-gallery", kw: "three scales multi axis combo", glyph: GTripleAxis },
+      { label: "Confidence Band", story: "charts-kpi-time--kpi-time-gallery", kw: "error bars uncertainty ci interval mean", glyph: GConfidence },
+      { label: "Word Cloud", story: "charts-kpi-time--kpi-time-gallery", kw: "tags text keywords weights", glyph: GWordCloud },
+      { label: "Icicle", story: "charts-flow-hierarchy--flow-hierarchy-gallery", kw: "partition flame hierarchy layers", glyph: GIcicle },
     ],
   },
   {
     name: "Gallery · Distribution extras",
     items: [
-      { label: "Ridgeline", story: "charts-distributions--distributions-gallery", glyph: GRidgeline },
-      { label: "Hexbin Density", story: "charts-distributions--distributions-gallery", glyph: GHexbin },
-      { label: "Parallel Coordinates", story: "charts-distributions--distributions-gallery", glyph: GParallel },
-      { label: "Slope Graph", story: "charts-distributions--distributions-gallery", glyph: GSlope },
-      { label: "Lollipop", story: "charts-distributions--distributions-gallery", glyph: GLollipop },
+      { label: "Ridgeline", story: "charts-distributions--distributions-gallery", kw: "joyplot densities drift years", glyph: GRidgeline },
+      { label: "Hexbin Density", story: "charts-distributions--distributions-gallery", kw: "binning points cloud hexagon density", glyph: GHexbin },
+      { label: "Parallel Coordinates", story: "charts-distributions--distributions-gallery", kw: "multivariate dimensions axes records", glyph: GParallel },
+      { label: "Slope Graph", story: "charts-distributions--distributions-gallery", kw: "two points change rank before after", glyph: GSlope },
+      { label: "Lollipop", story: "charts-distributions--distributions-gallery", kw: "ranking dot bar light", glyph: GLollipop },
     ],
   },
   {
     name: "Maps & Networks",
     items: [
-      { label: "Choropleth", story: "charts-maps--map-gallery", glyph: GChoropleth },
-      { label: "Dot Map", story: "charts-maps--map-gallery", glyph: GDotMap },
-      { label: "Network Layouts (×22)", story: "charts-network-graphs--layout-gallery", glyph: GNetwork },
+      { label: "Choropleth", story: "charts-maps--map-gallery", kw: "map geography regions countries world geo", glyph: GChoropleth },
+      { label: "Dot Map", story: "charts-maps--map-gallery", kw: "map cities symbols geo population points", glyph: GDotMap },
+      { label: "Network Layouts (×22)", story: "charts-network-graphs--layout-gallery", kw: "graph nodes edges force directed topology cytoscape layout", glyph: GNetwork },
     ],
   },
   {
     name: "Graph Idioms",
     items: [
-      { label: "Arc Diagram", story: "charts-graph-idioms--idiom-gallery", glyph: GArcDiagram },
-      { label: "Adjacency Matrix", story: "charts-graph-idioms--idiom-gallery", glyph: GMatrix },
-      { label: "Chord Diagram", story: "charts-graph-idioms--idiom-gallery", glyph: GChord },
-      { label: "Hive Plot", story: "charts-graph-idioms--idiom-gallery", glyph: GHive },
-      { label: "Edge Bundling", story: "charts-graph-idioms--idiom-gallery", glyph: GBundling },
-      { label: "Tidy Tree", story: "charts-graph-idioms--idiom-gallery", glyph: GTree },
-      { label: "Circle Packing", story: "charts-graph-idioms--idiom-gallery", glyph: GPacking },
+      { label: "Arc Diagram", story: "charts-graph-idioms--idiom-gallery", kw: "graph connections arcs links network", glyph: GArcDiagram },
+      { label: "Adjacency Matrix", story: "charts-graph-idioms--idiom-gallery", kw: "graph matrix network grid hairball", glyph: GMatrix },
+      { label: "Chord Diagram", story: "charts-graph-idioms--idiom-gallery", kw: "flows between groups circular ribbon network", glyph: GChord },
+      { label: "Hive Plot", story: "charts-graph-idioms--idiom-gallery", kw: "network axes degree graph", glyph: GHive },
+      { label: "Edge Bundling", story: "charts-graph-idioms--idiom-gallery", kw: "bundles network hierarchy curves graph", glyph: GBundling },
+      { label: "Tidy Tree", story: "charts-graph-idioms--idiom-gallery", kw: "tree hierarchy org chart dendrogram nodes", glyph: GTree },
+      { label: "Circle Packing", story: "charts-graph-idioms--idiom-gallery", kw: "bubbles nested circles hierarchy containment", glyph: GPacking },
     ],
   },
 ];
@@ -637,29 +638,96 @@ function ThumbCard({ entry }: { entry: ThumbEntry }) {
   );
 }
 
-export const VisualIndex: Story = {
-  name: "Visual Index",
-  render: () => (
+function matches(entry: ThumbEntry, family: string, query: string): boolean {
+  const hay = `${entry.label} ${family} ${entry.kw}`.toLowerCase();
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((token) => hay.includes(token));
+}
+
+function IndexPage() {
+  const [query, setQuery] = React.useState("");
+  const total = FAMILIES.reduce((a, f) => a + f.items.length, 0);
+  const filtered = FAMILIES.map((family) => ({
+    ...family,
+    items: family.items.filter((e) => matches(e, family.name, query)),
+  })).filter((family) => family.items.length > 0);
+  const shown = filtered.reduce((a, f) => a + f.items.length, 0);
+  return (
     <div className="bg-background min-h-screen">
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Chart Index</h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Every chart idiom in the system at a glance — {FAMILIES.reduce((a, f) => a + f.items.length, 0)} thumbnails,
-            all drawn from the chart tokens. Click any card to open its story; switch the Design Layer to re-theme the index.
-          </p>
-        </div>
-        {FAMILIES.map((family) => (
-          <section key={family.name} className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{family.name}</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {family.items.map((entry) => (
-                <ThumbCard key={entry.label} entry={entry} />
-              ))}
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Chart Index</h1>
+            <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+              Every chart idiom in the system at a glance — {total} thumbnails, all drawn from the
+              chart tokens. Search by name or synonym (&quot;pie&quot;, &quot;ohlc&quot;, &quot;map&quot;, &quot;flow&quot;…) and click
+              any card to open its story.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative w-full max-w-md">
+              <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <circle cx={11} cy={11} r={7} />
+                <line x1={21} y1={21} x2={16.5} y2={16.5} />
+              </svg>
+              <input
+                type="search"
+                role="searchbox"
+                aria-label="Search charts"
+                placeholder="Search charts — try pie, ohlc, map, flow, kpi…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
             </div>
-          </section>
-        ))}
+            <span data-testid="search-count" className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+              {shown} / {total}
+            </span>
+          </div>
+        </div>
+        {filtered.length === 0 ? (
+          <div className="flex h-48 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border">
+            <p className="text-sm font-medium text-foreground">No charts match “{query}”</p>
+            <p className="text-xs text-muted-foreground">Try a broader term — e.g. “distribution”, “graph” or “time”.</p>
+          </div>
+        ) : (
+          filtered.map((family) => (
+            <section key={family.name} className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{family.name}</h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {family.items.map((entry) => (
+                  <ThumbCard key={entry.label} entry={entry} />
+                ))}
+              </div>
+            </section>
+          ))
+        )}
       </div>
     </div>
-  ),
+  );
+}
+
+export const VisualIndex: Story = {
+  name: "Visual Index",
+  render: () => <IndexPage />,
+};
+
+export const SearchInteraction: Story = {
+  name: "Interaction: search charts",
+  render: () => <IndexPage />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByRole("searchbox", { name: "Search charts" });
+    await userEvent.type(box, "pie");
+    await expect(canvas.getByText("Donut")).toBeVisible();
+    await expect(canvas.getByText("Waffle")).toBeVisible(); // "honest pie"
+    await expect(canvas.queryByText("Candlestick")).not.toBeInTheDocument();
+    await userEvent.clear(box);
+    await userEvent.type(box, "ohlc");
+    await expect(canvas.getByText("Candlestick")).toBeVisible();
+    await expect(canvas.getByTestId("search-count")).toHaveTextContent("1 /");
+  },
 };
