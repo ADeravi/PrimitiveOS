@@ -39,6 +39,37 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
     fontCode: '"JetBrains Mono", monospace',
   }),
 
+  // Neutral — pure greyscale chrome (canonical = light), near-black accent.
+  neutral: create({
+    base: "light",
+    brandTitle: "ScnTw Design System · Neutral",
+    brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
+    colorPrimary: "#171717",
+    colorSecondary: "#171717",
+    appBg: "#fafafa",
+    appContentBg: "#ffffff",
+    appPreviewBg: "#ffffff",
+    appBorderColor: "#e5e5e5",
+    appBorderRadius: 8,
+    textColor: "#171717",
+    textMutedColor: "#737373",
+    textInverseColor: "#fafafa",
+    barBg: "#fafafa",
+    barTextColor: "#737373",
+    barSelectedColor: "#171717",
+    barHoverColor: "#171717",
+    inputBg: "#ffffff",
+    inputBorder: "#e5e5e5",
+    inputTextColor: "#171717",
+    inputBorderRadius: 6,
+    buttonBg: "#ffffff",
+    buttonBorder: "#e5e5e5",
+    booleanBg: "#f5f5f5",
+    booleanSelectedBg: "#171717",
+    fontBase: '"Inter", system-ui, sans-serif',
+    fontCode: '"JetBrains Mono", monospace',
+  }),
+
   // Material 3 — light tonal surfaces, M3 primary purple, Roboto, 16px radius.
   material: create({
     base: "light",
@@ -203,6 +234,37 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
 const MANAGER_THEMES_DARK: Record<string, ThemeVars> = {
   // shadcn dark = the original dark zinc chrome.
   shadcn: MANAGER_THEMES.shadcn,
+
+  // Neutral dark — inverted greyscale chrome, near-white accent.
+  neutral: create({
+    base: "dark",
+    brandTitle: "ScnTw Design System · Neutral",
+    brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
+    colorPrimary: "#e5e5e5",
+    colorSecondary: "#e5e5e5",
+    appBg: "#1f1f1f",
+    appContentBg: "#141414",
+    appPreviewBg: "#141414",
+    appBorderColor: "#333333",
+    appBorderRadius: 8,
+    textColor: "#f5f5f5",
+    textMutedColor: "#a3a3a3",
+    textInverseColor: "#171717",
+    barBg: "#1f1f1f",
+    barTextColor: "#a3a3a3",
+    barSelectedColor: "#f5f5f5",
+    barHoverColor: "#f5f5f5",
+    inputBg: "#262626",
+    inputBorder: "#333333",
+    inputTextColor: "#f5f5f5",
+    inputBorderRadius: 6,
+    buttonBg: "#262626",
+    buttonBorder: "#333333",
+    booleanBg: "#262626",
+    booleanSelectedBg: "#e5e5e5",
+    fontBase: '"Inter", system-ui, sans-serif',
+    fontCode: '"JetBrains Mono", monospace',
+  }),
 
   // Material 3 dark — tonal dark surfaces, dark-scheme primary (#d0bcff).
   material: create({
