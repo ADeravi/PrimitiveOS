@@ -5,3 +5,4 @@ export { ChartLine, ChartArea, ChartBar, ChartDonut, ChartRadar, ChartScatter, C
 export { ChartTreemap, ChartSankey, ChartFunnel, ChartWaterfall, ChartStreamgraph, ChartSunburst } from "./flow";
 export { ChartGauge, ChartBullet, ChartSparkline, ChartBrush, ChartCandlestick } from "./kpi";
 export { ChartHistogram, ChartBoxPlot, ChartViolin, ChartBeeswarm, ChartWaffle, ChartDumbbell } from "./distributions";
+export { ChartNetwork } from "./network";
