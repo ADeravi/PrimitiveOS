@@ -688,10 +688,14 @@ const DOCS_SURFACES: Record<
   expressive: { bg: "#1a1025", card: "#241432", border: "#3b2353", text: "#f3e8ff", muted: "#c4b5fd", lightBg: "#ffffff" },
 };
 
+// Density scales the ROOT font size: Tailwind's text-* and spacing utilities
+// are rem-based, so this is the one knob that actually scales type AND
+// spacing together. (Setting font-size on a wrapper does nothing — rem
+// ignores ancestors.) Default = the browser-standard 16px.
 const densityScale: Record<string, string> = {
-  compact: "13px",
-  default: "14px",
-  relaxed: "16px",
+  compact: "14px",
+  default: "16px",
+  relaxed: "18px",
 };
 
 // Soft fade between Design Layers / dark modes: `.theme-fade` on <html>
@@ -796,6 +800,8 @@ const preview: Preview = {
         const rootEl = document.documentElement;
         rootEl.classList.toggle("dark", dark);
         rootEl.style.colorScheme = dark ? "dark" : "light";
+        // Density — scale the rem base so type and spacing follow together.
+        rootEl.style.fontSize = densityScale[density] ?? "16px";
         rootEl.style.backgroundColor = bg;
         rootEl.style.setProperty("--sbdocs-bg", docs.bg);
         rootEl.style.setProperty("--sbdocs-card", docs.card);
@@ -813,7 +819,7 @@ const preview: Preview = {
         } catch {
           /* storage may be unavailable — cosmetic only */
         }
-      }, [designSystem, dark]);
+      }, [designSystem, dark, density]);
       const style: React.CSSProperties & Record<string, string> = {
         // Tier 1: regenerated primitive ladders for this design language
         ...look.primitives,
@@ -825,10 +831,9 @@ const preview: Preview = {
         // Toolbar overrides on top
         ...(radius       ? { "--radius":  radius       } : {}),
         ...(primaryColor ? { "--primary": primaryColor } : {}),
-        // Typography
+        // Typography (density lives on the root font-size — see the effect)
         "--font-sans": look.font,
         fontFamily: look.font,
-        fontSize: densityScale[density] ?? "14px",
       };
       return <div style={style} className="contents"><Story /></div>;
     },
