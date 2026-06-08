@@ -280,16 +280,16 @@ const DS_TOKENS: Record<string, TokenMap> = {
   // Primary = blue, Secondary = teal, Tertiary/Accent = purple.
   // Container tokens map to shadcn secondary/accent (light fill + dark text).
   material: {
-    "--primary":              "oklch(0.49 0.17 264)",
+    "--primary":              "oklch(0.49 0.12 303)",
     "--primary-foreground":   "oklch(1 0 0)",
 
     // Secondary = teal (on secondary buttons, chips)
-    "--secondary":            "oklch(0.52 0.13 195)",
-    "--secondary-foreground": "oklch(1 0 0)",
+    "--secondary":            "oklch(0.95 0.012 303)",
+    "--secondary-foreground": "oklch(0.3 0.03 303)",
 
     // Accent = tertiary purple (hover, focus rings, badges)
-    "--accent":               "oklch(0.55 0.18 303)",
-    "--accent-foreground":    "oklch(1 0 0)",
+    "--accent":               "oklch(0.94 0.03 303)",
+    "--accent-foreground":    "oklch(0.3 0.08 303)",
 
     // Functional — Material green / amber / blue
     "--success":              "oklch(0.55 0.14 150)",
@@ -308,7 +308,7 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--muted-foreground":     "oklch(0.45 0.05 264)",
     "--border":               "oklch(0.78 0.04 264)",
     "--input":                "oklch(0.78 0.04 264)",
-    "--ring":                 "oklch(0.49 0.17 264)",
+    "--ring":                 "oklch(0.49 0.12 303)",
     "--destructive":          "oklch(0.53 0.22 27)",
     "--radius":               "0.75rem",
     // Chart palette — blue, teal, purple, amber, red
@@ -326,12 +326,12 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--primary-foreground":   "oklch(1 0 0)",
 
     // Secondary = Fluent teal (Teams sidebar accent)
-    "--secondary":            "oklch(0.52 0.14 195)",
-    "--secondary-foreground": "oklch(1 0 0)",
+    "--secondary":            "oklch(0.96 0.006 250)",
+    "--secondary-foreground": "oklch(0.3 0.02 250)",
 
     // Accent = Fluent amber/gold (warning, highlights)
-    "--accent":               "oklch(0.75 0.18 70)",
-    "--accent-foreground":    "oklch(0.15 0.04 70)",
+    "--accent":               "oklch(0.95 0.02 250)",
+    "--accent-foreground":    "oklch(0.3 0.06 250)",
 
     // Functional
     "--success":              "oklch(0.55 0.13 150)",
@@ -366,12 +366,12 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--primary-foreground":   "oklch(1 0 0)",
 
     // Secondary = IBM Cyan 60
-    "--secondary":            "oklch(0.52 0.16 214)",
-    "--secondary-foreground": "oklch(1 0 0)",
+    "--secondary":            "oklch(0.95 0 0)",
+    "--secondary-foreground": "oklch(0.25 0 0)",
 
     // Accent = IBM Purple 60
-    "--accent":               "oklch(0.5 0.2 303)",
-    "--accent-foreground":    "oklch(1 0 0)",
+    "--accent":               "oklch(0.93 0.02 250)",
+    "--accent-foreground":    "oklch(0.25 0.06 250)",
 
     // Functional — IBM green / amber / blue
     "--success":              "oklch(0.55 0.13 150)",
@@ -406,12 +406,12 @@ const DS_TOKENS: Record<string, TokenMap> = {
     "--primary-foreground":   "oklch(1 0 0)",
 
     // Secondary = Apple Green
-    "--secondary":            "oklch(0.56 0.18 142)",
-    "--secondary-foreground": "oklch(1 0 0)",
+    "--secondary":            "oklch(0.96 0.004 250)",
+    "--secondary-foreground": "oklch(0.3 0 0)",
 
     // Accent = Apple Orange
-    "--accent":               "oklch(0.7 0.2 55)",
-    "--accent-foreground":    "oklch(0.15 0.04 55)",
+    "--accent":               "oklch(0.95 0.02 250)",
+    "--accent-foreground":    "oklch(0.3 0.06 250)",
 
     // Functional — Apple system green / orange / blue
     "--success":              "oklch(0.56 0.18 142)",
@@ -445,10 +445,10 @@ const DS_TOKENS: Record<string, TokenMap> = {
   expressive: {
     "--primary":              "oklch(0.5 0.22 264)",   // Vivid blue
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.55 0.2 142)",   // Vivid green
-    "--secondary-foreground": "oklch(1 0 0)",
-    "--accent":               "oklch(0.6 0.22 303)",   // Vivid purple
-    "--accent-foreground":    "oklch(1 0 0)",
+    "--secondary":            "oklch(0.95 0.012 264)",   // Vivid green
+    "--secondary-foreground": "oklch(0.3 0.03 264)",
+    "--accent":               "oklch(0.94 0.04 264)",   // Vivid purple
+    "--accent-foreground":    "oklch(0.3 0.1 264)",
 
     // Functional — vivid green / amber / blue
     "--success":              "oklch(0.6 0.2 150)",
@@ -522,12 +522,12 @@ const DS_DARK: Record<string, TokenMap> = {
   },
 
   material: {
-    "--primary":              "oklch(0.8 0.12 264)",
-    "--primary-foreground":   "oklch(0.27 0.09 264)",
-    "--secondary":            "oklch(0.8 0.1 195)",
-    "--secondary-foreground": "oklch(0.25 0.06 195)",
-    "--accent":               "oklch(0.82 0.12 303)",
-    "--accent-foreground":    "oklch(0.28 0.09 303)",
+    "--primary":              "oklch(0.8 0.1 303)",
+    "--primary-foreground":   "oklch(0.28 0.07 303)",
+    "--secondary":            "oklch(0.3 0.012 303)",
+    "--secondary-foreground": "oklch(0.92 0.02 303)",
+    "--accent":               "oklch(0.32 0.04 303)",
+    "--accent-foreground":    "oklch(0.92 0.04 303)",
     "--success":              "oklch(0.78 0.14 150)",
     "--success-foreground":   "oklch(0.25 0.06 150)",
     "--warning":              "oklch(0.85 0.14 85)",
@@ -544,7 +544,7 @@ const DS_DARK: Record<string, TokenMap> = {
     "--muted-foreground":     "oklch(0.77 0.02 286)",
     "--border":               "oklch(0.36 0.02 286)",
     "--input":                "oklch(0.36 0.02 286)",
-    "--ring":                 "oklch(0.8 0.12 264)",
+    "--ring":                 "oklch(0.8 0.1 303)",
     "--destructive":          "oklch(0.7 0.19 22)",
     "--chart-1":              "oklch(0.78 0.12 264)",
     "--chart-2":              "oklch(0.78 0.1 195)",
@@ -556,10 +556,10 @@ const DS_DARK: Record<string, TokenMap> = {
   fluent: {
     "--primary":              "oklch(0.68 0.15 245)",
     "--primary-foreground":   "oklch(0.15 0.03 245)",
-    "--secondary":            "oklch(0.72 0.12 195)",
-    "--secondary-foreground": "oklch(0.18 0.04 195)",
-    "--accent":               "oklch(0.8 0.15 70)",
-    "--accent-foreground":    "oklch(0.2 0.05 70)",
+    "--secondary":            "oklch(0.32 0 0)",
+    "--secondary-foreground": "oklch(0.95 0 0)",
+    "--accent":               "oklch(0.34 0.02 245)",
+    "--accent-foreground":    "oklch(0.95 0.02 245)",
     "--success":              "oklch(0.72 0.14 150)",
     "--success-foreground":   "oklch(0.18 0.05 150)",
     "--warning":              "oklch(0.8 0.15 70)",
@@ -588,10 +588,10 @@ const DS_DARK: Record<string, TokenMap> = {
   carbon: {
     "--primary":              "oklch(0.7 0.14 262)",
     "--primary-foreground":   "oklch(0.15 0.04 262)",
-    "--secondary":            "oklch(0.72 0.13 214)",
-    "--secondary-foreground": "oklch(0.16 0.04 214)",
-    "--accent":               "oklch(0.72 0.15 303)",
-    "--accent-foreground":    "oklch(0.18 0.05 303)",
+    "--secondary":            "oklch(0.31 0 0)",
+    "--secondary-foreground": "oklch(0.95 0 0)",
+    "--accent":               "oklch(0.34 0.02 250)",
+    "--accent-foreground":    "oklch(0.95 0.02 250)",
     "--success":              "oklch(0.72 0.13 150)",
     "--success-foreground":   "oklch(0.17 0.04 150)",
     "--warning":              "oklch(0.8 0.14 80)",
@@ -620,10 +620,10 @@ const DS_DARK: Record<string, TokenMap> = {
   apple: {
     "--primary":              "oklch(0.62 0.19 252)",
     "--primary-foreground":   "oklch(1 0 0)",
-    "--secondary":            "oklch(0.76 0.19 148)",
-    "--secondary-foreground": "oklch(0.2 0.06 148)",
-    "--accent":               "oklch(0.78 0.16 65)",
-    "--accent-foreground":    "oklch(0.22 0.06 65)",
+    "--secondary":            "oklch(0.3 0 0)",
+    "--secondary-foreground": "oklch(0.96 0 0)",
+    "--accent":               "oklch(0.34 0.02 250)",
+    "--accent-foreground":    "oklch(0.96 0.02 250)",
     "--success":              "oklch(0.76 0.19 148)",
     "--success-foreground":   "oklch(0.2 0.06 148)",
     "--warning":              "oklch(0.78 0.16 65)",
@@ -652,10 +652,10 @@ const DS_DARK: Record<string, TokenMap> = {
   expressive: {
     "--primary":              "oklch(0.72 0.16 264)",
     "--primary-foreground":   "oklch(0.2 0.08 264)",
-    "--secondary":            "oklch(0.74 0.17 142)",
-    "--secondary-foreground": "oklch(0.22 0.07 142)",
-    "--accent":               "oklch(0.75 0.18 303)",
-    "--accent-foreground":    "oklch(0.24 0.09 303)",
+    "--secondary":            "oklch(0.3 0.012 300)",
+    "--secondary-foreground": "oklch(0.95 0.02 300)",
+    "--accent":               "oklch(0.34 0.04 300)",
+    "--accent-foreground":    "oklch(0.95 0.03 300)",
     "--success":              "oklch(0.74 0.17 150)",
     "--success-foreground":   "oklch(0.2 0.06 150)",
     "--warning":              "oklch(0.82 0.15 75)",
