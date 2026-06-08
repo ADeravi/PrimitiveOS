@@ -6,21 +6,119 @@
   href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap"
   rel="stylesheet"
 />
+<script>
+  // Synchronous bootstrap — runs before first paint so there is NO light→dark
+  // flash. Reads the Design Layer + dark toggle from the iframe URL and
+  // immediately (a) sets html.dark, (b) paints the backdrop with the LAYER's
+  // own dark/light surface, (c) publishes the layer's docs-page surface
+  // palette as CSS variables consumed by the styles below.
+  // preview.tsx keeps all of this in sync afterwards on every globals change.
+  (function () {
+    var DOCS = {
+      shadcn:     { bg: "#0a0a0a", card: "#18181b", border: "#27272a", text: "#fafafa", muted: "#a1a1aa", lightBg: "#ffffff" },
+      material:   { bg: "#141218", card: "#211f26", border: "#49454f", text: "#e6e0e9", muted: "#cac4d0", lightBg: "#fef7ff" },
+      fluent:     { bg: "#1f1f1f", card: "#292929", border: "#3d3d3d", text: "#ffffff", muted: "#adadad", lightBg: "#ffffff" },
+      carbon:     { bg: "#161616", card: "#262626", border: "#393939", text: "#f4f4f4", muted: "#a8a8a8", lightBg: "#ffffff" },
+      apple:      { bg: "#161617", card: "#1d1d1f", border: "#424245", text: "#f5f5f7", muted: "#a1a1a6", lightBg: "#ffffff" },
+      expressive: { bg: "#1a1025", card: "#241432", border: "#3b2353", text: "#f3e8ff", muted: "#c4b5fd", lightBg: "#ffffff" },
+    };
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var globals = params.get("globals") || "";
+      var layer = "shadcn";
+      var dark = false;
+      globals.split(";").forEach(function (pair) {
+        var kv = pair.split(":");
+        if (kv[0] === "designSystem" && DOCS[kv[1]]) layer = kv[1];
+        if (kv[0] === "theme" && kv[1] === "dark") dark = true;
+      });
+      var d = DOCS[layer];
+      var root = document.documentElement;
+      root.classList.toggle("dark", dark);
+      root.style.setProperty("--sbdocs-bg", d.bg);
+      root.style.setProperty("--sbdocs-card", d.card);
+      root.style.setProperty("--sbdocs-border", d.border);
+      root.style.setProperty("--sbdocs-text", d.text);
+      root.style.setProperty("--sbdocs-muted", d.muted);
+      root.style.colorScheme = dark ? "dark" : "light";
+      root.style.backgroundColor = dark ? d.bg : d.lightBg;
+      // Body may not exist yet — style the root; preview.tsx paints body too.
+      document.addEventListener("DOMContentLoaded", function () {
+        document.body.style.backgroundColor = dark ? d.bg : d.lightBg;
+      });
+    } catch (e) { /* never block rendering */ }
+  })();
+</script>
 <style>
-  /* Docs pages follow the preview's dark toggle (docs theme itself is static). */
+  /* ------------------------------------------------------------------ */
+  /* Docs pages follow the dark toggle AND the Design Layer: every       */
+  /* surface below uses the per-layer --sbdocs-* palette set by the      */
+  /* bootstrap script above and kept in sync by preview.tsx.             */
+  /* ------------------------------------------------------------------ */
+
+  /* Page background + default text */
   html.dark .sbdocs.sbdocs-wrapper {
-    background: #0a0a0a !important;
-    color: #e4e4e7 !important;
+    background: var(--sbdocs-bg, #0a0a0a) !important;
+    color: var(--sbdocs-text, #fafafa) !important;
   }
-  html.dark .sbdocs-title,
-  html.dark .sbdocs-h1, html.dark .sbdocs-h2, html.dark .sbdocs-h3, html.dark .sbdocs-h4,
-  html.dark .sbdocs-p, html.dark .sbdocs-li, html.dark .sbdocs-strong {
-    color: #fafafa !important;
-    border-color: #27272a !important;
+
+  /* Headings, body copy, lists, tables — docs markdown elements often
+     carry no .sbdocs-* class, so cover bare tags inside the wrapper too. */
+  html.dark .sbdocs-wrapper h1,
+  html.dark .sbdocs-wrapper h2,
+  html.dark .sbdocs-wrapper h3,
+  html.dark .sbdocs-wrapper h4,
+  html.dark .sbdocs-wrapper strong,
+  html.dark .sbdocs-title {
+    color: var(--sbdocs-text, #fafafa) !important;
+    border-color: var(--sbdocs-border, #27272a) !important;
+  }
+  html.dark .sbdocs-wrapper p,
+  html.dark .sbdocs-wrapper li,
+  html.dark .sbdocs-wrapper td,
+  html.dark .sbdocs-wrapper th {
+    color: var(--sbdocs-muted, #a1a1aa) !important;
+  }
+
+  /* Inline code chips */
+  html.dark .sbdocs-wrapper p code,
+  html.dark .sbdocs-wrapper li code {
+    background: var(--sbdocs-card, #18181b) !important;
+    border: 1px solid var(--sbdocs-border, #27272a) !important;
+    color: var(--sbdocs-text, #fafafa) !important;
+  }
+
+  /* The story preview frame (canvas block) — container, toolbar and the
+     panel behind the rendered story all take the layer surface. */
+  html.dark .sbdocs-preview {
+    background: var(--sbdocs-bg, #0a0a0a) !important;
+    border-color: var(--sbdocs-border, #27272a) !important;
+    box-shadow: none !important;
+  }
+  html.dark .sbdocs-preview svg { color: var(--sbdocs-muted, #a1a1aa); }
+  html.dark .docs-story { background: var(--sbdocs-bg, #0a0a0a) !important; }
+
+  /* "Show code" toggle + source blocks */
+  html.dark .docblock-code-toggle {
+    background: var(--sbdocs-card, #18181b) !important;
+    border-color: var(--sbdocs-border, #27272a) !important;
+    color: var(--sbdocs-muted, #a1a1aa) !important;
   }
   html.dark .sbdocs .docblock-source {
-    background: #18181b !important;
-    border-color: #27272a !important;
+    background: var(--sbdocs-card, #18181b) !important;
+    border-color: var(--sbdocs-border, #27272a) !important;
   }
-  html.dark .sbdocs .sb-anchor > a { color: #a5b4fc !important; }
+
+  /* Args / controls tables under each story */
+  html.dark .docblock-argstable,
+  html.dark .docblock-argstable tbody,
+  html.dark .docblock-argstable td,
+  html.dark .docblock-argstable th {
+    background: transparent !important;
+    border-color: var(--sbdocs-border, #27272a) !important;
+    color: var(--sbdocs-muted, #a1a1aa) !important;
+  }
+
+  html.dark .sbdocs .sb-anchor > a,
+  html.dark .sbdocs-wrapper a { color: #a5b4fc !important; }
 </style>
