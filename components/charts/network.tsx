@@ -162,6 +162,11 @@ export function ChartNetwork({
           opacity: 0.85,
         } as cytoscape.Css.Edge,
       },
+      // Cytoscape can keep a stale label texture when only font-size changes in
+      // a value-only style diff. This no-op rule (no node carries __lsz) makes
+      // the serialised stylesheet differ whenever the label size changes, which
+      // forces a full style rebuild — and a fresh raster at the new size.
+      { selector: `node[__lsz = ${labelSize}]`, style: {} },
       { selector: "node.faded", style: { opacity: 0.12 } },
       { selector: "edge.faded", style: { opacity: 0.05 } },
       {
