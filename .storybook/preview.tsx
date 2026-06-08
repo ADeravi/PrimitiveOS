@@ -422,6 +422,178 @@ const DS_TOKENS: Record<string, TokenMap> = {
 };
 
 // ---------------------------------------------------------------------------
+// DARK semantic presets — each layer's own dark scheme, not generic zinc.
+// In dark mode these are merged OVER the light preset, so every layer keeps
+// its identity: M3 tonal dark surfaces + light-tone brand colours, Fluent
+// graphite + #479ef5, Carbon Gray-90 + Blue-40, Apple #1d1d1f + systemBlue
+// dark, Expressive deep violet. shadcn stays {} → handled by `.dark` class.
+// All `*-foreground` pairs are chosen for WCAG-readable contrast.
+// ---------------------------------------------------------------------------
+const DS_DARK: Record<string, TokenMap> = {
+  shadcn: {},
+
+  material: {
+    "--primary":              "oklch(0.8 0.12 264)",
+    "--primary-foreground":   "oklch(0.27 0.09 264)",
+    "--secondary":            "oklch(0.8 0.1 195)",
+    "--secondary-foreground": "oklch(0.25 0.06 195)",
+    "--accent":               "oklch(0.82 0.12 303)",
+    "--accent-foreground":    "oklch(0.28 0.09 303)",
+    "--success":              "oklch(0.78 0.14 150)",
+    "--success-foreground":   "oklch(0.25 0.06 150)",
+    "--warning":              "oklch(0.85 0.14 85)",
+    "--warning-foreground":   "oklch(0.28 0.06 85)",
+    "--info":                 "oklch(0.8 0.12 264)",
+    "--info-foreground":      "oklch(0.27 0.09 264)",
+    "--background":           "oklch(0.18 0.012 286)",
+    "--foreground":           "oklch(0.91 0.015 286)",
+    "--card":                 "oklch(0.22 0.014 286)",
+    "--card-foreground":      "oklch(0.91 0.015 286)",
+    "--popover":              "oklch(0.22 0.014 286)",
+    "--popover-foreground":   "oklch(0.91 0.015 286)",
+    "--muted":                "oklch(0.28 0.014 286)",
+    "--muted-foreground":     "oklch(0.77 0.02 286)",
+    "--border":               "oklch(0.36 0.02 286)",
+    "--input":                "oklch(0.36 0.02 286)",
+    "--ring":                 "oklch(0.8 0.12 264)",
+    "--destructive":          "oklch(0.7 0.19 22)",
+    "--chart-1":              "oklch(0.78 0.12 264)",
+    "--chart-2":              "oklch(0.78 0.1 195)",
+    "--chart-3":              "oklch(0.8 0.12 303)",
+    "--chart-4":              "oklch(0.8 0.14 55)",
+    "--chart-5":              "oklch(0.72 0.16 27)",
+  },
+
+  fluent: {
+    "--primary":              "oklch(0.68 0.15 245)",
+    "--primary-foreground":   "oklch(0.15 0.03 245)",
+    "--secondary":            "oklch(0.72 0.12 195)",
+    "--secondary-foreground": "oklch(0.18 0.04 195)",
+    "--accent":               "oklch(0.8 0.15 70)",
+    "--accent-foreground":    "oklch(0.2 0.05 70)",
+    "--success":              "oklch(0.72 0.14 150)",
+    "--success-foreground":   "oklch(0.18 0.05 150)",
+    "--warning":              "oklch(0.8 0.15 70)",
+    "--warning-foreground":   "oklch(0.2 0.05 70)",
+    "--info":                 "oklch(0.68 0.15 245)",
+    "--info-foreground":      "oklch(0.15 0.03 245)",
+    "--background":           "oklch(0.24 0 0)",
+    "--foreground":           "oklch(0.98 0 0)",
+    "--card":                 "oklch(0.28 0 0)",
+    "--card-foreground":      "oklch(0.98 0 0)",
+    "--popover":              "oklch(0.28 0 0)",
+    "--popover-foreground":   "oklch(0.98 0 0)",
+    "--muted":                "oklch(0.32 0 0)",
+    "--muted-foreground":     "oklch(0.75 0 0)",
+    "--border":               "oklch(0.37 0 0)",
+    "--input":                "oklch(0.37 0 0)",
+    "--ring":                 "oklch(0.68 0.15 245)",
+    "--destructive":          "oklch(0.68 0.19 25)",
+    "--chart-1":              "oklch(0.68 0.15 245)",
+    "--chart-2":              "oklch(0.74 0.12 195)",
+    "--chart-3":              "oklch(0.8 0.15 70)",
+    "--chart-4":              "oklch(0.74 0.16 303)",
+    "--chart-5":              "oklch(0.7 0.18 27)",
+  },
+
+  carbon: {
+    "--primary":              "oklch(0.7 0.14 262)",
+    "--primary-foreground":   "oklch(0.15 0.04 262)",
+    "--secondary":            "oklch(0.72 0.13 214)",
+    "--secondary-foreground": "oklch(0.16 0.04 214)",
+    "--accent":               "oklch(0.72 0.15 303)",
+    "--accent-foreground":    "oklch(0.18 0.05 303)",
+    "--success":              "oklch(0.72 0.13 150)",
+    "--success-foreground":   "oklch(0.17 0.04 150)",
+    "--warning":              "oklch(0.8 0.14 80)",
+    "--warning-foreground":   "oklch(0.2 0.05 80)",
+    "--info":                 "oklch(0.7 0.14 262)",
+    "--info-foreground":      "oklch(0.15 0.04 262)",
+    "--background":           "oklch(0.205 0 0)",
+    "--foreground":           "oklch(0.96 0 0)",
+    "--card":                 "oklch(0.27 0 0)",
+    "--card-foreground":      "oklch(0.96 0 0)",
+    "--popover":              "oklch(0.27 0 0)",
+    "--popover-foreground":   "oklch(0.96 0 0)",
+    "--muted":                "oklch(0.31 0 0)",
+    "--muted-foreground":     "oklch(0.72 0 0)",
+    "--border":               "oklch(0.35 0 0)",
+    "--input":                "oklch(0.35 0 0)",
+    "--ring":                 "oklch(0.7 0.14 262)",
+    "--destructive":          "oklch(0.66 0.2 25)",
+    "--chart-1":              "oklch(0.7 0.14 262)",
+    "--chart-2":              "oklch(0.74 0.13 214)",
+    "--chart-3":              "oklch(0.74 0.15 303)",
+    "--chart-4":              "oklch(0.76 0.15 142)",
+    "--chart-5":              "oklch(0.8 0.14 55)",
+  },
+
+  apple: {
+    "--primary":              "oklch(0.62 0.19 252)",
+    "--primary-foreground":   "oklch(1 0 0)",
+    "--secondary":            "oklch(0.76 0.19 148)",
+    "--secondary-foreground": "oklch(0.2 0.06 148)",
+    "--accent":               "oklch(0.78 0.16 65)",
+    "--accent-foreground":    "oklch(0.22 0.06 65)",
+    "--success":              "oklch(0.76 0.19 148)",
+    "--success-foreground":   "oklch(0.2 0.06 148)",
+    "--warning":              "oklch(0.78 0.16 65)",
+    "--warning-foreground":   "oklch(0.22 0.06 65)",
+    "--info":                 "oklch(0.62 0.19 252)",
+    "--info-foreground":      "oklch(1 0 0)",
+    "--background":           "oklch(0.21 0.002 270)",
+    "--foreground":           "oklch(0.97 0 0)",
+    "--card":                 "oklch(0.25 0.003 270)",
+    "--card-foreground":      "oklch(0.97 0 0)",
+    "--popover":              "oklch(0.25 0.003 270)",
+    "--popover-foreground":   "oklch(0.97 0 0)",
+    "--muted":                "oklch(0.3 0.003 270)",
+    "--muted-foreground":     "oklch(0.72 0 0)",
+    "--border":               "oklch(0.36 0.004 270)",
+    "--input":                "oklch(0.36 0.004 270)",
+    "--ring":                 "oklch(0.62 0.19 252)",
+    "--destructive":          "oklch(0.66 0.21 25)",
+    "--chart-1":              "oklch(0.62 0.19 252)",
+    "--chart-2":              "oklch(0.76 0.19 148)",
+    "--chart-3":              "oklch(0.78 0.16 65)",
+    "--chart-4":              "oklch(0.7 0.19 27)",
+    "--chart-5":              "oklch(0.7 0.17 303)",
+  },
+
+  expressive: {
+    "--primary":              "oklch(0.72 0.16 264)",
+    "--primary-foreground":   "oklch(0.2 0.08 264)",
+    "--secondary":            "oklch(0.74 0.17 142)",
+    "--secondary-foreground": "oklch(0.22 0.07 142)",
+    "--accent":               "oklch(0.75 0.18 303)",
+    "--accent-foreground":    "oklch(0.24 0.09 303)",
+    "--success":              "oklch(0.74 0.17 150)",
+    "--success-foreground":   "oklch(0.2 0.06 150)",
+    "--warning":              "oklch(0.82 0.15 75)",
+    "--warning-foreground":   "oklch(0.24 0.06 75)",
+    "--info":                 "oklch(0.72 0.16 264)",
+    "--info-foreground":      "oklch(0.2 0.08 264)",
+    "--background":           "oklch(0.19 0.045 300)",
+    "--foreground":           "oklch(0.96 0.015 300)",
+    "--card":                 "oklch(0.24 0.05 300)",
+    "--card-foreground":      "oklch(0.96 0.015 300)",
+    "--popover":              "oklch(0.24 0.05 300)",
+    "--popover-foreground":   "oklch(0.96 0.015 300)",
+    "--muted":                "oklch(0.3 0.055 300)",
+    "--muted-foreground":     "oklch(0.78 0.05 300)",
+    "--border":               "oklch(0.37 0.06 300)",
+    "--input":                "oklch(0.37 0.06 300)",
+    "--ring":                 "oklch(0.72 0.16 264)",
+    "--destructive":          "oklch(0.7 0.21 25)",
+    "--chart-1":              "oklch(0.72 0.16 264)",
+    "--chart-2":              "oklch(0.74 0.17 142)",
+    "--chart-3":              "oklch(0.75 0.18 303)",
+    "--chart-4":              "oklch(0.8 0.16 55)",
+    "--chart-5":              "oklch(0.7 0.2 27)",
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Toolbar globals
 // ---------------------------------------------------------------------------
 export const globalTypes = {
@@ -499,15 +671,21 @@ export const globalTypes = {
   },
 };
 
-// Canvas (iframe body) backdrop per layer — SB10 ignores appPreviewBg, so the
-// preview paints its own backdrop and keeps it in sync with the dark toggle.
-const CANVAS_DARK_BG: Record<string, string> = {
-  shadcn: "#0a0a0a",
-  material: "#141218",
-  fluent: "#1f1f1f",
-  carbon: "#161616",
-  apple: "#161617",
-  expressive: "#1a1025",
+// Canvas + docs-page surfaces per layer — SB10 ignores appPreviewBg, so the
+// preview paints its own backdrop, sets html.dark and publishes the
+// --sbdocs-* variables consumed by preview-head.html's docs CSS. The
+// bootstrap script in preview-head.html applies the same values BEFORE first
+// paint (no flash); this map keeps them in sync on every globals change.
+const DOCS_SURFACES: Record<
+  string,
+  { bg: string; card: string; border: string; text: string; muted: string; lightBg: string }
+> = {
+  shadcn:     { bg: "#0a0a0a", card: "#18181b", border: "#27272a", text: "#fafafa", muted: "#a1a1aa", lightBg: "#ffffff" },
+  material:   { bg: "#141218", card: "#211f26", border: "#49454f", text: "#e6e0e9", muted: "#cac4d0", lightBg: "#fef7ff" },
+  fluent:     { bg: "#1f1f1f", card: "#292929", border: "#3d3d3d", text: "#ffffff", muted: "#adadad", lightBg: "#ffffff" },
+  carbon:     { bg: "#161616", card: "#262626", border: "#393939", text: "#f4f4f4", muted: "#a8a8a8", lightBg: "#ffffff" },
+  apple:      { bg: "#161617", card: "#1d1d1f", border: "#424245", text: "#f5f5f7", muted: "#a1a1a6", lightBg: "#ffffff" },
+  expressive: { bg: "#1a1025", card: "#241432", border: "#3b2353", text: "#f3e8ff", muted: "#c4b5fd", lightBg: "#ffffff" },
 };
 
 const densityScale: Record<string, string> = {
@@ -566,30 +744,45 @@ const preview: Preview = {
         designSystem: string; radius: string; primaryColor: string; density: string; theme?: string;
       };
       const look = LOOK[designSystem] ?? LOOK.shadcn;
+      const dark = theme === "dark";
       const preset: TokenMap = { ...(DS_TOKENS[designSystem] ?? {}) };
-      // In dark mode, hand the surface tokens back to the `.dark` class —
-      // inline vars would otherwise override it and lock the canvas light.
-      // Brand, functional, chart, radius, primitives, fonts and motion stay.
-      if (theme === "dark") {
-        for (const key of [
-          "--background", "--foreground",
-          "--card", "--card-foreground",
-          "--popover", "--popover-foreground",
-          "--muted", "--muted-foreground",
-          "--border", "--input",
-        ]) {
-          delete preset[key];
+      if (dark) {
+        const darkPreset = DS_DARK[designSystem] ?? {};
+        if (Object.keys(darkPreset).length > 0) {
+          // The layer has its OWN dark scheme — merge it over the light
+          // preset so surfaces, brand colours and charts all go layer-dark.
+          Object.assign(preset, darkPreset);
+        } else {
+          // shadcn: hand the surface tokens back to the `.dark` class —
+          // inline vars would otherwise override it and lock the canvas light.
+          for (const key of [
+            "--background", "--foreground",
+            "--card", "--card-foreground",
+            "--popover", "--popover-foreground",
+            "--muted", "--muted-foreground",
+            "--border", "--input",
+          ]) {
+            delete preset[key];
+          }
         }
       }
-      // Keep the canvas backdrop in sync with the layer + dark toggle, so the
-      // area AROUND the story never disagrees with the story's own surface.
+      // Keep the page around the story in sync with the layer + dark toggle:
+      // html.dark (docs CSS hook), color-scheme, the --sbdocs-* surface vars
+      // and the body/root backdrop. Mirrors preview-head.html's bootstrap.
       React.useEffect(() => {
-        const dark = theme === "dark";
-        const light = (DS_TOKENS[designSystem] ?? {})["--background"] ?? "#ffffff";
-        document.body.style.backgroundColor = dark
-          ? (CANVAS_DARK_BG[designSystem] ?? "#0a0a0a")
-          : light;
-      }, [designSystem, theme]);
+        const docs = DOCS_SURFACES[designSystem] ?? DOCS_SURFACES.shadcn;
+        const bg = dark ? docs.bg : docs.lightBg;
+        const rootEl = document.documentElement;
+        rootEl.classList.toggle("dark", dark);
+        rootEl.style.colorScheme = dark ? "dark" : "light";
+        rootEl.style.backgroundColor = bg;
+        rootEl.style.setProperty("--sbdocs-bg", docs.bg);
+        rootEl.style.setProperty("--sbdocs-card", docs.card);
+        rootEl.style.setProperty("--sbdocs-border", docs.border);
+        rootEl.style.setProperty("--sbdocs-text", docs.text);
+        rootEl.style.setProperty("--sbdocs-muted", docs.muted);
+        document.body.style.backgroundColor = bg;
+      }, [designSystem, dark]);
       const style: React.CSSProperties & Record<string, string> = {
         // Tier 1: regenerated primitive ladders for this design language
         ...look.primitives,
