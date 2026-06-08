@@ -95,6 +95,10 @@ function readTokens(el: HTMLElement) {
     mutedF: v("--muted-foreground", "#888"),
     bg: v("--background", "#fff"),
     primary: v("--primary", "#333"),
+    // A RESOLVED font stack (the active layer's font). Cytoscape paints labels
+    // to <canvas> and can't measure the CSS keyword "inherit", which silently
+    // wedges the label texture so font-size changes never re-raster.
+    font: cs.fontFamily || "system-ui, sans-serif",
   };
 }
 
@@ -134,7 +138,7 @@ export function ChartNetwork({
           label: labels ? "data(label)" : "",
           color: t.fg,
           "font-size": `${labelSize}px`,
-          "font-family": "inherit",
+          "font-family": t.font,
           "min-zoomed-font-size": 4,
           "text-valign": "bottom",
           "text-halign": "center",
@@ -162,11 +166,6 @@ export function ChartNetwork({
           opacity: 0.85,
         } as cytoscape.Css.Edge,
       },
-      // Cytoscape can keep a stale label texture when only font-size changes in
-      // a value-only style diff. This no-op rule (no node carries __lsz) makes
-      // the serialised stylesheet differ whenever the label size changes, which
-      // forces a full style rebuild — and a fresh raster at the new size.
-      { selector: `node[__lsz = ${labelSize}]`, style: {} },
       { selector: "node.faded", style: { opacity: 0.12 } },
       { selector: "edge.faded", style: { opacity: 0.05 } },
       {
