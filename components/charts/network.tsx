@@ -221,7 +221,21 @@ export function ChartNetwork({
     const mo = new MutationObserver(restyle);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
 
+    // The container often has no height yet at init (Storybook/centered timing),
+    // which piles the graph in a corner — resize + fit whenever it changes size.
+    let fitRaf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(fitRaf);
+      fitRaf = requestAnimationFrame(() => {
+        cy.resize();
+        cy.fit(undefined, 24);
+      });
+    });
+    ro.observe(host);
+
     return () => {
+      cancelAnimationFrame(fitRaf);
+      ro.disconnect();
       mo.disconnect();
       cy.destroy();
       cyRef.current = null;
@@ -247,10 +261,13 @@ export function ChartNetwork({
     });
   }, [minDeg]);
 
-  // Re-run layout when the layout or its physics change.
+  // Re-run layout when the layout or its physics change, then fit to view.
   React.useEffect(() => {
     const cy = cyRef.current;
-    if (cy) cy.layout(layoutOpts()).run();
+    if (!cy) return;
+    const l = cy.layout(layoutOpts());
+    l.one("layoutstop", () => cy.fit(undefined, 24));
+    l.run();
   }, [layoutOpts]);
 
   const isForce = layout === "force";
