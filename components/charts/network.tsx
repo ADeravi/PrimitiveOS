@@ -52,21 +52,43 @@ type LayoutKey = (typeof LAYOUTS)[number];
 const EDGE_STYLES = ["straight", "curved"] as const;
 type EdgeKey = (typeof EDGE_STYLES)[number];
 
+// Cytoscape paints to <canvas> and its colour parser does NOT understand
+// oklch() (the format every DS token uses) — it silently falls back to one
+// grey, rendering the graph "mono". Browsers also keep oklch() verbatim in
+// getComputedStyle and canvas fillStyle, so we convert oklch → sRGB ourselves
+// (Björn Ottosson's OKLab matrix) and hand cytoscape a plain rgb() string.
+function oklchToRgb(str: string): string {
+  const m = str.match(/oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)/i);
+  if (!m) return str;
+  let L = parseFloat(m[1]);
+  if (m[1].includes("%")) L /= 100;
+  const C = parseFloat(m[2]);
+  const H = parseFloat(m[3]);
+  const hr = (H * Math.PI) / 180;
+  const a = C * Math.cos(hr);
+  const b = C * Math.sin(hr);
+  let l = L + 0.3963377774 * a + 0.2158037573 * b;
+  let mm = L - 0.1055613458 * a - 0.0638541728 * b;
+  let s = L - 0.0894841775 * a - 1.291485548 * b;
+  l = l * l * l;
+  mm = mm * mm * mm;
+  s = s * s * s;
+  const lr = 4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * s;
+  const lg = -1.2684380046 * l + 2.6097574011 * mm - 0.3413193965 * s;
+  const lb = -0.0041960863 * l - 0.7034186147 * mm + 1.707614701 * s;
+  const gamma = (x: number) =>
+    x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(Math.max(0, x), 1 / 2.4) - 0.055;
+  const ch = (x: number) => Math.max(0, Math.min(255, Math.round(gamma(x) * 255)));
+  return `rgb(${ch(lr)}, ${ch(lg)}, ${ch(lb)})`;
+}
+
 function readTokens(el: HTMLElement) {
   const cs = getComputedStyle(el);
-  // Resolve each token to a concrete rgb() string. Cytoscape paints to <canvas>;
-  // feeding raw oklch() risks a silent fallback to one colour ("mono"), so we
-  // round-trip every value through a probe element to get a canvas-safe colour.
-  const probe = document.createElement("span");
-  probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
-  el.appendChild(probe);
   const v = (n: string, fb: string) => {
     const raw = cs.getPropertyValue(n).trim() || fb;
-    probe.style.color = "";
-    probe.style.color = raw;
-    return getComputedStyle(probe).color || raw;
+    return raw.toLowerCase().startsWith("oklch") ? oklchToRgb(raw) : raw;
   };
-  const t = {
+  return {
     c: [1, 2, 3, 4, 5].map((i) => v(`--chart-${i}`, "#888")),
     border: v("--border", "#ddd"),
     fg: v("--foreground", "#111"),
@@ -74,8 +96,6 @@ function readTokens(el: HTMLElement) {
     bg: v("--background", "#fff"),
     primary: v("--primary", "#333"),
   };
-  el.removeChild(probe);
-  return t;
 }
 
 export function ChartNetwork({
@@ -109,8 +129,8 @@ export function ChartNetwork({
           // Per-group fill via data(color) — the canonical, reliable cytoscape
           // mapping (function-value mappers silently render mono on canvas).
           "background-color": "data(color)",
-          width: sizeByDegree ? ("mapData(deg, 1, 7, " + nodeSize * 0.7 + ", " + nodeSize * 1.9 + ")" as unknown as number) : nodeSize,
-          height: sizeByDegree ? ("mapData(deg, 1, 7, " + nodeSize * 0.7 + ", " + nodeSize * 1.9 + ")" as unknown as number) : nodeSize,
+          width: sizeByDegree ? (("mapData(deg, 1, 7, " + nodeSize * 0.7 + ", " + nodeSize * 1.9 + ")") as unknown as number) : nodeSize,
+          height: sizeByDegree ? (("mapData(deg, 1, 7, " + nodeSize * 0.7 + ", " + nodeSize * 1.9 + ")") as unknown as number) : nodeSize,
           label: labels ? "data(label)" : "",
           color: t.fg,
           "font-size": `${labelSize}px`,
