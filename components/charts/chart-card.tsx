@@ -55,16 +55,22 @@ export function ChartCard({
   const [shown, setShown] = React.useState(false);
   React.useEffect(() => {
     const el = wrapRef.current;
+    // Safety net: reveal shortly after mount even if IntersectionObserver never
+    // fires (e.g. a background tab), so a chart can never stay blank.
+    const fallback = window.setTimeout(() => setShown(true), 500);
     if (!el || typeof IntersectionObserver === "undefined") {
       setShown(true);
-      return;
+      return () => window.clearTimeout(fallback);
     }
     const io = new IntersectionObserver(
       ([entry]) => setShown(entry.isIntersecting),
       { threshold: 0.15 }
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      window.clearTimeout(fallback);
+      io.disconnect();
+    };
   }, []);
 
   return (
