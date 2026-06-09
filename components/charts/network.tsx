@@ -23,7 +23,7 @@ try {
 // ---------------------------------------------------------------------------
 // Sample graph — 3 attribute groups, hubs + leaves + cross-links.
 // ---------------------------------------------------------------------------
-const NODES = [
+export const NODES = [
   { id: "h1", label: "Cognition", group: 0 },
   { id: "h2", label: "Memory systems", group: 1 },
   { id: "h3", label: "Attention", group: 2 },
@@ -39,7 +39,7 @@ const NODES = [
   { id: "d1", label: "Sleep", group: 1 },
   { id: "d2", label: "Reward", group: 2 },
 ];
-const EDGES = [
+export const EDGES = [
   ["h1", "h2"], ["h1", "h3"], ["h2", "h3"],
   ["h1", "a1"], ["h1", "a2"], ["h1", "a3"], ["a1", "a2"], ["a2", "a3"],
   ["h2", "b1"], ["h2", "b2"], ["h2", "b3"], ["b1", "b2"], ["b2", "b3"],
@@ -49,7 +49,7 @@ const EDGES = [
 
 const LAYOUTS = ["force", "hierarchy", "circle", "concentric", "grid"] as const;
 type LayoutKey = (typeof LAYOUTS)[number];
-const EDGE_STYLES = ["straight", "curved"] as const;
+export const EDGE_STYLES = ["straight", "curved"] as const;
 type EdgeKey = (typeof EDGE_STYLES)[number];
 
 // Cytoscape paints to <canvas> and its colour parser does NOT understand
@@ -82,7 +82,7 @@ function oklchToRgb(str: string): string {
   return `rgb(${ch(lr)}, ${ch(lg)}, ${ch(lb)})`;
 }
 
-function readTokens(el: HTMLElement) {
+export function readTokens(el: HTMLElement) {
   const cs = getComputedStyle(el);
   const v = (n: string, fb: string) => {
     const raw = cs.getPropertyValue(n).trim() || fb;

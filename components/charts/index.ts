@@ -6,3 +6,10 @@ export { ChartTreemap, ChartSankey, ChartFunnel, ChartWaterfall, ChartStreamgrap
 export { ChartGauge, ChartBullet, ChartSparkline, ChartBrush, ChartCandlestick } from "./kpi";
 export { ChartHistogram, ChartBoxPlot, ChartViolin, ChartBeeswarm, ChartWaffle, ChartDumbbell } from "./distributions";
 export { ChartNetwork } from "./network";
+export {
+  ChartNetworkForce,
+  ChartNetworkHierarchy,
+  ChartNetworkCircle,
+  ChartNetworkConcentric,
+  ChartNetworkGrid,
+} from "./network-layouts";
