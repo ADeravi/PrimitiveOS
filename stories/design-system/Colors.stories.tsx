@@ -11,25 +11,43 @@ export default meta;
 type Story = StoryObj;
 
 // ---------------------------------------------------------------------------
-// Tier 1 — Primitive scales
-// Raw colour ladders. Mode-independent; read straight from CSS variables.
+// Radix Color System — 29 scales × 12 steps
 // ---------------------------------------------------------------------------
-const PRIMITIVE_STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-const PRIMITIVE_HUES = [
-  { name: "Neutral", token: "neutral" },
-  { name: "Blue", token: "blue" },
-  { name: "Green", token: "green" },
-  { name: "Red", token: "red" },
-  { name: "Amber", token: "amber" },
+const RADIX_STEPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+type RadixStep = (typeof RADIX_STEPS)[number];
+
+const STEP_SEMANTICS: Record<RadixStep, { label: string; description: string }> = {
+  1:  { label: "App bg",       description: "App / page background" },
+  2:  { label: "Subtle bg",    description: "Subtle or alternate background" },
+  3:  { label: "UI bg",        description: "Component background at rest" },
+  4:  { label: "Hovered UI",   description: "Component background, hovered" },
+  5:  { label: "Active UI",    description: "Component background, pressed or selected" },
+  6:  { label: "Borders",      description: "Subtle borders and separators" },
+  7:  { label: "Borders+",     description: "Interactive element borders" },
+  8:  { label: "Links",        description: "Hovered borders and links" },
+  9:  { label: "Solid ★",      description: "Solid backgrounds — the main vivid accent" },
+  10: { label: "Solid hover",  description: "Solid backgrounds, hovered" },
+  11: { label: "Lo-contrast",  description: "Low-contrast text and icons" },
+  12: { label: "Hi-contrast",  description: "High-contrast text and headings" },
+};
+
+const RADIX_GROUPS: { name: string; scales: string[] }[] = [
+  { name: "Gray Families",    scales: ["gray", "mauve", "slate", "sage", "olive", "sand"] },
+  { name: "Red Family",       scales: ["tomato", "red", "ruby", "crimson"] },
+  { name: "Pink → Purple",    scales: ["pink", "plum", "purple"] },
+  { name: "Violet → Indigo",  scales: ["violet", "iris", "indigo"] },
+  { name: "Blue → Teal",      scales: ["blue", "cyan", "sky", "teal"] },
+  { name: "Green",            scales: ["mint", "jade", "green", "grass", "lime"] },
+  { name: "Yellow → Brown",   scales: ["yellow", "amber", "orange", "brown"] },
 ];
 
 // ---------------------------------------------------------------------------
-// Tier 2 + Tier 3 — Semantic + functional token definitions
+// Semantic token groups (Tier 2 + Tier 3)
 // ---------------------------------------------------------------------------
 const GROUPS = [
   {
     title: "Brand",
-    description: "Core action colours — primary, secondary and accent update with the Design Layer toolbar.",
+    description: "Core action colours — update with the Design Layer toolbar. Default: Radix Violet.",
     tokens: [
       { name: "Primary",              bg: "--primary",              fg: "--primary-foreground" },
       { name: "Primary Foreground",   bg: "--primary-foreground",   fg: "--primary" },
@@ -41,7 +59,7 @@ const GROUPS = [
   },
   {
     title: "Functional",
-    description: "Status colours for success, warning, info and destructive states. These also shift per design layer.",
+    description: "Status colours mapped to Radix step-9 (solid accent) — green, amber, blue, red.",
     tokens: [
       { name: "Success",              bg: "--success",              fg: "--success-foreground" },
       { name: "Success Foreground",   bg: "--success-foreground",   fg: "--success" },
@@ -54,7 +72,7 @@ const GROUPS = [
   },
   {
     title: "Surface",
-    description: "Background, card and popover layers that form the depth stack.",
+    description: "Background, card and popover layers mapped to Radix Slate steps 1–3.",
     tokens: [
       { name: "Background",           bg: "--background",           fg: "--foreground" },
       { name: "Foreground",           bg: "--foreground",           fg: "--background" },
@@ -68,75 +86,175 @@ const GROUPS = [
   },
   {
     title: "Border & Input",
-    description: "Stroke colours used on dividers, input fields and focus rings.",
+    description: "Stroke colours mapped to Radix Slate steps 6–7.",
     tokens: [
-      { name: "Border",               bg: "--border",               fg: "--foreground" },
-      { name: "Input",                bg: "--input",                fg: "--foreground" },
-      { name: "Ring",                 bg: "--ring",                 fg: "--background" },
+      { name: "Border", bg: "--border", fg: "--foreground" },
+      { name: "Input",  bg: "--input",  fg: "--foreground" },
+      { name: "Ring",   bg: "--ring",   fg: "--background" },
     ],
   },
   {
     title: "Chart",
-    description: "Five-step data visualisation palette.",
+    description: "Five vivid step-9 colours across distinct hue families. Auto-shifts in dark mode.",
     tokens: [
-      { name: "Chart 1", bg: "--chart-1", fg: "--background" },
-      { name: "Chart 2", bg: "--chart-2", fg: "--background" },
-      { name: "Chart 3", bg: "--chart-3", fg: "--background" },
-      { name: "Chart 4", bg: "--chart-4", fg: "--foreground" },
-      { name: "Chart 5", bg: "--chart-5", fg: "--background" },
+      { name: "Chart 1 (violet)", bg: "--chart-1", fg: "--background" },
+      { name: "Chart 2 (cyan)",   bg: "--chart-2", fg: "--background" },
+      { name: "Chart 3 (amber)",  bg: "--chart-3", fg: "--background" },
+      { name: "Chart 4 (green)",  bg: "--chart-4", fg: "--background" },
+      { name: "Chart 5 (red)",    bg: "--chart-5", fg: "--background" },
     ],
   },
   {
     title: "Sidebar",
     description: "Tokens specific to the Sidebar component.",
     tokens: [
-      { name: "Sidebar",                   bg: "--sidebar",                   fg: "--sidebar-foreground" },
-      { name: "Sidebar Foreground",        bg: "--sidebar-foreground",        fg: "--sidebar" },
-      { name: "Sidebar Primary",           bg: "--sidebar-primary",           fg: "--sidebar-primary-foreground" },
-      { name: "Sidebar Primary Foreground",bg: "--sidebar-primary-foreground",fg: "--sidebar-primary" },
-      { name: "Sidebar Accent",            bg: "--sidebar-accent",            fg: "--sidebar-accent-foreground" },
-      { name: "Sidebar Border",            bg: "--sidebar-border",            fg: "--sidebar-foreground" },
-      { name: "Sidebar Ring",              bg: "--sidebar-ring",              fg: "--sidebar" },
+      { name: "Sidebar",                    bg: "--sidebar",                    fg: "--sidebar-foreground" },
+      { name: "Sidebar Foreground",         bg: "--sidebar-foreground",         fg: "--sidebar" },
+      { name: "Sidebar Primary",            bg: "--sidebar-primary",            fg: "--sidebar-primary-foreground" },
+      { name: "Sidebar Primary Foreground", bg: "--sidebar-primary-foreground", fg: "--sidebar-primary" },
+      { name: "Sidebar Accent",             bg: "--sidebar-accent",             fg: "--sidebar-accent-foreground" },
+      { name: "Sidebar Border",             bg: "--sidebar-border",             fg: "--sidebar-foreground" },
+      { name: "Sidebar Ring",               bg: "--sidebar-ring",               fg: "--sidebar" },
     ],
   },
 ];
 
 // ---------------------------------------------------------------------------
-// Helpers: read computed CSS variable values at runtime
+// Helpers
 // ---------------------------------------------------------------------------
 function useCSSVar(variable: string): string {
   const [value, setValue] = React.useState("");
   React.useEffect(() => {
-    const root = document.documentElement;
-    const raw = getComputedStyle(root).getPropertyValue(variable).trim();
+    const raw = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
     setValue(raw || variable);
   }, [variable]);
   return value;
 }
 
-function copyVar(variable: string, done: () => void) {
-  navigator.clipboard.writeText(`var(${variable})`).then(done);
+function copyText(text: string, done: () => void) {
+  navigator.clipboard.writeText(text).then(done);
 }
 
 // ---------------------------------------------------------------------------
-// Swatch component
+// Radix step swatch
+// ---------------------------------------------------------------------------
+function RadixStep({
+  scale,
+  step,
+}: {
+  scale: string;
+  step: RadixStep;
+}) {
+  const varName = `--${scale}-${step}`;
+  const [copied, setCopied] = React.useState(false);
+  const isSolid = step === 9;
+  const isLight = step <= 6;
+
+  return (
+    <button
+      onClick={() =>
+        copyText(`var(${varName})`, () => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        })
+      }
+      title={`${STEP_SEMANTICS[step].description}\nvar(${varName})`}
+      className={`group relative flex-1 flex flex-col items-center justify-between py-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:z-10 first:rounded-l-lg last:rounded-r-lg transition-opacity hover:opacity-90 ${
+        isSolid ? "outline outline-2 outline-offset-[-2px] outline-white/25 z-10" : ""
+      }`}
+      style={{ background: `var(${varName})`, minHeight: "52px" }}
+    >
+      {isSolid && (
+        <span className={`text-[8px] font-bold ${isLight ? "text-black/40" : "text-white/60"}`}>★</span>
+      )}
+      {!isSolid && <span />}
+      <span className={`text-[9px] font-mono ${isLight ? "text-black/40" : "text-white/50"}`}>
+        {copied ? "✓" : step}
+      </span>
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Scale row
+// ---------------------------------------------------------------------------
+function RadixScaleRow({ scale }: { scale: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-16 shrink-0">
+        <p className="text-[11px] font-semibold text-foreground capitalize leading-tight">{scale}</p>
+      </div>
+      <div className="flex flex-1 rounded-lg overflow-hidden border border-border/40 shadow-xs">
+        {RADIX_STEPS.map((step) => (
+          <RadixStep key={step} scale={scale} step={step} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Full Radix palette
+// ---------------------------------------------------------------------------
+function RadixPaletteSection() {
+  return (
+    <div className="space-y-10">
+      {/* Step semantics legend */}
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Step Semantics (applies to every scale)</h3>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 lg:grid-cols-4">
+          {RADIX_STEPS.map((step) => (
+            <div key={step} className="flex items-baseline gap-2">
+              <span className={`text-xs font-mono font-bold tabular-nums w-5 ${
+                step === 9 ? "text-primary" : "text-muted-foreground"
+              }`}>
+                {step}
+              </span>
+              <span className="text-xs text-foreground">{STEP_SEMANTICS[step].label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Toggle dark mode in the toolbar — all 29 scales remap automatically.
+          Click any step to copy its CSS variable. ★ = step 9, the vivid solid accent.
+        </p>
+      </div>
+
+      {/* Scale groups */}
+      {RADIX_GROUPS.map((group) => (
+        <section key={group.name} className="space-y-2.5">
+          <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1.5">
+            {group.name}
+          </h3>
+          <div className="space-y-1.5">
+            {group.scales.map((scale) => (
+              <RadixScaleRow key={scale} scale={scale} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Semantic swatch
 // ---------------------------------------------------------------------------
 function Swatch({ name, bg, fg }: { name: string; bg: string; fg: string }) {
   const rawValue = useCSSVar(bg);
   const [copied, setCopied] = React.useState(false);
 
-  const copy = () => copyVar(bg, () => {
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  });
-
   return (
     <button
-      onClick={copy}
+      onClick={() =>
+        copyText(`var(${bg})`, () => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        })
+      }
       title={`Copy var(${bg})`}
       className="group flex flex-col rounded-xl overflow-hidden border border-border text-left w-full cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      {/* Colour block */}
       <div
         className="h-20 w-full flex items-end p-2"
         style={{ background: `var(${bg})` }}
@@ -148,8 +266,6 @@ function Swatch({ name, bg, fg }: { name: string; bg: string; fg: string }) {
           {copied ? "Copied!" : "Copy"}
         </span>
       </div>
-
-      {/* Label */}
       <div className="bg-card px-3 py-2 space-y-0.5">
         <p className="text-xs font-semibold text-card-foreground truncate">{name}</p>
         <p className="text-[10px] font-mono text-muted-foreground truncate">{bg}</p>
@@ -159,9 +275,6 @@ function Swatch({ name, bg, fg }: { name: string; bg: string; fg: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Group component
-// ---------------------------------------------------------------------------
 function ColorGroup({
   title,
   description,
@@ -187,98 +300,22 @@ function ColorGroup({
 }
 
 // ---------------------------------------------------------------------------
-// Primitive ladder components
-// ---------------------------------------------------------------------------
-function PrimitiveCell({ token, step }: { token: string; step: number }) {
-  const varName = `--${token}-${step}`;
-  const rawValue = useCSSVar(varName);
-  const [copied, setCopied] = React.useState(false);
-  // Light text on the darker half of the ladder.
-  const dark = step >= 500;
-
-  return (
-    <button
-      onClick={() => copyVar(varName, () => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      })}
-      title={`Copy var(${varName})`}
-      className="group relative flex-1 h-16 first:rounded-l-lg last:rounded-r-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:z-10"
-      style={{ background: `var(${varName})` }}
-    >
-      <span
-        className={`absolute inset-x-0 bottom-1 text-center text-[9px] font-mono opacity-0 group-hover:opacity-100 transition-opacity ${dark ? "text-white" : "text-black"}`}
-      >
-        {copied ? "Copied!" : step}
-      </span>
-      {/* Persistent step label */}
-      <span
-        className={`absolute inset-x-0 top-1 text-center text-[9px] font-semibold ${dark ? "text-white/80" : "text-black/70"}`}
-      >
-        {step}
-      </span>
-    </button>
-  );
-}
-
-function PrimitiveLadder({ name, token }: { name: string; token: string }) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-baseline justify-between">
-        <p className="text-sm font-semibold text-foreground">{name}</p>
-        <p className="text-[10px] font-mono text-muted-foreground">--{token}-50 → --{token}-950</p>
-      </div>
-      <div className="flex gap-0.5">
-        {PRIMITIVE_STEPS.map((step) => (
-          <PrimitiveCell key={step} token={token} step={step} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PrimitiveScalesSection() {
-  return (
-    <section className="space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">Primitive Scale</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Tier 1 — raw colour ladders (50 → 950) with no semantic meaning. These are the absolute
-          palette the semantic and functional tokens reference. Click any step to copy its CSS variable.
-        </p>
-      </div>
-      <div className="space-y-5">
-        {PRIMITIVE_HUES.map((h) => (
-          <PrimitiveLadder key={h.token} name={h.name} token={h.token} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Stories
 // ---------------------------------------------------------------------------
 export const AllTokens: Story = {
   name: "All Tokens",
   render: () => (
     <div className="bg-background min-h-screen p-8 space-y-12">
-      {/* Header */}
       <div className="border-b border-border pb-6">
         <h1 className="text-3xl font-bold text-foreground">Color Palette</h1>
         <p className="mt-2 text-muted-foreground max-w-2xl">
-          A three-tier token architecture: primitive ladders (Tier 1), semantic brand and surface
-          tokens (Tier 2), and functional status colours (Tier 3). Switch the{" "}
-          <span className="font-medium text-foreground">Design Layer</span> in the toolbar
-          to see Material Design 3, Fluent, Carbon, Apple HIG or Expressive palettes.
-          Click any swatch to copy its CSS variable.
+          Semantic tokens (Tier 2/3) built on{" "}
+          <span className="font-medium text-foreground">Radix Colors</span> — 29 scales, 12 steps, automatic
+          dark mode. Switch the{" "}
+          <span className="font-medium text-foreground">Design Layer</span> toolbar to see Material, Fluent,
+          Carbon, Apple HIG or Expressive palettes. Click any swatch to copy its CSS variable.
         </p>
       </div>
-
-      {/* Tier 1 */}
-      <PrimitiveScalesSection />
-
-      {/* Tier 2 + Tier 3 token groups */}
       {GROUPS.map((g) => (
         <ColorGroup key={g.title} title={g.title} description={g.description} tokens={g.tokens} />
       ))}
@@ -286,18 +323,22 @@ export const AllTokens: Story = {
   ),
 };
 
-export const PrimitiveScales: Story = {
-  name: "Primitive Scale",
+export const RadixPalette: Story = {
+  name: "Radix Color System",
   render: () => (
     <div className="bg-background min-h-screen p-8 space-y-8">
       <div className="border-b border-border pb-6">
-        <h1 className="text-3xl font-bold text-foreground">Primitive Scale</h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-3xl font-bold text-foreground">Radix Color System</h1>
+          <span className="text-sm text-muted-foreground font-mono">29 scales × 12 steps</span>
+        </div>
         <p className="mt-2 text-muted-foreground max-w-2xl">
-          Tier 1 of the token system — the raw 11-step colour ladders that everything else is built
-          from. These values are mode-independent and do not change with the Design Layer.
+          The complete Radix Colors primitive palette — the foundation every semantic token is built from.
+          Every scale follows the same 12-step semantics. Toggle dark mode to see automatic remapping.
+          Click any step to copy <code className="font-mono text-xs">var(--scale-step)</code>.
         </p>
       </div>
-      <PrimitiveScalesSection />
+      <RadixPaletteSection />
     </div>
   ),
 };
@@ -309,26 +350,31 @@ export const FunctionalColors: Story = {
       <div className="border-b border-border pb-6">
         <h1 className="text-3xl font-bold text-foreground">Functional Colors</h1>
         <p className="mt-2 text-muted-foreground max-w-2xl">
-          Tier 3 — status colours that communicate meaning: success, warning, info and destructive.
-          Each pairs with a foreground token for accessible text and shifts per design layer.
+          Status colours — each maps to Radix step-9 (solid accent) of its hue family and
+          automatically adjusts for dark mode.
         </p>
       </div>
-
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { name: "Success",     bg: "--success",     fg: "--success-foreground",     label: "Confirmations, completed states" },
-          { name: "Warning",     bg: "--warning",     fg: "--warning-foreground",     label: "Caution, needs attention" },
-          { name: "Info",        bg: "--info",        fg: "--info-foreground",        label: "Neutral notices, tips" },
-          { name: "Destructive", bg: "--destructive", fg: "--primary-foreground",     label: "Errors, danger, delete actions" },
-        ].map(({ name, bg, fg, label }) => (
+          { name: "Success",     bg: "--success",     fg: "--success-foreground",  label: "Confirmations, completed states",  radix: "green-9" },
+          { name: "Warning",     bg: "--warning",     fg: "--warning-foreground",  label: "Caution, needs attention",          radix: "amber-9" },
+          { name: "Info",        bg: "--info",        fg: "--info-foreground",     label: "Neutral notices, tips",             radix: "blue-9" },
+          { name: "Destructive", bg: "--destructive", fg: "--primary-foreground",  label: "Errors, danger, delete actions",   radix: "red-9" },
+        ].map(({ name, bg, fg, label, radix }) => (
           <div key={bg} className="rounded-2xl overflow-hidden border border-border">
-            <div className="h-28 flex items-center justify-center" style={{ background: `var(${bg})` }}>
-              <span className="text-sm font-semibold" style={{ color: `var(${fg})` }}>{name}</span>
+            <div
+              className="h-28 flex items-center justify-center"
+              style={{ background: `var(${bg})` }}
+            >
+              <span className="text-sm font-semibold" style={{ color: `var(${fg})` }}>
+                {name}
+              </span>
             </div>
             <div className="p-4 bg-card">
               <p className="font-semibold text-card-foreground">{name}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
               <p className="text-xs font-mono text-muted-foreground mt-2">{bg}</p>
+              <p className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">→ {radix}</p>
             </div>
           </div>
         ))}
@@ -344,34 +390,34 @@ export const BrandOnly: Story = {
       <div className="border-b border-border pb-6">
         <h1 className="text-3xl font-bold text-foreground">Brand Colors</h1>
         <p className="mt-2 text-muted-foreground">
-          Primary, secondary and accent — the three brand roles that define the design layer’s identity.
+          Primary, secondary and accent — the three brand roles. Default: Radix Violet (step 9/3/11).
+          Switch the Design Layer toolbar to see alternative brand palettes.
         </p>
       </div>
-      {/* Large feature swatches */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {[
-          { name: "Primary",    bg: "--primary",   fg: "--primary-foreground",   label: "Main actions, default buttons" },
-          { name: "Secondary",  bg: "--secondary", fg: "--secondary-foreground", label: "Supporting actions, chips" },
-          { name: "Accent",     bg: "--accent",    fg: "--accent-foreground",    label: "Hover states, highlights, badges" },
-        ].map(({ name, bg, fg, label }) => (
+          { name: "Primary",   bg: "--primary",   fg: "--primary-foreground",   label: "Main actions, default buttons",        radix: "violet-9" },
+          { name: "Secondary", bg: "--secondary", fg: "--secondary-foreground", label: "Supporting actions, chips, tags",       radix: "slate-3" },
+          { name: "Accent",    bg: "--accent",    fg: "--accent-foreground",    label: "Hover states, highlights, selection",   radix: "violet-3" },
+        ].map(({ name, bg, fg, label, radix }) => (
           <div key={bg} className="rounded-2xl overflow-hidden border border-border">
             <div className="h-40" style={{ background: `var(${bg})` }} />
             <div className="p-4 bg-card">
               <p className="font-semibold text-card-foreground">{name}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
               <p className="text-xs font-mono text-muted-foreground mt-2">{bg}</p>
+              <p className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">→ {radix}</p>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Destructive */}
       <div className="rounded-2xl overflow-hidden border border-border max-w-sm">
         <div className="h-24" style={{ background: "var(--destructive)" }} />
         <div className="p-4 bg-card">
           <p className="font-semibold text-card-foreground">Destructive</p>
           <p className="text-xs text-muted-foreground mt-0.5">Errors, danger states, delete actions</p>
           <p className="text-xs font-mono text-muted-foreground mt-2">--destructive</p>
+          <p className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">→ red-9</p>
         </div>
       </div>
     </div>
@@ -385,25 +431,29 @@ export const ChartPalette: Story = {
       <div className="border-b border-border pb-6">
         <h1 className="text-3xl font-bold text-foreground">Chart Palette</h1>
         <p className="mt-2 text-muted-foreground">
-          Five-step data visualisation sequence. Used by the Chart component to colour series.
+          Five step-9 colours drawn from distinct hue families — perceptually separated, vivid, and
+          automatically dark-mode adapted via Radix.
         </p>
       </div>
-
-      {/* Horizontal scale */}
       <div className="flex rounded-2xl overflow-hidden border border-border h-24">
         {[1, 2, 3, 4, 5].map((n) => (
           <div key={n} className="flex-1" style={{ background: `var(--chart-${n})` }} />
         ))}
       </div>
-
-      {/* Individual swatches */}
       <div className="grid grid-cols-5 gap-3">
-        {[1, 2, 3, 4, 5].map((n) => (
+        {[
+          { n: 1, radix: "violet-9" },
+          { n: 2, radix: "cyan-9" },
+          { n: 3, radix: "amber-9" },
+          { n: 4, radix: "green-9" },
+          { n: 5, radix: "red-9" },
+        ].map(({ n, radix }) => (
           <div key={n} className="rounded-xl overflow-hidden border border-border">
             <div className="h-16" style={{ background: `var(--chart-${n})` }} />
-            <div className="p-2 bg-card">
+            <div className="p-2 bg-card space-y-0.5">
               <p className="text-xs font-semibold text-card-foreground">Chart {n}</p>
               <p className="text-[10px] font-mono text-muted-foreground">--chart-{n}</p>
+              <p className="text-[10px] font-mono text-muted-foreground/60">{radix}</p>
             </div>
           </div>
         ))}
