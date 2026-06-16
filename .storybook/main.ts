@@ -9,6 +9,7 @@ const config: StorybookConfig = {
     "@storybook/addon-themes",
     "@storybook/addon-docs",
     "@storybook/addon-a11y",
+    "@storybook/addon-mcp",
     "@chromatic-com/storybook",
   ],
   framework: "@storybook/nextjs-vite",
