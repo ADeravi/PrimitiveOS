@@ -29,6 +29,11 @@ jobs:
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # Visual changes are expected on every UI commit — don't fail the run
+          # because snapshots differ. Review/accept them in the Chromatic UI.
+          exitZeroOnChanges: true
+          # Return as soon as the build is uploaded; don't block CI on snapshotting.
+          exitOnceUploaded: true
 
   deploy-pages:
     runs-on: ubuntu-latest
