@@ -63,6 +63,7 @@
     "@storybook/addon-mcp": "^0.6.0",
     "@storybook/addon-themes": "^10.4.2",
     "@storybook/nextjs-vite": "^10.4.2",
+    "@storybook/test-runner": "^0.24.4",
     "@tailwindcss/postcss": "^4",
     "@types/cytoscape": "^3.21.0",
     "@types/node": "^20",
@@ -71,9 +72,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "eslint-plugin-storybook": "*",
+    "playwright": "^1.61.0",
     "storybook": "^10.4.2",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@storybook/test-runner": "^0.24.4"
+    "typescript": "^5"
   }
 }
