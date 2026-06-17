@@ -6,7 +6,7 @@
 // clutter) and returns concrete corrections. Pure and dependency-free.
 
 import type { DNode, DView, LintResult, Violation, Correction } from "./types";
-import { proximityReport } from "./grouping";
+import { proximityReport, regionOverlaps, edgeLengthReport } from "./grouping";
 
 const DEFAULTS = {
   maxColors: 6,
@@ -193,6 +193,30 @@ export function validate(view: DView, opts: Partial<typeof DEFAULTS> = {}): Lint
       });
       corrections.push({ action: "encloseGroups", reason: "proximity.weakSeparation" });
       penalty += w.proximity * Math.min(1, (cfg.minSeparationRatio - prox.ratio));
+    }
+    // Policy 1 / Tenet 4 — group enclosures must be disjoint.
+    const overlaps = regionOverlaps(view.nodes || []);
+    if (overlaps.length) {
+      violations.push({
+        rule: "grouping.regionOverlap", severity: "error",
+        detail: `${overlaps.length} group region(s) overlap — enclosures are a membership claim and must be disjoint.`,
+        ids: [...new Set(overlaps.flatMap((o) => [o.a, o.b]))],
+      });
+      corrections.push({ action: "separateGroups", reason: "grouping.regionOverlap" });
+      penalty += w.proximity * Math.min(1, overlaps.length / 2);
+    }
+  }
+
+  // Policy 3 / Tenet 7 — a long edge is a symptom of placement, not styling.
+  if (positioned && (view.edges || []).length > 3) {
+    const el = edgeLengthReport(view.nodes || [], view.edges || []);
+    if (el.longEdges > 0) {
+      violations.push({
+        rule: "proximity.longEdges", severity: "warn",
+        detail: `${el.longEdges} edge(s) far longer than typical (max ${el.max} vs median ${el.median}) — re-arrange so related nodes sit adjacent rather than restyling the edge.`,
+      });
+      corrections.push({ action: "rearrange", reason: "proximity.longEdges" });
+      penalty += w.proximity * Math.min(0.5, el.longEdges / 6);
     }
   }
 

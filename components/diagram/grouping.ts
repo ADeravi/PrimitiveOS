@@ -223,6 +223,50 @@ export function proximityReport(nodes: GNode[], edges: GEdge[] = [], gOf?: (id: 
   };
 }
 
+/** Do any two group regions overlap? Each group is approximated by a bounding
+ *  circle (centroid + farthest member, incl. node half-size). Enclosures are a
+ *  membership claim, so overlap = the diagram is lying about who belongs where
+ *  (Policy 1 / Tenet 4). Returns the overlapping pairs with the overlap amount. */
+export function regionOverlaps(nodes: GNode[], gOf?: (id: string) => string): { a: string; b: string; overlap: number }[] {
+  const placed = nodes.filter((n) => n.x != null && n.y != null);
+  const g = gOf ?? groupOf(nodes);
+  const groups = new Map<string, GNode[]>();
+  placed.forEach((n) => { const k = g(n.id); (groups.get(k) || groups.set(k, []).get(k)!).push(n); });
+  const circ: { k: string; cx: number; cy: number; r: number }[] = [];
+  groups.forEach((arr, k) => {
+    const cx = arr.reduce((s, n) => s + n.x!, 0) / arr.length;
+    const cy = arr.reduce((s, n) => s + n.y!, 0) / arr.length;
+    const r = Math.max(...arr.map((n) => Math.hypot(n.x! - cx, n.y! - cy) + Math.max(n.w || 0, n.h || 0) / 2));
+    circ.push({ k, cx, cy, r });
+  });
+  const pairs: { a: string; b: string; overlap: number }[] = [];
+  for (let i = 0; i < circ.length; i++)
+    for (let j = i + 1; j < circ.length; j++) {
+      const a = circ[i], b = circ[j];
+      const d = Math.hypot(a.cx - b.cx, a.cy - b.cy);
+      if (d < a.r + b.r) pairs.push({ a: a.k, b: b.k, overlap: Math.round(a.r + b.r - d) });
+    }
+  return pairs;
+}
+
+/** Edge-length stats — a long edge is a symptom of bad placement (Policy 3):
+ *  related nodes should sit adjacent. Returns median, max, and the outlier edges
+ *  whose length exceeds `factor`× the median. */
+export function edgeLengthReport(nodes: GNode[], edges: GEdge[] = [], factor = 2.5): { median: number; max: number; longEdges: number } {
+  const pos = new Map(nodes.filter((n) => n.x != null).map((n) => [n.id, n]));
+  const lens: number[] = [];
+  for (const e of edges) {
+    const a = pos.get(e.source), b = pos.get(e.target);
+    if (a && b) lens.push(Math.hypot(a.x! - b.x!, a.y! - b.y!));
+  }
+  if (!lens.length) return { median: 0, max: 0, longEdges: 0 };
+  const sorted = [...lens].sort((x, y) => x - y);
+  const median = sorted[Math.floor(sorted.length / 2)] || 1;
+  const max = sorted[sorted.length - 1];
+  const longEdges = lens.filter((l) => l > median * factor).length;
+  return { median: Math.round(median), max: Math.round(max), longEdges };
+}
+
 /** How many distinct group channels to spend, and which is primary. */
 export function chooseEncoding(input: { groupCount: number; ordered?: boolean; overlap?: boolean }): "lanes" | "enclosure" | "color" {
   if (input.ordered) return "lanes";
