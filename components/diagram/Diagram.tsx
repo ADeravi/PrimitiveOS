@@ -14,11 +14,15 @@
 import * as React from "react";
 import cytoscape from "cytoscape";
 import elk from "cytoscape-elk";
+import fcose from "cytoscape-fcose";
 import { readTokens } from "../charts/network";
-import type { DiagramKind, NodeRole, EdgeKind, SNode, SEdge } from "./types";
+import { GroupLayer } from "./GroupLayer";
+import { detectGroups } from "./grouping";
+import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
 try {
   cytoscape.use(elk);
+  cytoscape.use(fcose);
 } catch {
   /* already registered */
 }
@@ -30,6 +34,7 @@ const KIND_FROM_INTENT: Record<string, DiagramKind> = {
   state: "state", states: "state", machine: "state", lifecycle: "state", status: "state", fsm: "state",
   er: "er", entity: "er", schema: "er", data: "er", model: "er", erd: "er",
   swimlane: "swimlane", lanes: "swimlane", responsibilities: "swimlane", crossfunctional: "swimlane",
+  cluster: "cluster", clusters: "cluster", community: "cluster", communities: "cluster", network: "cluster", groups: "cluster",
   sequence: "sequence", interaction: "sequence", messages: "sequence", protocol: "sequence",
 };
 
@@ -100,6 +105,20 @@ function labelFor(n: SNode, role: NodeRole): string {
   const head = wrap(n.label || n.id).join("\n");
   if (role === "entity" && n.attrs && n.attrs.length) return head + "\n" + n.attrs.map((a) => "· " + a).join("\n");
   return head;
+}
+
+// ── layout per kind ──────────────────────────────────────────────────────────
+function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
+  if (kind === "cluster") {
+    // force layout, but cluster-aware: tight communities, clear gaps between
+    // them — so proximity actually encodes relatedness (then hulls confirm it).
+    return {
+      name: "fcose", quality: "default", animate: false, randomize: true, packComponents: true,
+      nodeRepulsion: () => 7000, idealEdgeLength: () => 60, gravity: 0.25, nodeSeparation: 90,
+      gravityRange: 3.0, numIter: 2500,
+    } as unknown as cytoscape.LayoutOptions;
+  }
+  return elkLayout(kind);
 }
 
 // ── ELK layout per kind ──────────────────────────────────────────────────────
@@ -194,8 +213,27 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
   const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
+  const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
+  const [palette, setPalette] = React.useState<string[]>([]);
 
   const built = React.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
+
+  // Grouping & proximity: decide the common-region encoding. Swimlanes → lane
+  // bands; an explicit `group` (or detected communities for clusters) → hulls.
+  const grouping = React.useMemo(() => {
+    const laneMap = new Map(built.nodes.map((n) => [n.id, n.lane != null ? String(n.lane) : ""]));
+    if (resolvedKind === "swimlane") {
+      const order = [...new Set(built.nodes.map((n) => n.lane).filter((l): l is string => l != null).map(String))];
+      return { mode: "lanes" as const, order, keyOf: (id: string) => laneMap.get(id) ?? "" };
+    }
+    const hasGroup = built.nodes.some((n) => n.group != null);
+    if (resolvedKind === "cluster" || hasGroup) {
+      const detected = resolvedKind === "cluster" && !hasGroup ? detectGroups(built.nodes, built.edges) : undefined;
+      const gmap = new Map(built.nodes.map((n) => [n.id, n.group != null ? String(n.group) : detected?.get(n.id) ?? "g0"]));
+      return { mode: "hulls" as const, order: [...new Set(gmap.values())], keyOf: (id: string) => gmap.get(id) ?? "g0" };
+    }
+    return null;
+  }, [built, resolvedKind]);
 
   const buildStyle = React.useCallback(
     (t: ReturnType<typeof readTokens>): cytoscape.Stylesheet[] => [
@@ -285,13 +323,28 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       container: host,
       elements,
       style: buildStyle(t0),
-      layout: elkLayout(resolvedKind),
+      layout: layoutFor(resolvedKind),
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
       autoungrabify: false,
     });
     cyRef.current = cy;
+    setCyState(cy);
+    setPalette(t0.c);
+
+    // Swimlane: snap each node onto its lane row so the lane bands are clean
+    // common regions (one positional encoding per axis: rank = x, lane = y).
+    if (resolvedKind === "swimlane" && grouping?.order.length) {
+      const order = grouping.order, LANE_H = 120;
+      cy.one("layoutstop", () => {
+        cy.batch(() => cy.nodes().forEach((node) => {
+          const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
+          node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
+        }));
+        cy.fit(undefined, 30);
+      });
+    }
 
     cy.on("mouseover", "node", (e) => {
       const p = e.target.renderedPosition();
@@ -323,6 +376,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         });
       });
       cy.style(buildStyle(tk) as cytoscape.Stylesheet[]);
+      setPalette(tk.c);
       cy.resize();
     };
     const mo = new MutationObserver(restyle);
@@ -335,19 +389,31 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     const settle = setTimeout(fitNow, 180);
 
     return () => {
-      clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null;
+      clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [built, resolvedKind, buildStyle]);
 
   return (
     <figure style={{ margin: 0, position: "relative", width: 720, maxWidth: "100%" }}>
-      <div
-        ref={hostRef}
-        style={{ height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", background: "var(--background, #fff)" }}
-        role="img"
-        aria-label={`${resolvedKind} diagram, ${built.nodes.length} elements`}
-      />
+      <div style={{ position: "relative", height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", overflow: "hidden", background: "var(--background, #fff)" }}>
+        {grouping && cyState && (
+          <GroupLayer
+            cy={cyState}
+            mode={grouping.mode}
+            keyOf={grouping.keyOf}
+            order={grouping.order}
+            colors={palette.length ? palette : ["#888888"]}
+            labelOf={grouping.mode === "lanes" ? (k) => k : undefined}
+          />
+        )}
+        <div
+          ref={hostRef}
+          style={{ position: "absolute", inset: 0, zIndex: 2, background: "transparent" }}
+          role="img"
+          aria-label={`${resolvedKind} diagram, ${built.nodes.length} elements`}
+        />
+      </div>
       {tip && (
         <div
           style={{

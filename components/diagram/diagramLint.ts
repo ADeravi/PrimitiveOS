@@ -6,15 +6,18 @@
 // clutter) and returns concrete corrections. Pure and dependency-free.
 
 import type { DNode, DView, LintResult, Violation, Correction } from "./types";
+import { proximityReport } from "./grouping";
 
 const DEFAULTS = {
   maxColors: 6,
   minLabelPx: 5,
   labelCharW: 0.58,
   labelPadY: 4,
+  minSeparationRatio: 1.4, // groups should sit ≥1.4× as far apart as they are tight
   weights: {
     nodeOverlap: 0.30, labelOverlap: 0.22, edgeCrossings: 0.18,
     paletteOverflow: 0.12, legibility: 0.10, aspect: 0.04, contract: 0.20,
+    proximity: 0.16,
   },
 };
 
@@ -164,9 +167,38 @@ export function validate(view: DView, opts: Partial<typeof DEFAULTS> = {}): Lint
     penalty += w.contract * (c.severity === "error" ? 1 : 0.4);
   }
 
+  // ── grouping & proximity: does distance tell the truth? ────────────────────
+  // Only meaningful once there are ≥2 groups and real positions. Proximity is
+  // the strongest grouping cue, so accidental cross-group closeness reads as a
+  // relationship that isn't there ("false grouping"); weak separation means the
+  // clusters aren't visually distinct.
+  const positioned = (view.nodes || []).some((n) => n.x != null && n.y != null);
+  const groupCount = new Set((view.nodes || []).map((n) => n.group).filter((g) => g != null)).size;
+  let prox: ReturnType<typeof proximityReport> | undefined;
+  if (positioned && groupCount >= 2) {
+    prox = proximityReport(view.nodes || [], view.edges || []);
+    if (prox.accidental.length > 0) {
+      violations.push({
+        rule: "proximity.accidentalAdjacency", severity: prox.accidental.length > 2 ? "error" : "warn",
+        detail: `${prox.accidental.length} cross-group node pair(s) sit closer than the typical gap — they read as grouped but aren't.`,
+        ids: [...new Set(prox.accidental.flatMap((p) => [p.a, p.b]))],
+      });
+      corrections.push({ action: "separateGroups", reason: "proximity.accidentalAdjacency" });
+      penalty += w.proximity * Math.min(1, prox.accidental.length / 4);
+    }
+    if (prox.ratio > 0 && prox.ratio < cfg.minSeparationRatio) {
+      violations.push({
+        rule: "proximity.weakSeparation", severity: "warn",
+        detail: `Separation/cohesion ratio ${prox.ratio} < ${cfg.minSeparationRatio}: groups aren't visually distinct — tighten clusters or add enclosure (hulls / lanes).`,
+      });
+      corrections.push({ action: "encloseGroups", reason: "proximity.weakSeparation" });
+      penalty += w.proximity * Math.min(1, (cfg.minSeparationRatio - prox.ratio));
+    }
+  }
+
   const score = Math.max(0, Math.min(1, 1 - penalty));
   const grade = score >= 0.9 ? "A" : score >= 0.75 ? "B" : score >= 0.6 ? "C" : score >= 0.4 ? "D" : "F";
-  return { score, grade, pass: grade <= "C" && !violations.some((x) => x.severity === "error"), metrics: m, violations, corrections };
+  return { score, grade, pass: grade <= "C" && !violations.some((x) => x.severity === "error"), metrics: { ...m, proximity: prox }, violations, corrections };
 }
 
 export function separateOverlaps(nodes: DNode[], { padding = 6, passes = 60 } = {}): DNode[] {

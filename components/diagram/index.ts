@@ -3,6 +3,11 @@ export { Diagram, default } from "./Diagram";
 export type { DiagramProps } from "./Diagram";
 export { SequenceDiagram } from "./SequenceDiagram";
 export type { SequenceDiagramProps } from "./SequenceDiagram";
+export { GroupLayer } from "./GroupLayer";
+export type { GroupLayerProps } from "./GroupLayer";
+// Shared Grouping & Proximity layer (used by both diagram families + the linter).
+export { detectGroups, groupOf, convexHull, hullPath, laneBands, proximityReport, chooseEncoding } from "./grouping";
+export type { ProximityReport, Pt, GNode, GEdge } from "./grouping";
 // Structured-diagram meaning types (flow / tree / state / er / swimlane / sequence).
 export type { DiagramKind, NodeRole, EdgeKind, SNode, SEdge } from "./types";
 // God-layer internals (used by Policies / Linter docs + the network family).

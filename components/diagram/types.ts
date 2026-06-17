@@ -76,7 +76,7 @@ export interface LintResult {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Which diagram idiom. Picked from intent; the data can still veto it. */
-export type DiagramKind = "flow" | "tree" | "state" | "er" | "swimlane" | "sequence";
+export type DiagramKind = "flow" | "tree" | "state" | "er" | "swimlane" | "cluster" | "sequence";
 
 /** The semantic role of an element — drives shape, never colour-by-hand. */
 export type NodeRole =
@@ -107,6 +107,8 @@ export interface SNode {
   id: string;
   label?: string;
   role?: NodeRole;
+  /** community / category — drives colour + common-region enclosure (hulls). */
+  group?: string | number;
   /** swimlane assignment (lane name). */
   lane?: string;
   /** ER entity attributes, rendered inside the box. */
