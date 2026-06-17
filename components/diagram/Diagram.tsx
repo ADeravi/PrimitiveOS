@@ -15,7 +15,7 @@ import * as React from "react";
 import cytoscape from "cytoscape";
 import elk from "cytoscape-elk";
 import fcose from "cytoscape-fcose";
-import { readTokens } from "../charts/network";
+import { readTokens, readableOn } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { detectGroups } from "./grouping";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
@@ -71,22 +71,28 @@ function colorPolicy(kind: DiagramKind, nodeCount: number, groupCount: number): 
 }
 
 // Role → fill/border. minimal: neutral everywhere except the start/end accent.
-// rich: a fixed semantic colour per role (the documented legend).
+// rich: a fixed semantic colour per role (the documented legend). Text colour is
+// never hardcoded — it's chosen by measured WCAG contrast against the fill
+// (readableOn), so e.g. white can't land on a light accent (Policy 2 / Tenet 6).
 function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: ColorPolicy = "rich") {
-  if (policy === "minimal") {
-    if (role === "start") return { fill: t.primary, border: t.primary, text: "#fff" };
-    if (role === "end") return { fill: t.mutedF, border: t.mutedF, text: "#fff" };
-    return { fill: t.bg, border: t.border, text: t.fg }; // neutral box
-  }
-  const accent = t.c[0], decide = t.c[2] || t.c[0], term = t.primary;
-  switch (role) {
-    case "start": return { fill: term, border: term, text: "#fff" };
-    case "end": return { fill: t.mutedF, border: t.mutedF, text: "#fff" };
-    case "decision": return { fill: t.bg, border: decide, text: t.fg };
-    case "entity": return { fill: t.bg, border: t.c[1] || accent, text: t.fg };
-    case "io": return { fill: t.bg, border: t.c[3] || accent, text: t.fg };
-    default: return { fill: t.bg, border: accent, text: t.fg };
-  }
+  const fb = (): { fill: string; border: string } => {
+    if (policy === "minimal") {
+      if (role === "start") return { fill: t.primary, border: t.primary };
+      if (role === "end") return { fill: t.mutedF, border: t.mutedF };
+      return { fill: t.bg, border: t.border };
+    }
+    const accent = t.c[0], decide = t.c[2] || t.c[0], term = t.primary;
+    switch (role) {
+      case "start": return { fill: term, border: term };
+      case "end": return { fill: t.mutedF, border: t.mutedF };
+      case "decision": return { fill: t.bg, border: decide };
+      case "entity": return { fill: t.bg, border: t.c[1] || accent };
+      case "io": return { fill: t.bg, border: t.c[3] || accent };
+      default: return { fill: t.bg, border: accent };
+    }
+  };
+  const { fill, border } = fb();
+  return { fill, border, text: readableOn(fill, [t.fg, "#ffffff", "#111111"]) };
 }
 
 // ── deterministic label measuring (ELK needs sizes up front) ─────────────────

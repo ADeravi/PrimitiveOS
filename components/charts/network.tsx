@@ -82,6 +82,37 @@ function oklchToRgb(str: string): string {
   return `rgb(${ch(lr)}, ${ch(lg)}, ${ch(lb)})`;
 }
 
+// ── WCAG contrast, built on oklchToRgb above (every DS token is oklch) ────────
+function toRGB(str: string): [number, number, number] {
+  const s = str.trim().toLowerCase().startsWith("oklch") ? oklchToRgb(str) : str.trim();
+  if (s.startsWith("#")) {
+    const h = s.slice(1);
+    const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16)];
+  }
+  const m = s.match(/rgba?\(([^)]+)\)/i);
+  if (m) { const p = m[1].split(",").map((x) => parseFloat(x)); return [p[0] || 0, p[1] || 0, p[2] || 0]; }
+  return [0, 0, 0];
+}
+function relLum([r, g, b]: [number, number, number]): number {
+  const f = (c: number) => { const x = c / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+/** WCAG 2.x contrast ratio (1–21) between two CSS colours (oklch tokens ok). */
+export function contrastRatio(a: string, b: string): number {
+  const la = relLum(toRGB(a)), lb = relLum(toRGB(b));
+  const hi = Math.max(la, lb), lo = Math.min(la, lb);
+  return (hi + 0.05) / (lo + 0.05);
+}
+/** The most readable foreground for a background, chosen from candidates by
+ *  measured contrast — so we never paint e.g. white on a light accent. Default
+ *  candidates are the themed foreground, white and near-black. */
+export function readableOn(bg: string, candidates: string[] = ["#ffffff", "#111111"]): string {
+  let best = candidates[0], bestC = -1;
+  for (const c of candidates) { const cr = contrastRatio(bg, c); if (cr > bestC) { bestC = cr; best = c; } }
+  return best;
+}
+
 export function readTokens(el: HTMLElement) {
   const cs = getComputedStyle(el);
   const v = (n: string, fb: string) => {
