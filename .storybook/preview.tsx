@@ -798,6 +798,8 @@ const preview: Preview = {
             "Network Graphs",
             "Graph Idioms",
           ],
+          "Diagram",
+          ["Overview", "Policies", "Linter"],
           "Patterns",
           "UI",
         ],
