@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "description": "Perceptual rubric for the screenshot-and-critique loop. Unlike the deterministic linter (which scores the DATA MODEL — coordinates, groups), this scores the RENDERED PIXELS the way a reader sees them. Each criterion maps to a corrective action in the same vocabulary the pipeline already uses.",
+  "criteria": [
+    {
+      "id": "overlap",
+      "question": "Do any nodes, boxes, or labels overlap, touch, or sit on top of each other?",
+      "weight": 0.22,
+      "action": "separateOverlaps"
+    },
+    {
+      "id": "legibility",
+      "question": "Is every label fully visible and comfortably readable — not clipped by its box, not truncated mid-word, not too small?",
+      "weight": 0.16,
+      "action": "thinLabelsOrEnlarge"
+    },
+    {
+      "id": "routing",
+      "question": "Are the connectors clean: orthogonal/consistent, few crossings, arrowheads clear, and edge labels not colliding with the lines or other edges?",
+      "weight": 0.16,
+      "action": "rerouteOrSwapIdiom"
+    },
+    {
+      "id": "grouping",
+      "question": "Are related elements visually grouped (by proximity or a clear enclosure/lane) and unrelated ones clearly separated, with no accidental cross-group closeness?",
+      "weight": 0.16,
+      "action": "encloseOrSeparateGroups"
+    },
+    {
+      "id": "direction",
+      "question": "Is there one consistent reading direction appropriate to the idiom (top-down for hierarchy/flow, left-right for sequence/process, concentric for importance)?",
+      "weight": 0.10,
+      "action": "fixDirection"
+    },
+    {
+      "id": "balance",
+      "question": "Is the drawing well-fitted and balanced — no large empty regions, no crowded corners, sensible aspect ratio, centred in frame?",
+      "weight": 0.08,
+      "action": "refit"
+    },
+    {
+      "id": "traceability",
+      "question": "Can you trace the main path (e.g. start → end, root → leaves) unambiguously without losing the thread?",
+      "weight": 0.12,
+      "action": "simplifyOrReroute"
+    }
+  ],
+  "grades": { "A": 0.9, "B": 0.75, "C": 0.6, "D": 0.4, "F": 0 },
+  "pass": "grade <= C and no criterion below 0.4"
+}

@@ -41,7 +41,7 @@ export function SequenceDiagram({ participants = [], messages = [], height }: Se
   const h = height ?? lifeBottom + 16;
 
   return (
-    <figure style={{ margin: 0, width, maxWidth: "100%" }}>
+    <figure style={{ margin: 0, width, maxWidth: "100%" }} data-diagram-ready="1">
       <svg
         viewBox={`0 0 ${width} ${h}`}
         width="100%"

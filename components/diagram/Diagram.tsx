@@ -383,7 +383,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
 
     let fitT: ReturnType<typeof setTimeout> | undefined;
-    const fitNow = () => { cy.resize(); cy.fit(undefined, 26); };
+    const fitNow = () => {
+      cy.resize(); cy.fit(undefined, 26);
+      // signal for the screenshot-and-critique loop that layout has settled.
+      host.parentElement?.parentElement?.setAttribute("data-diagram-ready", "1");
+    };
     const ro = new ResizeObserver(() => { clearTimeout(fitT); fitT = setTimeout(fitNow, 30); });
     ro.observe(host);
     const settle = setTimeout(fitNow, 180);
