@@ -113,6 +113,25 @@ export function readableOn(bg: string, candidates: string[] = ["#ffffff", "#1111
   return best;
 }
 
+function mix(a: [number, number, number], b: [number, number, number], t: number): string {
+  const r = Math.round(a[0] + (b[0] - a[0]) * t), g = Math.round(a[1] + (b[1] - a[1]) * t), bl = Math.round(a[2] + (b[2] - a[2]) * t);
+  return `rgb(${r}, ${g}, ${bl})`;
+}
+/** Keep a hue but darken/lighten it just enough to meet a contrast ratio against
+ *  `bg` — so a group's own colour can still label it legibly (a light amber on a
+ *  light band becomes a darker amber, not switched to grey). */
+export function ensureContrast(color: string, bg: string, min = 4.5): string {
+  if (contrastRatio(color, bg) >= min) return color;
+  const bgLight = relLum(toRGB(bg)) > 0.4;
+  const target: [number, number, number] = bgLight ? [17, 17, 17] : [255, 255, 255];
+  const c = toRGB(color);
+  for (let t = 0.15; t <= 1.0001; t += 0.15) {
+    const m = mix(c, target, t);
+    if (contrastRatio(m, bg) >= min) return m;
+  }
+  return bgLight ? "#111111" : "#ffffff";
+}
+
 export function readTokens(el: HTMLElement) {
   const cs = getComputedStyle(el);
   const v = (n: string, fb: string) => {

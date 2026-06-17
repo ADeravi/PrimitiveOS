@@ -239,6 +239,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
   const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
   const [palette, setPalette] = React.useState<string[]>([]);
+  const [bgColor, setBgColor] = React.useState<string>("");
 
   const built = React.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
 
@@ -248,13 +249,14 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     const laneMap = new Map(built.nodes.map((n) => [n.id, n.lane != null ? String(n.lane) : ""]));
     if (resolvedKind === "swimlane") {
       const order = [...new Set(built.nodes.map((n) => n.lane).filter((l): l is string => l != null).map(String))];
-      return { mode: "lanes" as const, order, keyOf: (id: string) => laneMap.get(id) ?? "" };
+      return { mode: "lanes" as const, named: true, order, keyOf: (id: string) => laneMap.get(id) ?? "" };
     }
     const hasGroup = built.nodes.some((n) => n.group != null);
     if (resolvedKind === "cluster" || hasGroup) {
       const detected = resolvedKind === "cluster" && !hasGroup ? detectGroups(built.nodes, built.edges) : undefined;
       const gmap = new Map(built.nodes.map((n) => [n.id, n.group != null ? String(n.group) : detected?.get(n.id) ?? "g0"]));
-      return { mode: "hulls" as const, order: [...new Set(gmap.values())], keyOf: (id: string) => gmap.get(id) ?? "g0" };
+      // only label hulls when the groups are human-named (not auto "g0/g1").
+      return { mode: "hulls" as const, named: hasGroup, order: [...new Set(gmap.values())], keyOf: (id: string) => gmap.get(id) ?? "g0" };
     }
     return null;
   }, [built, resolvedKind]);
@@ -383,6 +385,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     cyRef.current = cy;
     setCyState(cy);
     setPalette(t0.c);
+    setBgColor(t0.bg);
 
     // Swimlane: snap each node onto its lane row so the lane bands are clean
     // common regions (one positional encoding per axis: rank = x, lane = y).
@@ -428,6 +431,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       });
       cy.style(buildStyle(tk) as cytoscape.Stylesheet[]);
       setPalette(tk.c);
+      setBgColor(tk.bg);
       cy.resize();
     };
     const mo = new MutationObserver(restyle);
@@ -462,7 +466,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             keyOf={grouping.keyOf}
             order={grouping.order}
             colors={palette.length ? palette : ["#888888"]}
-            labelOf={grouping.mode === "lanes" ? (k) => k : undefined}
+            labelOf={grouping.named ? (k) => k : undefined}
+            bg={bgColor || undefined}
           />
         )}
         <div

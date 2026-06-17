@@ -11,7 +11,7 @@ export type { ProximityReport, Pt, GNode, GEdge } from "./grouping";
 // Structured-diagram meaning types (flow / tree / state / er / swimlane / sequence).
 export type { DiagramKind, NodeRole, EdgeKind, SNode, SEdge } from "./types";
 // WCAG contrast helpers (Policy 2 / Tenet 6 — text colour by measured contrast).
-export { contrastRatio, readableOn } from "../charts/network";
+export { contrastRatio, readableOn, ensureContrast } from "../charts/network";
 // God-layer internals (used by Policies / Linter docs + the network family).
 export { buildDiagram, simpleLayout } from "./buildDiagram";
 export type { BuildResult } from "./buildDiagram";
