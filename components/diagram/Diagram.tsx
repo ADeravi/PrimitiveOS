@@ -114,7 +114,7 @@ function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
     // them — so proximity actually encodes relatedness (then hulls confirm it).
     return {
       name: "fcose", quality: "default", animate: false, randomize: true, packComponents: true,
-      nodeRepulsion: () => 7000, idealEdgeLength: () => 60, gravity: 0.25, nodeSeparation: 90,
+      nodeRepulsion: () => 8000, idealEdgeLength: () => 75, gravity: 0.25, nodeSeparation: 110,
       gravityRange: 3.0, numIter: 2500,
     } as unknown as cytoscape.LayoutOptions;
   }
@@ -281,13 +281,21 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           color: t.mutedF,
           "text-background-color": t.bg,
           "text-background-opacity": 1,
-          "text-background-padding": "2px",
+          "text-background-padding": "4px",       // clearance so the label clears the line
           "text-background-shape": "roundrectangle",
+          "text-margin-y": -4,                      // lift the label off the connector
+          "text-border-opacity": 1,
+          "text-border-width": 1,
+          "text-border-color": t.border,
           opacity: 0.95,
         } as cytoscape.Css.Edge,
       },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "async"], edge[kind = "return"]', style: { "line-style": "dashed" } as cytoscape.Css.Edge },
+      // Decision branches fan out of different vertices so they never share a
+      // corridor and each label rides its own edge: yes drops, no exits sideways.
+      { selector: 'edge[branch = "yes"]', style: { "source-endpoint": "0% 50%", "taxi-direction": "downward" } as unknown as cytoscape.Css.Edge },
+      { selector: 'edge[branch = "no"]', style: { "source-endpoint": "50% 0%", "taxi-direction": "rightward" } as unknown as cytoscape.Css.Edge },
       { selector: "node.faded", style: { opacity: 0.18 } },
       { selector: "edge.faded", style: { opacity: 0.08 } },
       { selector: "node.hl", style: { "border-width": 3, "border-color": t.primary } as cytoscape.Css.Node },
@@ -301,9 +309,10 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     if (!host) return;
     const t0 = readTokens(host);
 
+    const roleById = new Map(built.nodes.map((n) => [n.id, defaultRole(resolvedKind, n)]));
     const elements: cytoscape.ElementDefinition[] = [
       ...built.nodes.map((n) => {
-        const role = defaultRole(resolvedKind, n);
+        const role = roleById.get(n.id)!;
         const { w, h } = sizeFor(n, role);
         const rs = roleStyle(role, t0);
         return {
@@ -315,7 +324,13 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         };
       }),
       ...built.edges.map((e, i) => ({
-        data: { id: `e${i}`, source: e.source, target: e.target, label: e.label || (e.card ? e.card : ""), kind: e.kind || "flow" },
+        // a decision's outgoing edges get a `branch` so they can fan out of
+        // different vertices instead of collapsing into one shared corridor.
+        data: {
+          id: `e${i}`, source: e.source, target: e.target,
+          label: e.label || (e.card ? e.card : ""), kind: e.kind || "flow",
+          branch: roleById.get(e.source) === "decision" ? e.kind || "" : "",
+        },
       })),
     ];
 
@@ -342,7 +357,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
-        cy.fit(undefined, 30);
+        cy.fit(undefined, 58);
       });
     }
 
@@ -383,8 +398,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
 
     let fitT: ReturnType<typeof setTimeout> | undefined;
+    // grouped views need extra fit padding so hull / lane enclosures have
+    // clearance from their contents and the canvas edge (they extend past nodes).
+    const fitPad = grouping ? 58 : 28;
     const fitNow = () => {
-      cy.resize(); cy.fit(undefined, 26);
+      cy.resize(); cy.fit(undefined, fitPad);
       // signal for the screenshot-and-critique loop that layout has settled.
       host.parentElement?.parentElement?.setAttribute("data-diagram-ready", "1");
     };

@@ -57,7 +57,7 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf }: GroupLay
         const lanes = order && order.length ? order : [...new Set(gnodes.map((n) => n.lane!))];
         const minX = Math.min(...gnodes.map((n) => n.x! - (n.w || 0) / 2));
         const maxX = Math.max(...gnodes.map((n) => n.x! + (n.w || 0) / 2));
-        const bands = laneBands(gnodes, lanes, { minX, maxX }, { pad: 22 });
+        const bands = laneBands(gnodes, lanes, { minX, maxX }, { pad: 30 });
         setShapes(
           bands.map((b) => ({
             key: b.lane, color: colorFor(b.lane),
@@ -75,7 +75,9 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf }: GroupLay
       groups.forEach((arr, key) => {
         const centres = arr.map((n) => ({ x: n.x!, y: n.y! }));
         const maxHalf = Math.max(20, ...arr.map((n) => Math.max(n.w || 0, n.h || 0) / 2));
-        out.push({ key, color: colorFor(key), path: hullPath(centres, maxHalf + 14, 16) });
+        // clearance = half the biggest node + a generous margin so the hull
+        // never crowds its own members or the connecting edges.
+        out.push({ key, color: colorFor(key), path: hullPath(centres, maxHalf + 28, 18) });
       });
       setShapes(out);
     };
