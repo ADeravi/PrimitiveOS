@@ -67,18 +67,26 @@ async function critique(pngPath) {
     `{"criteria":[{"id":"overlap","score":0.0,"severity":"ok|warn|error","finding":"...","action":"separateOverlaps"}],` +
     `"overall":{"score":0.0,"grade":"A|B|C|D|F","pass":true,"topFixes":["..."]}}`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({
-      model: MODEL, max_tokens: 1200,
-      messages: [{ role: "user", content: [
-        { type: "image", source: { type: "base64", media_type: "image/png", data: b64 } },
-        { type: "text", text: prompt },
-      ] }],
-    }),
-  });
-  if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
+  let res;
+  try {
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({
+        model: MODEL, max_tokens: 1200,
+        messages: [{ role: "user", content: [
+          { type: "image", source: { type: "base64", media_type: "image/png", data: b64 } },
+          { type: "text", text: prompt },
+        ] }],
+      }),
+    });
+  } catch (e) {
+    return { skipped: true, reason: `Network error reaching the API (${e.message}). Screenshot saved — grade it manually or fix connectivity.` };
+  }
+  if (!res.ok) {
+    const hint = res.status === 401 ? " — ANTHROPIC_API_KEY is invalid; use a key from console.anthropic.com (not your Claude.ai login)." : "";
+    return { skipped: true, reason: `Anthropic API ${res.status}${hint} Screenshot saved.` };
+  }
   const data = await res.json();
   const text = (data.content || []).map((c) => c.text || "").join("");
   const jsonStr = text.replace(/^```json?\s*/i, "").replace(/```\s*$/i, "").trim();
