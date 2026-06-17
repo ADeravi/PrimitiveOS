@@ -317,7 +317,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "text-border-opacity": 1,
           "text-border-width": 1,
           "text-border-color": t.border,
-          opacity: 0.95,
+          // Tenet 5 — exploration (cluster) edges are dim by default; hover reveals.
+          opacity: resolvedKind === "cluster" ? 0.4 : 0.95,
         } as cytoscape.Css.Edge,
       },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
@@ -400,16 +401,26 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       });
     }
 
+    const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
       const p = e.target.renderedPosition();
       const raw = built.nodes.find((n) => n.id === e.target.id());
       setTip({ x: p.x, y: p.y, text: raw?.label || e.target.id() });
+      // Tenet 5: dim by default, reveal the hovered node's neighbourhood on hover.
+      if (isExplore) {
+        const hood = e.target.closedNeighborhood();
+        cy.elements().addClass("faded").removeClass("hl");
+        hood.removeClass("faded").addClass("hl");
+      }
     });
     cy.on("mousemove", "node", (e) => {
       const p = e.target.renderedPosition();
       setTip((prev) => (prev ? { ...prev, x: p.x, y: p.y } : prev));
     });
-    cy.on("mouseout", "node", () => setTip(null));
+    cy.on("mouseout", "node", () => {
+      setTip(null);
+      if (isExplore) cy.elements().removeClass("faded hl");
+    });
     cy.on("tap", "node", (e) => {
       const hood = e.target.closedNeighborhood();
       cy.elements().addClass("faded").removeClass("hl");
