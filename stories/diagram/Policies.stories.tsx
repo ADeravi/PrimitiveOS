@@ -97,19 +97,19 @@ function GuardrailComponents() {
 
 const CANON: { t: string; lead: string; rule: string; src: string }[] = [
   {
-    t: "1 · Enclosure is a membership claim",
+    t: "1 · Enclosure is a membership claim · Tenets 4, 2",
     lead: "We read enclosed — or merely close — objects as one group, automatically. So accidental proximity lies: unrelated things placed near each other read as related.",
     rule: "An enclosure must contain every member and never overlap another group's region; groups are placed as disjoint units, placement within a group is free. Linter: accidental cross-group adjacency = error; weak separation = enclose/separate.",
     src: "Knaflic, Storytelling with Data p.77 · Berengueres, Intro to DataViz (enclosure) · Healy, Data Visualization p.22",
   },
   {
-    t: "2 · Colour means relationship, used sparingly + legibly",
+    t: "2 · Colour means relationship, used sparingly + legibly · Tenets 6, 3",
     lead: "Colour is powerful because it's rare and intentional. Too much variety and nothing stands out; a coloured label should visibly govern the objects it describes.",
     rule: "Adaptive: minimal when simple (neutral + one accent), rich when complex (role + group + importance). A group's hue is shared across enclosure, label and a member cue, contrast-checked (never hue-on-hue). Categorical colour is capped so palettes never recycle.",
     src: "Knaflic, Storytelling with Data p.133–134 (use sparingly, intentional, contrast, heatmap-by-saturation) · Kirk, Handbook Ch.9",
   },
   {
-    t: "3 · Edge clarity comes from arrangement, not styling",
+    t: "3 · Edge clarity comes from arrangement, not styling · Tenets 7, 5",
     lead: "A long, many-cornered edge is a symptom of placement. Clutter is cognitive load; you remove it by arranging, not decorating.",
     rule: "Minimise edge length, bends and crossings by node placement (related nodes adjacent); align elements and keep white space; reserve dashed lines for genuine uncertainty. Measure length/bends/crossings and re-arrange — don't restyle.",
     src: "Knaflic, Storytelling with Data Ch.3 (clutter, alignment & white space, p.98) · Kirk, Handbook Ch.10 (Composition)",
@@ -120,7 +120,7 @@ function Canon() {
   return (
     <article style={wrap}>
       <h1 style={h1}>Policies, grounded in the canon</h1>
-      <p style={lead}>These aren&apos;t invented. Each policy is drawn from the data-visualisation literature in the project library and restated as a rule the engine and linter enforce. The through-line: <em>the drawing must make the relationships true</em> — proximity = relatedness, enclosure = membership, colour = which-set, and clutter is removed by arrangement, not decoration. Full text + citations in <span style={code}>components/diagram/POLICIES.md</span>.</p>
+      <p style={lead}>These aren&apos;t invented. They&apos;re a faithful extension of the project&apos;s <strong>Visualisation Manifesto</strong> (10 tenets, wired as AI build-rules + a <span style={code}>validate()</span> linter) — the same contract the Visualiser app enforces, which consumes this design system. Each policy below cites the tenet it serves. The through-line: <em>the drawing must make the relationships true</em> — proximity = relatedness, enclosure = membership, colour = which-set, clutter removed by arrangement. Full mapping, coverage table and citations in <span style={code}>components/diagram/POLICIES.md</span>.</p>
       {CANON.map((c) => (
         <div key={c.t} style={{ ...card, marginBottom: 14 }}>
           <strong style={{ fontSize: 15 }}>{c.t}</strong>
