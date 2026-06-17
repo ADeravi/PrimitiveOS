@@ -5,37 +5,43 @@
     {
       "id": "overlap",
       "question": "Do any nodes, boxes, or labels overlap, touch, or sit on top of each other?",
-      "weight": 0.22,
+      "weight": 0.20,
       "action": "separateOverlaps"
     },
     {
       "id": "legibility",
       "question": "Is every label fully visible and comfortably readable — not clipped by its box, not truncated mid-word, not too small?",
-      "weight": 0.16,
+      "weight": 0.14,
       "action": "thinLabelsOrEnlarge"
+    },
+    {
+      "id": "contrast",
+      "question": "Does every piece of text have enough contrast against whatever it sits on (aim ≥4.5:1 for normal text, ≥3:1 for large/bold)? Call out any low-contrast text specifically — e.g. white or pale text on a light fill, a pale hue label on a tinted band, or grey-on-grey. Name the offending label(s).",
+      "weight": 0.12,
+      "action": "gateTextContrast"
     },
     {
       "id": "routing",
       "question": "Are the connectors clean: orthogonal/consistent, few crossings, arrowheads clear, and edge labels not colliding with the lines or other edges?",
-      "weight": 0.16,
+      "weight": 0.14,
       "action": "rerouteOrSwapIdiom"
     },
     {
       "id": "grouping",
       "question": "Are related elements visually grouped (by proximity or a clear enclosure/lane) and unrelated ones clearly separated, with no accidental cross-group closeness?",
-      "weight": 0.16,
+      "weight": 0.14,
       "action": "encloseOrSeparateGroups"
     },
     {
       "id": "direction",
       "question": "Is there one consistent reading direction appropriate to the idiom (top-down for hierarchy/flow, left-right for sequence/process, concentric for importance)?",
-      "weight": 0.10,
+      "weight": 0.08,
       "action": "fixDirection"
     },
     {
       "id": "balance",
       "question": "Is the drawing well-fitted and balanced — no large empty regions, no crowded corners, sensible aspect ratio, centred in frame?",
-      "weight": 0.08,
+      "weight": 0.06,
       "action": "refit"
     },
     {
