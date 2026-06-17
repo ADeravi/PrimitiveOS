@@ -1,6 +1,29 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import * as React from "react";
-import { Diagram, buildDiagram } from "@/components/diagram";
+import { buildDiagram } from "@/components/diagram";
+import type { DView } from "@/components/diagram";
+
+// Renders the pipeline's OWN laid-out result (positions from the bundled
+// dependency-free layout), so the picture matches the report beside it. This is
+// the network god-layer — distinct from the structured <Diagram> family.
+function NetworkPreview({ view }: { view: DView }) {
+  const pos = new Map(view.nodes.map((n) => [n.id, n]));
+  return (
+    <svg
+      viewBox="0 0 640 420" width="100%" role="img" aria-label="linter result"
+      style={{ height: 340, border: "1px solid var(--border)", borderRadius: 10, background: "var(--background)" }}
+    >
+      {view.edges.map((e, i) => {
+        const a = pos.get(e.source), b = pos.get(e.target);
+        if (!a || !b) return null;
+        return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--border)" strokeWidth={1} opacity={0.7} />;
+      })}
+      {view.nodes.map((n, i) => (
+        <circle key={i} cx={n.x} cy={n.y} r={Math.max(5, (n.w || 16) / 2)} fill="var(--primary)" opacity={0.85} stroke="var(--background)" strokeWidth={1.5} />
+      ))}
+    </svg>
+  );
+}
 
 const CLEAN_N = [
   { id: "a", label: "Cognition", group: 0 }, { id: "b", label: "Memory", group: 1 },
@@ -17,7 +40,7 @@ function Report({ intent = "explore", nodes = CLEAN_N, edges = CLEAN_E }: { inte
   const mono = { fontFamily: "var(--font-mono, ui-monospace, monospace)" } as const;
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 18, width: 780, color: "var(--foreground)" }}>
-      <Diagram intent={intent} nodes={nodes} edges={edges} showGrade height={340} />
+      <NetworkPreview view={built.view} />
       <aside style={{ fontSize: 12, lineHeight: 1.5 }}>
         <div style={{ ...mono, fontWeight: 700 }}>
           {built.contract} · {built.grade} · {built.score.toFixed(2)} {built.passed ? "✓ pass" : "✗ best-effort"}

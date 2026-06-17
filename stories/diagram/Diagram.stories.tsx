@@ -1,30 +1,87 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Diagram } from "@/components/diagram";
+import type { SNode, SEdge } from "@/components/diagram";
 
-// ---- sample data ----------------------------------------------------------
-const BASE = [
-  { id: "h1", label: "Cognition", group: 0 }, { id: "h2", label: "Memory systems", group: 1 },
-  { id: "h3", label: "Attention", group: 2 }, { id: "a1", label: "Working memory", group: 0 },
-  { id: "a2", label: "Encoding", group: 0 }, { id: "a3", label: "Retrieval", group: 0 },
-  { id: "b1", label: "Hippocampus", group: 1 }, { id: "b2", label: "Consolidation", group: 1 },
-  { id: "b3", label: "Forgetting", group: 1 }, { id: "c1", label: "Salience", group: 2 },
-  { id: "c2", label: "Top-down control", group: 2 }, { id: "c3", label: "Distraction", group: 2 },
-  { id: "d1", label: "Sleep", group: 1 }, { id: "d2", label: "Reward", group: 2 },
+// The structured diagram family: box-and-arrow idioms where POSITION encodes
+// structure (sequence, hierarchy, containment) — not a measured value. Each
+// story passes meaning only (kind + typed nodes + typed edges); the engine owns
+// the layout, routing and theming.
+
+// ── flowchart ────────────────────────────────────────────────────────────────
+const FLOW_N: SNode[] = [
+  { id: "s", label: "Receive request", role: "start" },
+  { id: "v", label: "Validate input", role: "process" },
+  { id: "d", label: "Valid?", role: "decision" },
+  { id: "p", label: "Process & persist", role: "process" },
+  { id: "n", label: "Return error", role: "io" },
+  { id: "e", label: "Respond 200", role: "end" },
 ];
-const EDGES = [
-  ["h1", "h2"], ["h1", "h3"], ["h2", "h3"], ["h1", "a1"], ["h1", "a2"], ["h1", "a3"],
-  ["a1", "a2"], ["a2", "a3"], ["h2", "b1"], ["h2", "b2"], ["h2", "b3"], ["b1", "b2"],
-  ["b2", "b3"], ["h3", "c1"], ["h3", "c2"], ["h3", "c3"], ["c1", "c2"], ["c2", "c3"],
-  ["b2", "d1"], ["d1", "a2"], ["c1", "d2"], ["d2", "h1"], ["a3", "b3"],
+const FLOW_E: SEdge[] = [
+  { source: "s", target: "v" },
+  { source: "v", target: "d" },
+  { source: "d", target: "p", label: "yes", kind: "yes" },
+  { source: "d", target: "n", label: "no", kind: "no" },
+  { source: "p", target: "e" },
+  { source: "n", target: "e" },
+];
+
+// ── org / tree ───────────────────────────────────────────────────────────────
+const TREE_N: SNode[] = [
+  { id: "ceo", label: "Head of Research" },
+  { id: "eng", label: "Methods" }, { id: "des", label: "Synthesis" }, { id: "ops", label: "Fieldwork" },
+  { id: "e1", label: "Quant" }, { id: "e2", label: "Modelling" },
+  { id: "d1", label: "Coding" }, { id: "d2", label: "Writing" },
+  { id: "o1", label: "Recruiting" },
+];
+const TREE_E: SEdge[] = [
+  ["ceo", "eng"], ["ceo", "des"], ["ceo", "ops"],
+  ["eng", "e1"], ["eng", "e2"], ["des", "d1"], ["des", "d2"], ["ops", "o1"],
 ].map(([source, target]) => ({ source, target }));
 
-const TREE_N = Array.from({ length: 9 }, (_, i) => ({ id: "t" + i, label: "Node " + i, group: 0 }));
-const TREE_E = [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6], [3, 7], [4, 8]].map(([a, b]) => ({ source: "t" + a, target: "t" + b }));
+// ── state machine ────────────────────────────────────────────────────────────
+const STATE_N: SNode[] = [
+  { id: "draft", label: "Draft", initial: true },
+  { id: "review", label: "In review" },
+  { id: "revise", label: "Revising" },
+  { id: "approved", label: "Approved" },
+  { id: "published", label: "Published", final: true },
+];
+const STATE_E: SEdge[] = [
+  { source: "draft", target: "review", label: "submit" },
+  { source: "review", target: "revise", label: "changes" },
+  { source: "revise", target: "review", label: "resubmit" },
+  { source: "review", target: "approved", label: "accept" },
+  { source: "approved", target: "published", label: "release" },
+];
 
-const MANY = Array.from({ length: 16 }, (_, i) => ({ id: "m" + i, label: "Concept " + i, group: i % 9 }));
-const DENSE = (() => { const e: { source: string; target: string }[] = []; for (let i = 0; i < 16; i++) for (let j = i + 1; j < 16; j++) if (((i * 7 + j * 13) % 10) / 10 < 0.5) e.push({ source: "m" + i, target: "m" + j }); return e; })();
+// ── ER ───────────────────────────────────────────────────────────────────────
+const ER_N: SNode[] = [
+  { id: "author", label: "Author", role: "entity", attrs: ["id", "name", "orcid"] },
+  { id: "paper", label: "Paper", role: "entity", attrs: ["id", "title", "year"] },
+  { id: "venue", label: "Venue", role: "entity", attrs: ["id", "name"] },
+  { id: "topic", label: "Topic", role: "entity", attrs: ["id", "label"] },
+];
+const ER_E: SEdge[] = [
+  { source: "author", target: "paper", label: "writes", card: "1..*", kind: "relation" },
+  { source: "paper", target: "venue", label: "published in", card: "*..1", kind: "relation" },
+  { source: "paper", target: "topic", label: "tagged", card: "*..*", kind: "relation" },
+];
 
-const DATED = BASE.map((n, i) => ({ ...n, year: 1995 + i * 2 }));
+// ── swimlane ─────────────────────────────────────────────────────────────────
+const LANE_N: SNode[] = [
+  { id: "req", label: "Raise request", role: "start", lane: "Requester" },
+  { id: "tri", label: "Triage", role: "process", lane: "Reviewer" },
+  { id: "ok", label: "Approve?", role: "decision", lane: "Reviewer" },
+  { id: "do", label: "Implement", role: "process", lane: "Owner" },
+  { id: "done", label: "Close", role: "end", lane: "Requester" },
+];
+const LANE_E: SEdge[] = [
+  { source: "req", target: "tri" },
+  { source: "tri", target: "ok" },
+  { source: "ok", target: "do", label: "yes", kind: "yes" },
+  { source: "ok", target: "done", label: "no", kind: "no" },
+  { source: "do", target: "done" },
+];
 
 const meta: Meta<typeof Diagram> = {
   title: "Diagram/Overview",
@@ -34,44 +91,38 @@ const meta: Meta<typeof Diagram> = {
     docs: {
       description: {
         component:
-          "A **guardrail** component. Props are *meaning only* — `intent`, `nodes`, `edges`. There is no position/style/colour prop, so a bad diagram can't be expressed. Internally it runs the god-layer pipeline (pick the right idiom → lay out → score readability → auto-correct) and renders only a view that passes, disclosing when it had to simplify. See **Diagram › Policies** for the rules it enforces.",
+          "A **guardrail** component for the *structured* diagram family — flowcharts, org/tree, state machines, ER, swimlanes. Props are *meaning only* (`intent` or `kind`, typed `nodes`, typed `edges`); there is no position, colour or routing prop, so an overlapping or mis-routed diagram can't be expressed. The engine normalises the data, picks the idiom, lays it out with ELK (layered, orthogonal) and draws role-based boxes with right-angle connectors and edge labels. Sequence diagrams use the dedicated **SequenceDiagram** component. See **Diagram › Policies** for the rules it enforces.",
       },
     },
   },
   tags: ["autodocs"],
-  args: { showGrade: true, height: 380 },
+  args: { showGrade: true, height: 460 },
 };
 export default meta;
 type S = StoryObj<typeof Diagram>;
 
-export const Explore: S = {
-  name: "Explore (force)",
-  args: { intent: "explore", nodes: BASE, edges: EDGES },
+export const Flowchart: S = {
+  name: "Flowchart (intent: flow)",
+  args: { intent: "flow", nodes: FLOW_N, edges: FLOW_E },
 };
 
-export const Flow: S = {
-  name: "Flow (→ hierarchy)",
-  args: { intent: "flow", nodes: TREE_N, edges: TREE_E },
+export const OrgTree: S = {
+  name: "Org / tree (intent: hierarchy)",
+  args: { intent: "hierarchy", nodes: TREE_N, edges: TREE_E },
 };
 
-export const Dense: S = {
-  name: "Dense data (→ matrix)",
-  parameters: { docs: { description: { story: "Intent is `explore`, but the data is dense — the picker overrides to a matrix instead of a hairball, and says so." } } },
-  args: { intent: "explore", nodes: MANY, edges: DENSE },
+export const StateMachine: S = {
+  name: "State machine (intent: state)",
+  args: { intent: "state", nodes: STATE_N, edges: STATE_E },
 };
 
-export const Timeline: S = {
-  name: "Time (→ timeline)",
-  args: { intent: "time", nodes: DATED, edges: EDGES },
+export const EntityRelationship: S = {
+  name: "Entity–relationship (intent: er)",
+  args: { intent: "er", nodes: ER_N, edges: ER_E },
 };
 
-export const AutoCorrected: S = {
-  name: "Messy input, auto-corrected",
-  parameters: { docs: { description: { story: "Sixteen nodes across nine colour groups with dense edges. The component caps the palette, thins labels, picks a readable idiom, and discloses the reductions — all from meaning-only props." } } },
-  args: { intent: "explore", nodes: MANY, edges: DENSE },
-};
-
-export const Plain: S = {
-  name: "Without grade badge",
-  args: { intent: "explore", nodes: BASE, edges: EDGES, showGrade: false },
+export const Swimlane: S = {
+  name: "Swimlane (intent: swimlane)",
+  parameters: { docs: { description: { story: "Lane assignments ride on each node (`lane`); the engine flows the process left-to-right. (Lane bands are a work-in-progress visual layer.)" } } },
+  args: { intent: "swimlane", nodes: LANE_N, edges: LANE_E },
 };

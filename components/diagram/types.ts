@@ -66,3 +66,62 @@ export interface LintResult {
   violations: Violation[];
   corrections: Correction[];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Structured-diagram family (box-and-arrow). Distinct from the network/graph
+// contracts above: here a node is a typed *element* (step, state, entity, actor)
+// and an edge is a typed *connector* (flow, transition, relation, message). The
+// caller supplies meaning (kind + roles + labels); the engine owns the form
+// (orthogonal routing, layering, lane bands) — never the other way round.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Which diagram idiom. Picked from intent; the data can still veto it. */
+export type DiagramKind = "flow" | "tree" | "state" | "er" | "swimlane" | "sequence";
+
+/** The semantic role of an element — drives shape, never colour-by-hand. */
+export type NodeRole =
+  | "start"
+  | "end"
+  | "process"
+  | "decision"
+  | "io"
+  | "subprocess"
+  | "state"
+  | "entity"
+  | "actor"
+  | "node";
+
+/** A typed connector. `kind` drives arrowhead + dashing; labels ride the edge. */
+export type EdgeKind =
+  | "flow"
+  | "yes"
+  | "no"
+  | "transition"
+  | "relation"
+  | "message"
+  | "return"
+  | "async";
+
+/** A structured element. Meaning only — no x/y/colour. */
+export interface SNode {
+  id: string;
+  label?: string;
+  role?: NodeRole;
+  /** swimlane assignment (lane name). */
+  lane?: string;
+  /** ER entity attributes, rendered inside the box. */
+  attrs?: string[];
+  /** state-machine markers. */
+  initial?: boolean;
+  final?: boolean;
+}
+
+/** A structured connector. Meaning only. */
+export interface SEdge {
+  source: string;
+  target: string;
+  label?: string;
+  kind?: EdgeKind;
+  /** ER cardinality, e.g. "1", "*", "1..N". */
+  card?: string;
+}

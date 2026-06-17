@@ -799,7 +799,7 @@ const preview: Preview = {
             "Graph Idioms",
           ],
           "Diagram",
-          ["Overview", "Policies", "Linter"],
+          ["Overview", "Sequence", "Policies", "Linter"],
           "Patterns",
           "UI",
         ],
