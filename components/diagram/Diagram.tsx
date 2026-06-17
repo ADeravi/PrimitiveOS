@@ -60,18 +60,32 @@ function shapeFor(role: NodeRole, kind: DiagramKind): string {
   }
 }
 
-// Role → semantic fill/border. Professional flowchart palette: light surface
-// fills, a coloured border that carries the role, dark token text. Terminators
-// (start/end) are solid for emphasis.
-function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>) {
+// Adaptive colour policy: colour must EARN its place. In a simple diagram it's
+// noise, so we go minimal (neutral boxes, a single accent on the terminators).
+// In a complex one colour does real work — encoding role — alongside group
+// (hulls) and importance (border weight). Decided from the data, not the caller.
+type ColorPolicy = "minimal" | "rich";
+function colorPolicy(kind: DiagramKind, nodeCount: number, groupCount: number): ColorPolicy {
+  if (kind === "cluster" || groupCount >= 2 || nodeCount > 10) return "rich";
+  return "minimal";
+}
+
+// Role → fill/border. minimal: neutral everywhere except the start/end accent.
+// rich: a fixed semantic colour per role (the documented legend).
+function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: ColorPolicy = "rich") {
+  if (policy === "minimal") {
+    if (role === "start") return { fill: t.primary, border: t.primary, text: "#fff" };
+    if (role === "end") return { fill: t.mutedF, border: t.mutedF, text: "#fff" };
+    return { fill: t.bg, border: t.border, text: t.fg }; // neutral box
+  }
   const accent = t.c[0], decide = t.c[2] || t.c[0], term = t.primary;
   switch (role) {
-    case "start": return { fill: term, border: term, text: "#fff", solid: true };
-    case "end": return { fill: t.mutedF, border: t.mutedF, text: "#fff", solid: true };
-    case "decision": return { fill: t.bg, border: decide, text: t.fg, solid: false };
-    case "entity": return { fill: t.bg, border: t.c[1] || accent, text: t.fg, solid: false };
-    case "io": return { fill: t.bg, border: t.c[3] || accent, text: t.fg, solid: false };
-    default: return { fill: t.bg, border: accent, text: t.fg, solid: false };
+    case "start": return { fill: term, border: term, text: "#fff" };
+    case "end": return { fill: t.mutedF, border: t.mutedF, text: "#fff" };
+    case "decision": return { fill: t.bg, border: decide, text: t.fg };
+    case "entity": return { fill: t.bg, border: t.c[1] || accent, text: t.fg };
+    case "io": return { fill: t.bg, border: t.c[3] || accent, text: t.fg };
+    default: return { fill: t.bg, border: accent, text: t.fg };
   }
 }
 
@@ -259,7 +273,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "text-wrap": "wrap",
           "text-max-width": "200px",
           "line-height": 1.3,
-          "border-width": 1.6,
+          "border-width": "data(bw)" as unknown as number,
           "border-color": "data(border)",
           "corner-radius": "8px" as unknown as string,
           "min-zoomed-font-size": 6,
@@ -316,16 +330,23 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     if (!host) return;
     const t0 = readTokens(host);
 
+    const groupCount = grouping ? grouping.order.length : 0;
+    const policy = colorPolicy(resolvedKind, built.nodes.length, groupCount);
+    const degMap = new Map<string, number>();
+    built.edges.forEach((e) => { degMap.set(e.source, (degMap.get(e.source) || 0) + 1); degMap.set(e.target, (degMap.get(e.target) || 0) + 1); });
+
     const roleById = new Map(built.nodes.map((n) => [n.id, defaultRole(resolvedKind, n)]));
     const elements: cytoscape.ElementDefinition[] = [
       ...built.nodes.map((n) => {
         const role = roleById.get(n.id)!;
         const { w, h } = sizeFor(n, role);
-        const rs = roleStyle(role, t0);
+        const rs = roleStyle(role, t0, policy);
         return {
           data: {
             id: n.id, label: labelFor(n, role), role, shape: shapeFor(role, resolvedKind),
             w, h, fill: rs.fill, border: rs.border, text: rs.text,
+            // importance (rich policy only): hubs get a heavier border.
+            bw: policy === "rich" ? 1.5 + Math.min(3, (degMap.get(n.id) || 0) * 0.5) : 1.6,
             mark: n.initial ? "initial" : n.final ? "final" : "",
           },
         };
@@ -394,7 +415,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           const raw = built.nodes.find((n) => n.id === node.id());
           if (!raw) return;
           const role = defaultRole(resolvedKind, raw);
-          const rs = roleStyle(role, tk);
+          const rs = roleStyle(role, tk, policy);
           node.data("fill", rs.fill); node.data("border", rs.border); node.data("text", rs.text);
         });
       });
