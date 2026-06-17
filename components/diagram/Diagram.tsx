@@ -139,34 +139,6 @@ function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
   return elkLayout(kind);
 }
 
-// Clustered grid: each community is laid out as its own tidy grid, the blocks
-// tiled left-to-right with generous gaps. Deterministic, aligned, non-overlapping
-// — what "within-group order + bigger, separate outlines" actually needs (a
-// force layout can't give it). Hulls then wrap each clean block.
-function clusterGridPositions(nodes: SNode[], keyOf: (id: string) => string, order: string[]) {
-  const CELL_W = 168, CELL_H = 80, GROUP_GAP = 120, MAX_ROW_W = 1000;
-  const groups = new Map<string, SNode[]>();
-  (order.length ? order : ["g0"]).forEach((k) => groups.set(k, []));
-  nodes.forEach((n) => { const k = keyOf(n.id); (groups.get(k) || groups.set(k, []).get(k)!).push(n); });
-
-  const positions: Record<string, { x: number; y: number }> = {};
-  let x = 0, y = 0, rowH = 0;
-  groups.forEach((members) => {
-    if (!members.length) return;
-    const cols = Math.max(1, Math.ceil(Math.sqrt(members.length)));
-    const rows = Math.ceil(members.length / cols);
-    const bw = cols * CELL_W, bh = rows * CELL_H;
-    if (x > 0 && x + bw > MAX_ROW_W) { x = 0; y += rowH + GROUP_GAP; rowH = 0; }
-    members.forEach((m, i) => {
-      const c = i % cols, r = Math.floor(i / cols);
-      positions[m.id] = { x: x + c * CELL_W + CELL_W / 2, y: y + r * CELL_H + CELL_H / 2 };
-    });
-    x += bw + GROUP_GAP;
-    rowH = Math.max(rowH, bh);
-  });
-  return positions;
-}
-
 // ── ELK layout per kind ──────────────────────────────────────────────────────
 function elkLayout(kind: DiagramKind): cytoscape.LayoutOptions {
   const dir = kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN";
@@ -261,7 +233,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
   const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
   const [palette, setPalette] = React.useState<string[]>([]);
-  const [fgColor, setFgColor] = React.useState<string>("");
 
   const built = React.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
 
@@ -314,7 +285,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         selector: "edge",
         style: {
           width: 1.6,
-          "line-color": t.border,
+          // structured idioms get crisp, darker connectors (box-and-arrow);
+          // cluster webs stay light so they don't overpower the nodes.
+          "line-color": resolvedKind === "cluster" ? t.border : t.mutedF,
           // force/cluster reads cleaner with direct curves; structured idioms use
           // orthogonal taxi routing (boxes-and-arrows).
           "curve-style": resolvedKind === "cluster" ? "bezier" : "taxi",
@@ -344,8 +317,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       // Decision branches fan SYMMETRICALLY: yes leaves the left vertex, no the
       // right vertex, and both drop into the TOP of their target — mirror image
       // about the diamond, each label on its own edge.
-      { selector: 'edge[branch = "yes"]', style: { "source-endpoint": "-50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward" } as unknown as cytoscape.Css.Edge },
-      { selector: 'edge[branch = "no"]', style: { "source-endpoint": "50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward" } as unknown as cytoscape.Css.Edge },
+      { selector: 'edge[branch = "yes"]', style: { "source-endpoint": "-50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward", "line-style": "solid" } as unknown as cytoscape.Css.Edge },
+      { selector: 'edge[branch = "no"]', style: { "source-endpoint": "50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward", "line-style": "solid" } as unknown as cytoscape.Css.Edge },
       { selector: "node.faded", style: { opacity: 0.18 } },
       { selector: "edge.faded", style: { opacity: 0.08 } },
       { selector: "node.hl", style: { "border-width": 3, "border-color": t.primary } as cytoscape.Css.Node },
@@ -391,18 +364,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       })),
     ];
 
-    // clusters use a deterministic grid-per-community (tidy + separable);
-    // everything else uses its ELK / structured layout.
-    const layout: cytoscape.LayoutOptions =
-      resolvedKind === "cluster" && grouping
-        ? ({ name: "preset", positions: clusterGridPositions(built.nodes, grouping.keyOf, grouping.order), fit: true, padding: 58 } as unknown as cytoscape.LayoutOptions)
-        : layoutFor(resolvedKind);
-
     const cy = cytoscape({
       container: host,
       elements,
       style: buildStyle(t0),
-      layout,
+      layout: layoutFor(resolvedKind),
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
@@ -411,7 +377,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     cyRef.current = cy;
     setCyState(cy);
     setPalette(t0.c);
-    setFgColor(t0.fg);
 
     // Swimlane: snap each node onto its lane row so the lane bands are clean
     // common regions (one positional encoding per axis: rank = x, lane = y).
@@ -457,7 +422,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       });
       cy.style(buildStyle(tk) as cytoscape.Stylesheet[]);
       setPalette(tk.c);
-      setFgColor(tk.fg);
       cy.resize();
     };
     const mo = new MutationObserver(restyle);
@@ -493,7 +457,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             order={grouping.order}
             colors={palette.length ? palette : ["#888888"]}
             labelOf={grouping.mode === "lanes" ? (k) => k : undefined}
-            labelColor={fgColor || undefined}
           />
         )}
         <div
