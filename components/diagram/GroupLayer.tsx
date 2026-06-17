@@ -24,12 +24,14 @@ export interface GroupLayerProps {
   colors: string[];
   /** optional human label per key (lanes show it on the left). */
   labelOf?: (key: string) => string;
+  /** readable colour for lane labels (foreground token) — avoids hue-on-hue. */
+  labelColor?: string;
 }
 
 type Tf = { x: number; y: number; z: number };
 type Shape = { key: string; color: string; path?: string; band?: { x: number; y: number; w: number; h: number }; labelXY?: { x: number; y: number } };
 
-export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf }: GroupLayerProps) {
+export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor }: GroupLayerProps) {
   const [tf, setTf] = React.useState<Tf>({ x: 0, y: 0, z: 1 });
   const [shapes, setShapes] = React.useState<Shape[]>([]);
 
@@ -94,9 +96,9 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf }: GroupLay
         {shapes.map((s) =>
           s.band ? (
             <g key={s.key}>
-              <rect x={s.band.x} y={s.band.y} width={s.band.w} height={s.band.h} rx={10} fill={s.color} fillOpacity={0.06} stroke={s.color} strokeOpacity={0.35} strokeWidth={1 / tf.z} />
+              <rect x={s.band.x} y={s.band.y} width={s.band.w} height={s.band.h} rx={8} fill={s.color} fillOpacity={0.06} stroke={s.color} strokeOpacity={0.35} strokeWidth={1 / tf.z} />
               {labelOf && s.labelXY && (
-                <text x={s.labelXY.x} y={s.labelXY.y} fontSize={12 / tf.z} fontWeight={600} fill={s.color} opacity={0.85}>
+                <text x={s.labelXY.x} y={s.labelXY.y} fontSize={12 / tf.z} fontWeight={700} fill={labelColor || s.color}>
                   {labelOf(s.key)}
                 </text>
               )}

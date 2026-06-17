@@ -88,16 +88,20 @@ function wrap(label: string, max = 18): string[] {
   return lines.length ? lines : [label];
 }
 
+// One padding budget for every shape, so the visual margin around the text is
+// consistent. Diamonds and parallelograms inscribe their label, so they're
+// enlarged geometrically to keep the SAME breathing room as the rectangles.
+const CHAR_W = 7.4, LINE_H = 18, PAD_X = 20, PAD_Y = 14;
 function sizeFor(n: SNode, role: NodeRole) {
   const head = n.label || n.id;
-  const headLines = wrap(head);
-  const attrLines = role === "entity" ? (n.attrs || []) : [];
-  const allLines = [...headLines, ...attrLines];
+  const allLines = [...wrap(head), ...(role === "entity" ? (n.attrs || []) : [])];
   const longest = Math.max(1, ...allLines.map((l) => l.length));
-  let w = Math.min(220, Math.max(72, longest * 7.6 + 28));
-  let h = Math.max(40, allLines.length * 18 + 22);
-  if (role === "decision") { w = Math.max(w, 92); h = Math.max(h, 64); } // diamonds need slack
-  if (role === "start" || role === "end") { h = 40; w = Math.max(72, head.length * 8 + 26); }
+  const textW = longest * CHAR_W, textH = allLines.length * LINE_H;
+  let w = Math.min(240, Math.max(76, textW + PAD_X * 2));
+  let h = Math.max(40, textH + PAD_Y * 2);
+  if (role === "decision") { w = textW * 1.8 + PAD_X * 2; h = textH * 1.9 + PAD_Y * 2; }
+  else if (role === "io") { w = textW + PAD_X * 3; } // parallelogram slant eats width
+  else if (role === "start" || role === "end") { w = Math.max(76, textW + PAD_X * 2.2); }
   return { w: Math.round(w), h: Math.round(h) };
 }
 
@@ -114,8 +118,8 @@ function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
     // them — so proximity actually encodes relatedness (then hulls confirm it).
     return {
       name: "fcose", quality: "default", animate: false, randomize: true, packComponents: true,
-      nodeRepulsion: () => 8000, idealEdgeLength: () => 75, gravity: 0.25, nodeSeparation: 110,
-      gravityRange: 3.0, numIter: 2500,
+      nodeRepulsion: () => 9000, idealEdgeLength: () => 90, gravity: 0.15, nodeSeparation: 140,
+      gravityRange: 3.4, numIter: 2500,
     } as unknown as cytoscape.LayoutOptions;
   }
   return elkLayout(kind);
@@ -215,6 +219,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
   const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
   const [palette, setPalette] = React.useState<string[]>([]);
+  const [fgColor, setFgColor] = React.useState<string>("");
 
   const built = React.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
 
@@ -268,12 +273,14 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         style: {
           width: 1.6,
           "line-color": t.border,
-          "curve-style": "taxi",
+          // force/cluster reads cleaner with direct curves; structured idioms use
+          // orthogonal taxi routing (boxes-and-arrows).
+          "curve-style": resolvedKind === "cluster" ? "bezier" : "taxi",
           "taxi-direction": resolvedKind === "er" || resolvedKind === "swimlane" ? "horizontal" : "downward",
           "taxi-turn": "50%",
           "taxi-turn-min-distance": "8px",
           "target-arrow-color": t.mutedF,
-          "target-arrow-shape": resolvedKind === "er" ? "none" : "triangle",
+          "target-arrow-shape": resolvedKind === "er" || resolvedKind === "cluster" ? "none" : "triangle",
           "arrow-scale": 0.95,
           label: "data(label)",
           "font-size": "11px",
@@ -347,6 +354,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     cyRef.current = cy;
     setCyState(cy);
     setPalette(t0.c);
+    setFgColor(t0.fg);
 
     // Swimlane: snap each node onto its lane row so the lane bands are clean
     // common regions (one positional encoding per axis: rank = x, lane = y).
@@ -392,6 +400,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       });
       cy.style(buildStyle(tk) as cytoscape.Stylesheet[]);
       setPalette(tk.c);
+      setFgColor(tk.fg);
       cy.resize();
     };
     const mo = new MutationObserver(restyle);
@@ -427,6 +436,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             order={grouping.order}
             colors={palette.length ? palette : ["#888888"]}
             labelOf={grouping.mode === "lanes" ? (k) => k : undefined}
+            labelColor={fgColor || undefined}
           />
         )}
         <div
