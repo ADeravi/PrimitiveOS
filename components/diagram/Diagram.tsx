@@ -165,7 +165,11 @@ function elkLayout(kind: DiagramKind): cytoscape.LayoutOptions {
       "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? 56 : 64,
       "elk.spacing.nodeNode": 38,
       "elk.layered.spacing.edgeNodeBetweenLayers": 24,
-      "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
+      // BRANDES_KOEPF + BALANCED straightens the main spine and centres parents
+      // over their children, so the trunk reads as one vertical line and decision
+      // branches fan symmetrically (verified headless against the flow/tree idioms).
+      "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+      "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
       "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
       "elk.edgeRouting": "ORTHOGONAL",
       "elk.layered.crossingMinimization.semiInteractive": kind === "tree",
@@ -387,12 +391,32 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     built.edges.forEach((e) => { degMap.set(e.source, (degMap.get(e.source) || 0) + 1); degMap.set(e.target, (degMap.get(e.target) || 0) + 1); });
 
     const roleById = new Map(built.nodes.map((n) => [n.id, defaultRole(resolvedKind, n)]));
+
+    // Uniform sizing — the fundamental that makes a diagram read as deliberate
+    // rather than ragged. Every rectangular role shares ONE width (and one height
+    // for single-line boxes), so they stack into a clean centred column. Diamonds
+    // stay proportional to their (short) label; entities keep their attribute
+    // height but share the column width. Together with BRANDES_KOEPF/BALANCED
+    // node placement (see elkLayout), the main spine comes out straight and the
+    // decision branches fan symmetrically.
+    const BOXY = new Set<NodeRole>(["process", "start", "end", "state", "subprocess", "node", "actor", "io"]);
+    const natural = new Map(built.nodes.map((n) => [n.id, sizeFor(n, roleById.get(n.id)!)]));
+    const boxNat = built.nodes.filter((n) => BOXY.has(roleById.get(n.id)!)).map((n) => natural.get(n.id)!);
+    const uniW = boxNat.length ? Math.min(240, Math.max(96, ...boxNat.map((s) => s.w))) : 120;
+    const uniH = boxNat.length ? Math.max(...boxNat.map((s) => s.h)) : 44;
+    const sizeOf = (n: SNode, role: NodeRole, deg: number) => {
+      if (resolvedKind === "similarity") { const d = 14 + Math.min(16, deg * 2); return { w: d, h: d }; }
+      if (role === "decision") return natural.get(n.id)!;                                   // proportional diamond
+      if (role === "entity") return { w: Math.max(uniW, natural.get(n.id)!.w), h: natural.get(n.id)!.h }; // uniform width, attr height
+      if (BOXY.has(role)) return { w: uniW, h: uniH };                                      // the shared box
+      return natural.get(n.id)!;
+    };
+
     const elements: cytoscape.ElementDefinition[] = [
       ...built.nodes.map((n) => {
         const role = roleById.get(n.id)!;
         const deg = degMap.get(n.id) || 0;
-        // similarity = sized dots (importance by degree); else label-sized boxes.
-        const { w, h } = resolvedKind === "similarity" ? { w: 14 + Math.min(16, deg * 2), h: 14 + Math.min(16, deg * 2) } : sizeFor(n, role);
+        const { w, h } = sizeOf(n, role, deg);
         const rs = roleStyle(role, t0, policy);
         const showLbl = !hubLabels || hubLabels.has(n.id);
         return {
