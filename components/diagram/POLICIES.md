@@ -85,11 +85,11 @@ length/bends/crossings and re-arrange — never restyle.
 | 9 Fact is not inference | ✅ dashed reserved for uncertainty/return |
 | 10 Explore or explain | n/a at component level (app-level split) |
 
-**Open gaps to close next:** 9 of 10 tenets are now enforced in the component +
-linter. Remaining: a registry-style linter rule that *blocks* a similarity intent
-forced onto a non-distance-true layout (the idiom exists; the hard block doesn't),
-and Carbon's alt data-table view for accessibility. Tenet 10 (explore vs explain)
-is an app-level split, not a component concern.
+**Status:** all component-level tenets are enforced. A similarity intent forced
+onto a non-distance-true layout is now **hard-blocked** (the override is refused
+and the MDS embedding used, with disclosure), and every diagram carries Carbon's
+**alternative data-table view**. Tenet 10 (explore vs explain) is an app-level
+split, not a component concern.
 
 ---
 

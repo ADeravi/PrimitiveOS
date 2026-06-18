@@ -244,7 +244,13 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     console.warn("<Diagram unsafe> bypasses the readability guardrails — use only for known edge cases.");
   }
 
-  const resolvedKind: DiagramKind = kind || kindFromIntent(intent);
+  const intentKind = kindFromIntent(intent);
+  // Registry rule (Tenet 2): a similarity/distance intent may NOT be forced onto
+  // a layout where distance is meaningless — block the override and use the MDS
+  // embedding instead. Illegal pairs are made unrepresentable, not just warned.
+  const distanceMeaningless = new Set<DiagramKind>(["cluster", "flow", "tree", "state", "er", "swimlane"]);
+  const blocked = intentKind === "similarity" && !!kind && kind !== "similarity" && distanceMeaningless.has(kind);
+  const resolvedKind: DiagramKind = blocked ? "similarity" : kind || intentKind;
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
   const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
@@ -517,10 +523,16 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.
   const notes = [
+    ...(blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout — showing the distance-true (MDS) embedding instead.`] : []),
     ...built.notes,
     ...(sim ? [`Distance ≈ similarity · stress ${sim.stress}${sim.stress < 0.2 ? " (trustworthy)" : sim.stress < 0.35 ? " (borderline)" : " (loose — read clusters only)"}`] : []),
     ...(resolvedKind === "cluster" ? ["Force layout — distance is exploratory, not a measure of similarity."] : []),
   ];
+
+  // Carbon accessibility — every visualisation carries an alternative data table.
+  const th: React.CSSProperties = { textAlign: "left", padding: "2px 8px", borderBottom: "1px solid var(--border, #e5e5e5)", color: "var(--muted-foreground, #777)", fontWeight: 600 };
+  const td: React.CSSProperties = { padding: "2px 8px", borderBottom: "1px solid var(--border, #eee)", color: "var(--foreground, #222)" };
+  const cap: React.CSSProperties = { textAlign: "left", fontWeight: 700, padding: "0 0 4px", color: "var(--foreground, #222)" };
 
   return (
     <figure style={{ margin: 0, position: "relative", width: 720, maxWidth: "100%" }}>
@@ -561,6 +573,37 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           {notes.join(" · ")}
         </figcaption>
       )}
+      <details style={{ marginTop: 6, fontSize: 11.5, color: "var(--muted-foreground, #777)" }}>
+        <summary style={{ cursor: "pointer", userSelect: "none" }}>Data table</summary>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 8 }}>
+          <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
+            <caption style={cap}>Elements ({built.nodes.length})</caption>
+            <thead><tr><th style={th}>Label</th><th style={th}>Role / group</th></tr></thead>
+            <tbody>
+              {built.nodes.map((n) => (
+                <tr key={n.id}>
+                  <td style={td}>{(n.label || n.id) + (n.unknown ? " (uncertain)" : "")}</td>
+                  <td style={td}>{defaultRole(resolvedKind, n)}{n.group != null ? ` · ${n.group}` : n.lane ? ` · ${n.lane}` : ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {built.edges.length > 0 && (
+            <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
+              <caption style={cap}>Connections ({built.edges.length})</caption>
+              <thead><tr><th style={th}>From → To</th><th style={th}>Label</th></tr></thead>
+              <tbody>
+                {built.edges.map((e, i) => (
+                  <tr key={i}>
+                    <td style={td}>{e.source} → {e.target}{e.unknown ? " (uncertain)" : ""}</td>
+                    <td style={td}>{e.label || e.card || ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </details>
       {showGrade && (
         <span
           style={{
