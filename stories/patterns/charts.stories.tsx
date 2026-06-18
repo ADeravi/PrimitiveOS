@@ -2,18 +2,12 @@
 import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
   PolarAngleAxis,
   PolarGrid,
   Radar,
   RadarChart,
   RadialBar,
   RadialBarChart,
-  XAxis,
 } from "recharts";
 import {
   Card,
@@ -109,6 +103,12 @@ const REGION_F: FieldSpec[] = [{ name: "region", type: "categorical" }, { name: 
 
 const MONTHLY_REV = MONTHLY.map((m) => ({ month: m.month, revenue: m.desktop + m.mobile }));
 const TREND_F: FieldSpec[] = [{ name: "month", type: "ordinal" }, { name: "revenue", type: "quantitative" }];
+
+// two quant series (desktop, mobile) on one axis. month as ordinal → stacked
+// area reads as a continuous total; month as categorical → grouped bars compare.
+const SERIES_F = (monthType: "ordinal" | "categorical"): FieldSpec[] => [
+  { name: "month", type: monthType }, { name: "desktop", type: "quantitative" }, { name: "mobile", type: "quantitative" },
+];
 
 const SHARE = BROWSERS.map(({ browser, visitors }) => ({ browser, visitors }));
 const SHARE_F: FieldSpec[] = [{ name: "browser", type: "categorical" }, { name: "visitors", type: "quantitative" }];
@@ -229,40 +229,20 @@ export const ChartGallery: Story = {
           <Card><CardContent className="pt-6">
             <Chart intent="kpi total revenue" title="Revenue this quarter ($k)" data={KPI} fields={KPI_F} height={230} showGrade />
           </CardContent></Card>
+          <Card><CardContent className="pt-6">
+            <Chart intent="stacked traffic by device" title="Desktop carries most traffic; mobile is steady" data={MONTHLY} fields={SERIES_F("ordinal")} height={230} showGrade />
+          </CardContent></Card>
+          <Card><CardContent className="pt-6">
+            <Chart intent="compare desktop and mobile by month" title="Desktop leads mobile in every month but April" data={MONTHLY} fields={SERIES_F("categorical")} height={230} showGrade />
+          </CardContent></Card>
         </div>
 
         <SectionHead
           kicker="Raw recharts · outside the guardrail"
           title="Compositions the guardrail doesn't render yet"
-          sub="Multi-series and polar idioms the <Chart> renderer doesn't cover. Kept raw so the library's full range stays visible; these still re-theme with the Design Layer. Roadmap: fold the honest ones (stacked area, grouped bars) into <Chart>."
+          sub="Polar idioms the <Chart> renderer doesn't cover. Kept raw so the library's full range stays visible; these still re-theme with the Design Layer. (Stacked area and grouped bars now live in the policy section above.)"
         />
         <div className="grid gap-6 md:grid-cols-2">
-          <RawCard title="Stacked area" description="Traffic by device, stacked.">
-            <ChartContainer config={trafficConfig} className="h-56 w-full">
-              <AreaChart data={MONTHLY} margin={{ left: 12, right: 12 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Area dataKey="mobile" type="natural" stackId="a" fill="var(--color-mobile)" fillOpacity={0.4} stroke="var(--color-mobile)" />
-                <Area dataKey="desktop" type="natural" stackId="a" fill="var(--color-desktop)" fillOpacity={0.4} stroke="var(--color-desktop)" />
-                <ChartLegend content={<ChartLegendContent />} />
-              </AreaChart>
-            </ChartContainer>
-          </RawCard>
-
-          <RawCard title="Grouped bars" description="Desktop vs mobile, side by side.">
-            <ChartContainer config={trafficConfig} className="h-56 w-full">
-              <BarChart data={MONTHLY}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-                <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-                <ChartLegend content={<ChartLegendContent />} />
-              </BarChart>
-            </ChartContainer>
-          </RawCard>
-
           <RawCard title="Radar" description="Two plans compared across five metrics.">
             <ChartContainer config={skillsConfig} className="mx-auto aspect-square max-h-56">
               <RadarChart data={SKILLS}>

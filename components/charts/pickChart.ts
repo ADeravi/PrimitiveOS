@@ -16,11 +16,14 @@ export interface DataShape {
 }
 
 export type ChartType =
-  | "bignumber" | "bar" | "barH" | "line" | "slopegraph" | "bump"
+  | "bignumber" | "bar" | "barH" | "line" | "area" | "slopegraph" | "bump"
   | "scatter" | "histogram" | "box" | "pie" | "treemap" | "waffle"
   | "sankey" | "dendrogram" | "choropleth" | "table";
 
-export interface Encoding { x?: string; y?: string; color?: string; size?: string; note?: string }
+export interface Encoding { x?: string; y?: string; color?: string; size?: string; note?: string;
+  /** multiple quantitative series share one axis (grouped bars, multi-line, stacked area). */
+  series?: string[];
+}
 export interface ChartPick {
   chart: ChartType;
   encoding: Encoding;
@@ -33,6 +36,7 @@ const INTENT: Record<string, ChartType> = {
   trend: "line", time: "line", change: "line", evolution: "line", over_time: "line",
   rank: "bar", compare: "bar", magnitude: "bar", ranking: "bar", top: "bar",
   share: "pie", proportion: "pie", composition: "pie", part_to_whole: "pie",
+  stacked: "area", area: "area", cumulative: "area",
   relationship: "scatter", correlation: "scatter", scatter: "scatter",
   distribution: "histogram", spread: "histogram",
   flow: "sankey", transfer: "sankey",
@@ -55,6 +59,7 @@ const REASONS: Partial<Record<ChartType, string>> = {
   bar: "Magnitude/rank compares most accurately as length on a common zero baseline.",
   barH: "Long category labels read better horizontal; still length on a zero baseline.",
   line: "Time owns the horizontal axis; the connected line carries the trend.",
+  area: "Parts of a whole across an axis — stacked bands; total reads as the silhouette.",
   slopegraph: "Two time points — a slope shows each item's change directly.",
   scatter: "A relationship between two measures lives in position on both axes.",
   histogram: "A distribution is the shape of one measure binned along its axis.",
@@ -98,12 +103,18 @@ export function pickChart(input: { intent: string; data: DataShape }): ChartPick
     warnings.push("Distribution intent but no quantitative field.");
     chart = "bar";
   }
+  if (chart === "area" && quant.length === 0) {
+    warnings.push("Composition intent but no quantitative series to stack.");
+    chart = "bar";
+  }
 
   // ── encoding (position carries the key quantity) ───────────────────────────
   const enc: Encoding = {};
+  const allQuant = quant.map((q) => q.name);
   switch (chart) {
-    case "bar": case "barH": enc.x = cat[0]?.name; enc.y = quant[0]?.name; enc.note = "zero baseline, sorted by value"; break;
-    case "line": case "bump": enc.x = time[0]?.name; enc.y = quant[0]?.name; enc.color = cat[0]?.name; enc.note = "emphasise only the series that matter"; break;
+    case "bar": case "barH": enc.x = cat[0]?.name ?? time[0]?.name; enc.y = quant[0]?.name; if (quant.length > 1) enc.series = allQuant; enc.note = quant.length > 1 ? "grouped — one bar per series, common zero baseline" : "zero baseline, sorted by value"; break;
+    case "area": enc.x = time[0]?.name ?? cat[0]?.name; enc.y = quant[0]?.name; enc.series = allQuant; enc.note = "stacked — parts of a whole across the axis (non-negative only)"; break;
+    case "line": case "bump": enc.x = time[0]?.name ?? cat[0]?.name; enc.y = quant[0]?.name; enc.color = cat[0]?.name; if (quant.length > 1) enc.series = allQuant; enc.note = "emphasise only the series that matter"; break;
     case "slopegraph": enc.x = time[0]?.name; enc.y = quant[0]?.name; enc.color = cat[0]?.name; break;
     case "scatter": enc.x = quant[0]?.name; enc.y = quant[1]?.name; enc.color = cat[0]?.name; enc.size = quant[2]?.name; break;
     case "histogram": case "box": enc.x = quant[0]?.name; enc.color = cat[0]?.name; break;

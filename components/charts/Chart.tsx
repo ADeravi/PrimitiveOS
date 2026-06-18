@@ -11,7 +11,7 @@
 
 import * as React from "react";
 import {
-  ResponsiveContainer, BarChart, Bar, LineChart, Line, ScatterChart, Scatter,
+  ResponsiveContainer, BarChart, Bar, LineChart, Line, AreaChart, Area, ScatterChart, Scatter,
   PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts";
 import { pickChart, type DataShape, type FieldSpec, type FieldType, type ChartType } from "./pickChart";
@@ -143,6 +143,8 @@ function ChartBody({ pick, data, f, height, palette }: { pick: ReturnType<typeof
   const e = pick.encoding;
   const cat = e.color || e.x || f.find((x) => x.type === "categorical")?.name || "";
   const val = e.y || f.find((x) => x.type === "quantitative")?.name || "";
+  const series = (e.series && e.series.length ? e.series : [val]).filter(Boolean);
+  const multi = series.length > 1;
   const tick = { fontSize: 11, fill: AXIS };
 
   if (pick.chart === "bignumber") {
@@ -151,20 +153,42 @@ function ChartBody({ pick, data, f, height, palette }: { pick: ReturnType<typeof
   }
 
   if (pick.chart === "bar" || pick.chart === "barH") {
-    const rows = capCategories(data, cat, val, 6);
     const horizontal = pick.chart === "barH";
+    // single series → sort + cap (rank); grouped series → keep data order.
+    const rows = multi ? data : capCategories(data, cat, val, 6);
     return (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={rows} layout={horizontal ? "vertical" : "horizontal"} margin={{ top: 8, right: 12, bottom: 8, left: 8 }}>
           <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={!horizontal} horizontal={horizontal} />
           {horizontal
-            ? (<><XAxis type="number" tick={tick} stroke={GRID} /><YAxis type="category" dataKey={cat} tick={tick} stroke={GRID} width={110} /></>)
-            : (<><XAxis dataKey={cat} tick={tick} stroke={GRID} /><YAxis tick={tick} stroke={GRID} /></>)}
+            ? (<><XAxis type="number" tick={tick} stroke={GRID} /><YAxis type="category" dataKey={e.x || cat} tick={tick} stroke={GRID} width={110} /></>)
+            : (<><XAxis dataKey={e.x || cat} tick={tick} stroke={GRID} /><YAxis tick={tick} stroke={GRID} /></>)}
           <Tooltip />
-          {/* one colour: category is already on the axis, so colour here would
-              be decoration, not encoding (Tenet 6). */}
-          <Bar dataKey={val} fill={palette[0]} radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]} isAnimationActive={false} />
+          {multi && <Legend />}
+          {/* single series: ONE colour (category is already on the axis, so colour
+              would be decoration — Tenet 6). grouped: colour now encodes series. */}
+          {series.map((s, i) => (
+            <Bar key={s} dataKey={s} fill={palette[i % palette.length]} radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]} isAnimationActive={false} />
+          ))}
         </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (pick.chart === "area") {
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+          <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey={e.x || cat} tick={tick} stroke={GRID} />
+          <YAxis tick={tick} stroke={GRID} />
+          <Tooltip />
+          {multi && <Legend />}
+          {/* stacked from a zero baseline — the silhouette reads as the total. */}
+          {series.map((s, i) => (
+            <Area key={s} type="monotone" dataKey={s} stackId="1" stroke={palette[i % palette.length]} fill={palette[i % palette.length]} fillOpacity={0.45} isAnimationActive={false} />
+          ))}
+        </AreaChart>
       </ResponsiveContainer>
     );
   }
@@ -174,10 +198,13 @@ function ChartBody({ pick, data, f, height, palette }: { pick: ReturnType<typeof
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
           <CartesianGrid stroke={GRID} strokeDasharray="3 3" />
-          <XAxis dataKey={e.x || ""} tick={tick} stroke={GRID} />
+          <XAxis dataKey={e.x || cat} tick={tick} stroke={GRID} />
           <YAxis tick={tick} stroke={GRID} />
           <Tooltip />
-          <Line type="monotone" dataKey={val} stroke={palette[0]} strokeWidth={2} dot={false} isAnimationActive={false} />
+          {multi && <Legend />}
+          {series.map((s, i) => (
+            <Line key={s} type="monotone" dataKey={s} stroke={palette[i % palette.length]} strokeWidth={2} dot={false} isAnimationActive={false} />
+          ))}
         </LineChart>
       </ResponsiveContainer>
     );
