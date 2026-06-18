@@ -20,6 +20,7 @@ import { GroupLayer } from "./GroupLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
 import { wrap, uniformSizes, elkOptions } from "./layout";
+import { TYPE, OPACITY, RADIUS, STROKE } from "./primitives";
 import { planEdges, type Side } from "./edgePolicy";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
@@ -277,7 +278,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           height: "data(h)" as unknown as number,
           label: "data(label)",
           color: "data(text)",
-          "font-size": "13px",
+          "font-size": `${TYPE.nodeLabel.size}px`,
           "font-family": t.font,
           // similarity points carry the hub label below the dot, not inside.
           "text-valign": resolvedKind === "similarity" ? "bottom" : "center",
@@ -288,22 +289,22 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "line-height": 1.3,
           "border-width": "data(bw)" as unknown as number,
           "border-color": "data(border)",
-          "corner-radius": "8px" as unknown as string,
+          "corner-radius": `${RADIUS.md}px` as unknown as string,
           "min-zoomed-font-size": 6,
         } as cytoscape.Css.Node,
       },
-      { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": "20px" } as unknown as cytoscape.Css.Node },
+      { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": `${RADIUS.pill}px` } as unknown as cytoscape.Css.Node },
       // Initial / final states marked CONSISTENTLY: same accent colour and the
       // same modest weight as each other (not a jarring heavy black) — final adds
       // a double ring, the state-machine convention.
-      { selector: 'node[mark = "initial"]', style: { "border-width": 2.4, "border-color": t.primary } as cytoscape.Css.Node },
-      { selector: 'node[mark = "final"]', style: { "border-width": 2.4, "border-color": t.primary, "border-style": "double" } as unknown as cytoscape.Css.Node },
+      { selector: 'node[mark = "initial"]', style: { "border-width": STROKE.heavy, "border-color": t.primary } as cytoscape.Css.Node },
+      { selector: 'node[mark = "final"]', style: { "border-width": STROKE.heavy, "border-color": t.primary, "border-style": "double" } as unknown as cytoscape.Css.Node },
       // Tenet 8 — uncertain elements are shown but visibly marked, not dropped.
-      { selector: 'node[unknown = "1"]', style: { "border-style": "dashed", "border-color": t.mutedF, "background-opacity": 0.6, opacity: 0.78 } as unknown as cytoscape.Css.Node },
+      { selector: 'node[unknown = "1"]', style: { "border-style": "dashed", "border-color": t.mutedF, "background-opacity": OPACITY.ghost, opacity: OPACITY.ghost } as unknown as cytoscape.Css.Node },
       {
         selector: "edge",
         style: {
-          width: 1.6,
+          width: STROKE.regular,
           // structured idioms get crisp, darker connectors (box-and-arrow);
           // force/similarity webs stay light so they don't overpower the nodes.
           "line-color": edgeColor,
@@ -317,38 +318,38 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "target-arrow-shape": resolvedKind === "er" || resolvedKind === "cluster" || resolvedKind === "similarity" ? "none" : "triangle",
           "arrow-scale": 0.95,
           label: "data(label)",
-          "font-size": "11px",
+          "font-size": `${TYPE.edgeLabel.size}px`,
           "font-family": t.font,
           // Label plate: fill = the canvas background (so it knocks the connector
           // out from behind the text), a 1px border in the EDGE colour, and text
           // at 80% of the foreground (≈80% black on a light canvas). Reads as a
           // crisp chip that belongs to its edge.
           color: t.fg,
-          "text-opacity": 0.8,
+          "text-opacity": OPACITY.label,
           "text-background-color": t.bg,
           "text-background-opacity": 1,
           "text-background-shape": "roundrectangle",
           "text-background-padding": "3px",
           "text-border-color": edgeColor,
-          "text-border-width": 1,
+          "text-border-width": STROKE.hair,
           "text-border-opacity": 1,
           "text-margin-y": -2,
           // Tenet 5 — exploration edges are dim by default; hover reveals. Similarity
           // edges stay light but legible (position leads, connections still readable).
-          opacity: resolvedKind === "similarity" ? 0.3 : resolvedKind === "cluster" ? 0.4 : 0.95,
+          opacity: resolvedKind === "similarity" ? OPACITY.similarityEdge : resolvedKind === "cluster" ? OPACITY.exploreEdge : OPACITY.solid,
         } as cytoscape.Css.Edge,
       },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "async"], edge[kind = "return"]', style: { "line-style": "dashed" } as cytoscape.Css.Edge },
       // Tenet 8/9 — uncertain / inferred connections render dashed + faint.
-      { selector: 'edge[unknown = "1"]', style: { "line-style": "dashed", opacity: 0.45 } as cytoscape.Css.Edge },
+      { selector: 'edge[unknown = "1"]', style: { "line-style": "dashed", opacity: OPACITY.inferred } as cytoscape.Css.Edge },
       // Decision branches are routed by ELK's orthogonal layered router — each
       // branch keeps its own label. (Earlier custom source/target-endpoints on
       // taxi edges produced degenerate stubs / boxes at the junction.)
-      { selector: "node.faded", style: { opacity: 0.18 } },
-      { selector: "edge.faded", style: { opacity: 0.08 } },
-      { selector: "node.hl", style: { "border-width": 3, "border-color": t.primary } as cytoscape.Css.Node },
-      { selector: "edge.hl", style: { "line-color": t.primary, "target-arrow-color": t.primary, width: 2.4, opacity: 1 } as cytoscape.Css.Edge },
+      { selector: "node.faded", style: { opacity: OPACITY.dimNode } },
+      { selector: "edge.faded", style: { opacity: OPACITY.fadedEdge } },
+      { selector: "node.hl", style: { "border-width": STROKE.heavy, "border-color": t.primary } as cytoscape.Css.Node },
+      { selector: "edge.hl", style: { "line-color": t.primary, "target-arrow-color": t.primary, width: STROKE.heavy, opacity: OPACITY.solid } as cytoscape.Css.Edge },
       ];
     },
     [resolvedKind]
@@ -385,7 +386,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             id: n.id, label: showLbl ? (n.unknown ? labelFor(n, role) + "  ?" : labelFor(n, role)) : "", role, shape: shapeFor(role, resolvedKind),
             w, h, fill: rs.fill, border: rs.border, text: rs.text,
             // importance (rich policy only): hubs get a heavier border.
-            bw: policy === "rich" ? 1.5 + Math.min(3, deg * 0.5) : 1.6,
+            bw: policy === "rich" ? STROKE.regular + Math.min(3, deg * 0.5) : STROKE.regular,
             mark: n.initial ? "initial" : n.final ? "final" : "",
             unknown: n.unknown ? "1" : "",
           },

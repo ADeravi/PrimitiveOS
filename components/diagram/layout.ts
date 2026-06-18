@@ -4,10 +4,16 @@
 // (tools/diagram-critique/elk-probe.ts) imports exactly the same code the
 // <Diagram> component runs, and the two can never drift apart.
 
+import { sp, TYPE } from "./primitives";
 import type { DiagramKind, NodeRole, SNode } from "./types";
 
 // ── deterministic label measuring (ELK needs sizes up front) ─────────────────
-export const CHAR_W = 7.4, LINE_H = 18, PAD_X = 20, PAD_Y = 14;
+// All spatial constants come from the Carbon spacing scale / type ramp (see
+// ./primitives) — no magic numbers; the probe asserts they stay on-scale.
+export const CHAR_W = 7.4;
+export const LINE_H = Math.round(TYPE.nodeLabel.size * TYPE.nodeLabel.line); // ≈20 (node-label line box)
+export const PAD_X = sp(5); // 16
+export const PAD_Y = sp(4); // 12
 
 export function wrap(label: string, max = 18): string[] {
   const words = label.split(/\s+/);
@@ -80,9 +86,9 @@ export function elkOptions(kind: DiagramKind): Record<string, string | number | 
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? 56 : 64,
-    "elk.spacing.nodeNode": 38,
-    "elk.layered.spacing.edgeNodeBetweenLayers": 24,
+    "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? sp(9) : sp(10), // 48 / 64
+    "elk.spacing.nodeNode": sp(8),                                                  // 40
+    "elk.layered.spacing.edgeNodeBetweenLayers": sp(6),                             // 24
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
@@ -90,3 +96,10 @@ export function elkOptions(kind: DiagramKind): Record<string, string | number | 
     "elk.layered.crossingMinimization.semiInteractive": kind === "tree",
   };
 }
+
+// The spacing values this module uses — exported so the probe can assert they
+// stay on the Carbon scale (primitives.lintPrimitives).
+export const LAYOUT_SPACING = {
+  padX: PAD_X, padY: PAD_Y,
+  betweenLayers: sp(10), betweenLayersTree: sp(9), nodeNode: sp(8), edgeNode: sp(6),
+};

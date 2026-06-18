@@ -10,7 +10,8 @@
 // Exits non-zero if any check fails, so it can gate CI.
 
 import ELK from "elkjs";
-import { uniformSizes, elkOptions, BOX_ROLES } from "../../components/diagram/layout";
+import { uniformSizes, elkOptions, BOX_ROLES, LAYOUT_SPACING } from "../../components/diagram/layout";
+import { lintPrimitives, TYPE, OPACITY } from "../../components/diagram/primitives";
 import { planEdges, buildElkGraph, extractRoutes } from "../../components/diagram/edgePolicy";
 import { lintEdges } from "../../components/diagram/edgeLint";
 import type { DiagramKind, NodeRole, SNode } from "../../components/diagram/types";
@@ -123,6 +124,18 @@ async function probeEdges(fx: Fixture) {
 
 async function main() {
   let failed = 0;
+
+  // primitives: every spatial constant on the Carbon scale, type on the ramp,
+  // opacity from the reserved set (catches a magic number creeping back in).
+  const prim = lintPrimitives({
+    spacing: Object.values(LAYOUT_SPACING),
+    typeSize: [TYPE.title.size, TYPE.nodeLabel.size, TYPE.edgeLabel.size],
+    opacity: Object.values(OPACITY),
+  });
+  console.log("primitives");
+  console.log(`  ${prim.pass ? "✓" : "✗"} ${"on Carbon scales".padEnd(20)} spacing/type/opacity`);
+  if (!prim.pass) { failed++; prim.violations.forEach((v) => console.log(`      · ${v.detail}`)); }
+
   for (const fx of FIXTURES) {
     const { name, checks } = await probe(fx);
     console.log(`\n${name}`);
