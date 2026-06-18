@@ -17,6 +17,7 @@ import {
 import { pickChart, type DataShape, type FieldSpec, type FieldType, type ChartType } from "./pickChart";
 import { validateChart, type ChartSpec } from "./chartLint";
 import { oklchToRgb, ensureContrast } from "./contrast";
+import { TYPE } from "../foundation/primitives"; // shared foundation tier (type ramp)
 
 type Row = Record<string, string | number>;
 
@@ -145,7 +146,7 @@ function ChartBody({ pick, data, f, height, palette }: { pick: ReturnType<typeof
   const val = e.y || f.find((x) => x.type === "quantitative")?.name || "";
   const series = (e.series && e.series.length ? e.series : [val]).filter(Boolean);
   const multi = series.length > 1;
-  const tick = { fontSize: 11, fill: AXIS };
+  const tick = { fontSize: TYPE.caption.size, fill: AXIS }; // on the shared type ramp
 
   if (pick.chart === "bignumber") {
     const n = data.length ? Number(data[data.length - 1][val]) : 0;

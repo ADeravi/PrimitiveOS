@@ -14,6 +14,7 @@ import { uniformSizes, elkOptions, BOX_ROLES, LAYOUT_SPACING } from "../../compo
 import { lintPrimitives, TYPE, OPACITY } from "../../components/diagram/primitives";
 import { planEdges, buildElkGraph, extractRoutes } from "../../components/diagram/edgePolicy";
 import { lintEdges } from "../../components/diagram/edgeLint";
+import { validateChart, type ChartSpec } from "../../components/charts/chartLint";
 import type { DiagramKind, NodeRole, SNode } from "../../components/diagram/types";
 
 const elk = new ELK();
@@ -135,6 +136,24 @@ async function main() {
   console.log("primitives");
   console.log(`  ${prim.pass ? "✓" : "✗"} ${"on Carbon scales".padEnd(20)} spacing/type/opacity`);
   if (!prim.pass) { failed++; prim.violations.forEach((v) => console.log(`      · ${v.detail}`)); }
+
+  // charts: the same gate covers the chart linter — an honest spec passes, a
+  // dishonest one (3-D, non-zero baseline, 9 colours) is caught.
+  const GOOD: ChartSpec = {
+    chart: "bar", encoding: { x: "region", y: "rev", color: "region" },
+    data: { fields: [{ name: "region", type: "categorical" }, { name: "rev", type: "quantitative" }], categories: 4 },
+    options: { baseline: 0, title: "Revenue concentrates in the top regions", palette: { type: "categorical", colors: ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"] }, background: "#ffffff" },
+  };
+  const BAD: ChartSpec = {
+    chart: "bar", encoding: { color: "region" },
+    data: { fields: [{ name: "region", type: "categorical" }], categories: 9 },
+    options: { baseline: 50, threeD: true, palette: { type: "categorical", colors: ["#fff", "#eee", "#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777"] }, background: "#ffffff" },
+  };
+  const g = validateChart(GOOD), bad = validateChart(BAD);
+  const chartsOk = g.pass && !bad.pass;
+  console.log("charts");
+  console.log(`  ${chartsOk ? "✓" : "✗"} ${"chartLint good vs bad".padEnd(20)} good ${g.grade}, bad ${bad.grade} (${bad.violations.filter((v) => v.severity === "error").length} errors)`);
+  if (!chartsOk) failed++;
 
   for (const fx of FIXTURES) {
     const { name, checks } = await probe(fx);
