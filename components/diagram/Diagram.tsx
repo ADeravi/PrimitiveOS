@@ -83,7 +83,9 @@ function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: Col
     if (policy === "minimal") {
       if (role === "start") return { fill: t.primary, border: t.primary };
       if (role === "end") return { fill: t.mutedF, border: t.mutedF };
-      return { fill: t.bg, border: t.border };
+      // medium (muted-fg) outline, not the near-invisible --border, so EVERY box
+      // carries the same visible border weight and nothing looks border-less.
+      return { fill: t.bg, border: t.mutedF };
     }
     const accent = t.c[0], decide = t.c[2] || t.c[0], term = t.primary;
     switch (role) {
@@ -285,8 +287,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         } as cytoscape.Css.Node,
       },
       { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": "20px" } as unknown as cytoscape.Css.Node },
-      { selector: 'node[mark = "initial"]', style: { "border-width": 3, "border-color": t.primary } as cytoscape.Css.Node },
-      { selector: 'node[mark = "final"]', style: { "border-width": 3.5, "border-color": t.fg } as cytoscape.Css.Node },
+      // Initial / final states marked CONSISTENTLY: same accent colour and the
+      // same modest weight as each other (not a jarring heavy black) — final adds
+      // a double ring, the state-machine convention.
+      { selector: 'node[mark = "initial"]', style: { "border-width": 2.4, "border-color": t.primary } as cytoscape.Css.Node },
+      { selector: 'node[mark = "final"]', style: { "border-width": 2.4, "border-color": t.primary, "border-style": "double" } as unknown as cytoscape.Css.Node },
       // Tenet 8 — uncertain elements are shown but visibly marked, not dropped.
       { selector: 'node[unknown = "1"]', style: { "border-style": "dashed", "border-color": t.mutedF, "background-opacity": 0.6, opacity: 0.78 } as unknown as cytoscape.Css.Node },
       {
@@ -308,16 +313,17 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           label: "data(label)",
           "font-size": "11px",
           "font-family": t.font,
-          // Readable label text with a background-coloured HALO, not a filled
-          // chip. The old text-background chip rendered as a dark box over the
-          // branch labels ("yes"/"no"); an outline halo keeps the text legible
-          // over the connector without ever painting a box.
+          // A clean filled rectangle (canvas colour) sits behind the label and
+          // knocks the connector out from under the text — NO border, NO outline
+          // halo. The rectangle separates the label from the line and reads as a
+          // crisp plate at any zoom.
           color: ensureContrast(t.fg, t.bg, 4.5),
-          "text-background-opacity": 0,
-          "text-outline-color": t.bg,
-          "text-outline-width": 3,
-          "text-outline-opacity": 1,
-          "text-margin-y": -3,
+          "text-background-color": t.bg,
+          "text-background-opacity": 1,
+          "text-background-shape": "roundrectangle",
+          "text-background-padding": "3px",
+          "text-border-opacity": 0,
+          "text-margin-y": -2,
           // Tenet 5 — exploration edges are dim by default; hover reveals. Similarity
           // edges stay light but legible (position leads, connections still readable).
           opacity: resolvedKind === "similarity" ? 0.3 : resolvedKind === "cluster" ? 0.4 : 0.95,
@@ -449,6 +455,28 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     });
     cy.on("tap", (e) => { if (e.target === cy) cy.elements().removeClass("faded hl"); });
 
+    // Smarter decision routing — a diamond reads best as a pass-through: the edge
+    // IN enters its top vertex, the PRIMARY branch (the child placed most directly
+    // below) leaves the BOTTOM vertex and continues straight down, and the
+    // secondary branch leaves the near SIDE vertex. Far fewer corners than every
+    // edge sharing one side. Resolved per-edge after layout, since which child is
+    // "below" depends on where ELK placed them.
+    const routeDecisions = () => {
+      cy.nodes('[role = "decision"]').forEach((dn) => {
+        const dx = dn.position("x");
+        const outs = dn.outgoers("edge");
+        if (outs.length) {
+          let best = outs[0], bd = Infinity;
+          outs.forEach((e) => { const d = Math.abs(e.target().position("x") - dx); if (d < bd) { bd = d; best = e; } });
+          outs.forEach((e) => {
+            if (e.id() === best.id()) e.style({ "source-endpoint": "0% 50%", "taxi-direction": "downward" });
+            else e.style({ "source-endpoint": e.target().position("x") >= dx ? "50% 0%" : "-50% 0%", "taxi-direction": "downward" });
+          });
+        }
+        dn.incomers("edge").forEach((e) => e.style({ "target-endpoint": "0% -50%" }));
+      });
+    };
+
     const restyle = () => {
       const el = hostRef.current; if (!el) return;
       const tk = readTokens(el);
@@ -465,6 +493,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       setPalette(tk.c);
       setBgColor(tk.bg);
       cy.resize();
+      routeDecisions();
     };
     const mo = new MutationObserver(restyle);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
@@ -474,7 +503,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // clearance from their contents and the canvas edge (they extend past nodes).
     const fitPad = grouping ? 58 : 28;
     const fitNow = () => {
-      cy.resize(); cy.fit(undefined, fitPad);
+      cy.resize(); routeDecisions(); cy.fit(undefined, fitPad);
       // signal for the screenshot-and-critique loop that layout has settled.
       host.parentElement?.parentElement?.setAttribute("data-diagram-ready", "1");
     };

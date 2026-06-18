@@ -55,6 +55,7 @@ const FIXTURES: Fixture[] = [
       { id: "published", label: "Published", role: "state" },
     ],
     edges: [["draft", "review"], ["review", "revise"], ["revise", "review"], ["review", "approved"], ["approved", "published"]],
+    spine: ["review", "approved", "published"], // the trunk; Draft/Revising legitimately flank it (both feed In review)
   },
   {
     name: "entity-relationship", kind: "er",
