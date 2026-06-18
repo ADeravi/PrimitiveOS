@@ -355,11 +355,13 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "text-border-opacity": 1,
           "text-border-width": 1,
           "text-border-color": t.border,
-          // Tenet 5 — exploration edges are dim by default; hover reveals. In the
-          // similarity idiom they're fainter still: position is the message.
-          opacity: resolvedKind === "similarity" ? 0.12 : resolvedKind === "cluster" ? 0.4 : 0.95,
+          // Tenet 5 — exploration edges are dim by default; hover reveals. Similarity
+          // edges stay light but legible (position leads, connections still readable).
+          opacity: resolvedKind === "similarity" ? 0.3 : resolvedKind === "cluster" ? 0.4 : 0.95,
         } as cytoscape.Css.Edge,
       },
+      // unlabelled edges must NOT paint a label-background chip — it breaks the line.
+      { selector: 'edge[label = ""]', style: { "text-background-opacity": 0, "text-border-opacity": 0 } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "async"], edge[kind = "return"]', style: { "line-style": "dashed" } as cytoscape.Css.Edge },
       // Tenet 8/9 — uncertain / inferred connections render dashed + faint.
