@@ -18,6 +18,7 @@ import fcose from "cytoscape-fcose";
 import { readTokens, readableOn } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { detectGroups } from "./grouping";
+import { mdsPositions } from "./mds";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
 try {
@@ -35,6 +36,7 @@ const KIND_FROM_INTENT: Record<string, DiagramKind> = {
   er: "er", entity: "er", schema: "er", data: "er", model: "er", erd: "er",
   swimlane: "swimlane", lanes: "swimlane", responsibilities: "swimlane", crossfunctional: "swimlane",
   cluster: "cluster", clusters: "cluster", community: "cluster", communities: "cluster", network: "cluster", groups: "cluster",
+  similarity: "similarity", similar: "similarity", distance: "similarity", embedding: "similarity", proximity: "similarity", semantic: "similarity",
   sequence: "sequence", interaction: "sequence", messages: "sequence", protocol: "sequence",
 };
 
@@ -47,6 +49,7 @@ function kindFromIntent(intent: string): DiagramKind {
 
 // ── role → shape ─────────────────────────────────────────────────────────────
 function shapeFor(role: NodeRole, kind: DiagramKind): string {
+  if (kind === "similarity") return "ellipse"; // points in a distance-true embedding
   switch (role) {
     case "start":
     case "end": return "round-rectangle"; // terminator (pill via large corner radius)
@@ -261,6 +264,23 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     return null;
   }, [built, resolvedKind]);
 
+  // Distance-true (stress/MDS) embedding for the similarity idiom — the only
+  // layout where distance is allowed to MEAN similarity (Tenet 2). Carries a
+  // stress score so the view can say how trustworthy the distances are.
+  const sim = React.useMemo(
+    () => (resolvedKind === "similarity" ? mdsPositions(built.nodes.map((n) => n.id), built.edges) : null),
+    [built, resolvedKind]
+  );
+
+  // similarity shows hub labels only (the rest is read by position) — top by degree.
+  const hubLabels = React.useMemo(() => {
+    if (resolvedKind !== "similarity") return null;
+    const deg = new Map<string, number>();
+    built.edges.forEach((e) => { deg.set(e.source, (deg.get(e.source) || 0) + 1); deg.set(e.target, (deg.get(e.target) || 0) + 1); });
+    const top = [...built.nodes].sort((a, b) => (deg.get(b.id) || 0) - (deg.get(a.id) || 0)).slice(0, Math.max(4, Math.round(built.nodes.length * 0.3)));
+    return new Set(top.map((n) => n.id));
+  }, [built, resolvedKind]);
+
   const buildStyle = React.useCallback(
     (t: ReturnType<typeof readTokens>): cytoscape.Stylesheet[] => [
       {
@@ -275,8 +295,10 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           color: "data(text)",
           "font-size": "13px",
           "font-family": t.font,
-          "text-valign": "center",
+          // similarity points carry the hub label below the dot, not inside.
+          "text-valign": resolvedKind === "similarity" ? "bottom" : "center",
           "text-halign": "center",
+          "text-margin-y": resolvedKind === "similarity" ? 3 : 0,
           "text-wrap": "wrap",
           "text-max-width": "200px",
           "line-height": 1.3,
@@ -294,16 +316,16 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         style: {
           width: 1.6,
           // structured idioms get crisp, darker connectors (box-and-arrow);
-          // cluster webs stay light so they don't overpower the nodes.
-          "line-color": resolvedKind === "cluster" ? t.border : t.mutedF,
-          // force/cluster reads cleaner with direct curves; structured idioms use
-          // orthogonal taxi routing (boxes-and-arrows).
-          "curve-style": resolvedKind === "cluster" ? "bezier" : "taxi",
+          // force/similarity webs stay light so they don't overpower the nodes.
+          "line-color": resolvedKind === "cluster" || resolvedKind === "similarity" ? t.border : t.mutedF,
+          // force/cluster/similarity read cleaner with direct curves; structured
+          // idioms use orthogonal taxi routing (boxes-and-arrows).
+          "curve-style": resolvedKind === "cluster" || resolvedKind === "similarity" ? "bezier" : "taxi",
           "taxi-direction": resolvedKind === "er" || resolvedKind === "swimlane" ? "horizontal" : "downward",
           "taxi-turn": "50%",
           "taxi-turn-min-distance": "8px",
           "target-arrow-color": t.mutedF,
-          "target-arrow-shape": resolvedKind === "er" || resolvedKind === "cluster" ? "none" : "triangle",
+          "target-arrow-shape": resolvedKind === "er" || resolvedKind === "cluster" || resolvedKind === "similarity" ? "none" : "triangle",
           "arrow-scale": 0.95,
           label: "data(label)",
           "font-size": "11px",
@@ -317,8 +339,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "text-border-opacity": 1,
           "text-border-width": 1,
           "text-border-color": t.border,
-          // Tenet 5 — exploration (cluster) edges are dim by default; hover reveals.
-          opacity: resolvedKind === "cluster" ? 0.4 : 0.95,
+          // Tenet 5 — exploration edges are dim by default; hover reveals. In the
+          // similarity idiom they're fainter still: position is the message.
+          opacity: resolvedKind === "similarity" ? 0.12 : resolvedKind === "cluster" ? 0.4 : 0.95,
         } as cytoscape.Css.Edge,
       },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
@@ -350,14 +373,17 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     const elements: cytoscape.ElementDefinition[] = [
       ...built.nodes.map((n) => {
         const role = roleById.get(n.id)!;
-        const { w, h } = sizeFor(n, role);
+        const deg = degMap.get(n.id) || 0;
+        // similarity = sized dots (importance by degree); else label-sized boxes.
+        const { w, h } = resolvedKind === "similarity" ? { w: 14 + Math.min(16, deg * 2), h: 14 + Math.min(16, deg * 2) } : sizeFor(n, role);
         const rs = roleStyle(role, t0, policy);
+        const showLbl = !hubLabels || hubLabels.has(n.id);
         return {
           data: {
-            id: n.id, label: labelFor(n, role), role, shape: shapeFor(role, resolvedKind),
+            id: n.id, label: showLbl ? labelFor(n, role) : "", role, shape: shapeFor(role, resolvedKind),
             w, h, fill: rs.fill, border: rs.border, text: rs.text,
             // importance (rich policy only): hubs get a heavier border.
-            bw: policy === "rich" ? 1.5 + Math.min(3, (degMap.get(n.id) || 0) * 0.5) : 1.6,
+            bw: policy === "rich" ? 1.5 + Math.min(3, deg * 0.5) : 1.6,
             mark: n.initial ? "initial" : n.final ? "final" : "",
           },
         };
@@ -373,11 +399,18 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       })),
     ];
 
+    // similarity uses the distance-true MDS embedding (preset positions);
+    // everything else uses its ELK / fcose / structured layout.
+    const layout: cytoscape.LayoutOptions =
+      resolvedKind === "similarity" && sim
+        ? ({ name: "preset", positions: sim.pos, fit: true, padding: 40 } as unknown as cytoscape.LayoutOptions)
+        : layoutFor(resolvedKind);
+
     const cy = cytoscape({
       container: host,
       elements,
       style: buildStyle(t0),
-      layout: layoutFor(resolvedKind),
+      layout,
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
@@ -467,6 +500,14 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [built, resolvedKind, buildStyle]);
 
+  // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
+  // explicit "distance isn't meaning" note on exploratory force layouts.
+  const notes = [
+    ...built.notes,
+    ...(sim ? [`Distance ≈ similarity · stress ${sim.stress}${sim.stress < 0.2 ? " (trustworthy)" : sim.stress < 0.35 ? " (borderline)" : " (loose — read clusters only)"}`] : []),
+    ...(resolvedKind === "cluster" ? ["Force layout — distance is exploratory, not a measure of similarity."] : []),
+  ];
+
   return (
     <figure style={{ margin: 0, position: "relative", width: 720, maxWidth: "100%" }}>
       <div style={{ position: "relative", height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", overflow: "hidden", background: "var(--background, #fff)" }}>
@@ -501,9 +542,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           {tip.text}
         </div>
       )}
-      {built.notes.length > 0 && (
+      {notes.length > 0 && (
         <figcaption style={{ marginTop: 8, fontSize: 11.5, color: "var(--muted-foreground, #777)", lineHeight: 1.45 }}>
-          {built.notes.join(" · ")}
+          {notes.join(" · ")}
         </figcaption>
       )}
       {showGrade && (

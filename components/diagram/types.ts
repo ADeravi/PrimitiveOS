@@ -76,7 +76,7 @@ export interface LintResult {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Which diagram idiom. Picked from intent; the data can still veto it. */
-export type DiagramKind = "flow" | "tree" | "state" | "er" | "swimlane" | "cluster" | "sequence";
+export type DiagramKind = "flow" | "tree" | "state" | "er" | "swimlane" | "cluster" | "similarity" | "sequence";
 
 /** The semantic role of an element — drives shape, never colour-by-hand. */
 export type NodeRole =

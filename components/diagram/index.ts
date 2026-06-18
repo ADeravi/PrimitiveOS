@@ -5,6 +5,9 @@ export { SequenceDiagram } from "./SequenceDiagram";
 export type { SequenceDiagramProps } from "./SequenceDiagram";
 export { GroupLayer } from "./GroupLayer";
 export type { GroupLayerProps } from "./GroupLayer";
+// Distance-true embedding (MDS) for the similarity idiom (Tenet 2).
+export { mdsPositions, graphDistances } from "./mds";
+export type { MdsResult } from "./mds";
 // Shared Grouping & Proximity layer (used by both diagram families + the linter).
 export { detectGroups, groupOf, convexHull, hullPath, laneBands, proximityReport, regionOverlaps, edgeLengthReport, chooseEncoding } from "./grouping";
 export type { ProximityReport, Pt, GNode, GEdge } from "./grouping";

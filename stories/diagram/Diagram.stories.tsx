@@ -126,3 +126,18 @@ export const Swimlane: S = {
   parameters: { docs: { description: { story: "Lane assignments ride on each node (`lane`); the engine flows the process left-to-right. (Lane bands are a work-in-progress visual layer.)" } } },
   args: { intent: "swimlane", nodes: LANE_N, edges: LANE_E },
 };
+
+// ── similarity (distance-true / MDS) ─────────────────────────────────────────
+const SIM_N: SNode[] = Array.from({ length: 12 }, (_, i) => ({ id: "s" + i, label: "Concept " + i }));
+const SIM_E: SEdge[] = [
+  [0, 1], [1, 2], [0, 2], [2, 3],     // community A
+  [4, 5], [5, 6], [4, 6], [6, 7],     // community B
+  [8, 9], [9, 10], [8, 10], [10, 11], // community C
+  [3, 4], [7, 8],                     // two bridges
+].map(([a, b]) => ({ source: "s" + a, target: "s" + b }));
+
+export const Similarity: S = {
+  name: "Similarity (distance-true / MDS)",
+  parameters: { docs: { description: { story: "The one idiom where distance MEANS similarity (Tenet 2): graph distances are embedded by stress majorisation (MDS), so near = related. Edges fade back, only hubs are labelled, and a stress score discloses how trustworthy the distances are." } } },
+  args: { kind: "similarity", nodes: SIM_N, edges: SIM_E },
+};
