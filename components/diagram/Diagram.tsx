@@ -346,31 +346,28 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           label: "data(label)",
           "font-size": "11px",
           "font-family": t.font,
-          color: t.mutedF,
-          "text-background-color": t.bg,
-          "text-background-opacity": 1,
-          "text-background-padding": "4px",       // clearance so the label clears the line
-          "text-background-shape": "roundrectangle",
-          "text-margin-y": -4,                      // lift the label off the connector
-          "text-border-opacity": 1,
-          "text-border-width": 1,
-          "text-border-color": t.border,
+          // Readable label text with a background-coloured HALO, not a filled
+          // chip. The old text-background chip rendered as a dark box over the
+          // branch labels ("yes"/"no"); an outline halo keeps the text legible
+          // over the connector without ever painting a box.
+          color: ensureContrast(t.fg, t.bg, 4.5),
+          "text-background-opacity": 0,
+          "text-outline-color": t.bg,
+          "text-outline-width": 3,
+          "text-outline-opacity": 1,
+          "text-margin-y": -3,
           // Tenet 5 — exploration edges are dim by default; hover reveals. Similarity
           // edges stay light but legible (position leads, connections still readable).
           opacity: resolvedKind === "similarity" ? 0.3 : resolvedKind === "cluster" ? 0.4 : 0.95,
         } as cytoscape.Css.Edge,
       },
-      // unlabelled edges must NOT paint a label-background chip — it breaks the line.
-      { selector: 'edge[label = ""]', style: { "text-background-opacity": 0, "text-border-opacity": 0 } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "async"], edge[kind = "return"]', style: { "line-style": "dashed" } as cytoscape.Css.Edge },
       // Tenet 8/9 — uncertain / inferred connections render dashed + faint.
       { selector: 'edge[unknown = "1"]', style: { "line-style": "dashed", opacity: 0.45 } as cytoscape.Css.Edge },
-      // Decision branches fan SYMMETRICALLY: yes leaves the left vertex, no the
-      // right vertex, and both drop into the TOP of their target — mirror image
-      // about the diamond, each label on its own edge.
-      { selector: 'edge[branch = "yes"]', style: { "source-endpoint": "-50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward", "line-style": "solid" } as unknown as cytoscape.Css.Edge },
-      { selector: 'edge[branch = "no"]', style: { "source-endpoint": "50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward", "line-style": "solid" } as unknown as cytoscape.Css.Edge },
+      // Decision branches are routed by ELK's orthogonal layered router — each
+      // branch keeps its own label. (Earlier custom source/target-endpoints on
+      // taxi edges produced degenerate stubs / boxes at the junction.)
       { selector: "node.faded", style: { opacity: 0.18 } },
       { selector: "edge.faded", style: { opacity: 0.08 } },
       { selector: "node.hl", style: { "border-width": 3, "border-color": t.primary } as cytoscape.Css.Node },
