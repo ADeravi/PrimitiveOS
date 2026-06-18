@@ -324,9 +324,12 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           // out from behind the text), a 1px border in the EDGE colour, and text
           // at 80% of the foreground (≈80% black on a light canvas). Reads as a
           // crisp chip that belongs to its edge.
-          color: t.fg,
-          "text-opacity": OPACITY.label,
-          "text-background-color": t.bg,
+          // chip = the BROWSER-RESOLVED background (t.bgSolid), so cytoscape's
+          // canvas always parses it — a raw --background token (oklch/hsl) can
+          // fall back to black, which was the black-box bug. Text colour is the
+          // best contrast ON that chip (≈80% black on a light canvas).
+          color: readableOn(t.bgSolid, ["#333333", "#dddddd"]),
+          "text-background-color": t.bgSolid,
           "text-background-opacity": 1,
           "text-background-shape": "roundrectangle",
           "text-background-padding": "3px",
