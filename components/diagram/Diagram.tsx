@@ -15,7 +15,7 @@ import * as React from "react";
 import cytoscape from "cytoscape";
 import elk from "cytoscape-elk";
 import fcose from "cytoscape-fcose";
-import { readTokens, readableOn } from "../charts/network";
+import { readTokens, readableOn, ensureContrast } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
@@ -95,7 +95,10 @@ function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: Col
     }
   };
   const { fill, border } = fb();
-  return { fill, border, text: readableOn(fill, [t.fg, "#ffffff", "#111111"]) };
+  // Carbon SC 1.4.11 — a meaningful (role/group-coloured) border must clear 3:1
+  // against the background; neutral structural outlines (minimal) stay subtle.
+  const gborder = policy === "rich" ? ensureContrast(border, t.bg, 3) : border;
+  return { fill, border: gborder, text: readableOn(fill, [t.fg, "#ffffff", "#111111"]) };
 }
 
 // ── deterministic label measuring (ELK needs sizes up front) ─────────────────

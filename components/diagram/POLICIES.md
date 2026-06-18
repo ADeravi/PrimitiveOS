@@ -92,8 +92,38 @@ non-distance-true layout (the idiom now exists; the hard block doesn't).
 
 ---
 
+## Carbon Design System alignment (charts + colour)
+
+IBM's Carbon data-visualisation spec is the external check on these policies. It
+mostly **reinforces** the manifesto — descriptive *insight* titles (Carbon's
+chart title = Knaflic's takeaway = Tenet 1), a legend that defines the
+colour/shape/size → data mapping (our group labels), white/dark-only chart
+backgrounds for maximum contrast — and it adds concrete rules we adopt:
+
+- **Quantitative/ordered data uses sequential or diverging palettes, not
+  categorical.** Sequential = one hue light→dark where *luminance encodes
+  magnitude* (matches Knaflic's saturation-as-value); diverging = two hues around
+  a meaningful midpoint (Carbon's red↔cyan = temperature, purple↔teal = neutral).
+  Categorical colour is only for unordered categories. **Never a gradient for
+  meaning.** → so the diagram's *importance* cue should move to border-weight or a
+  sequential ramp, never a categorical hue.
+- **Categorical palette is an ordered sequence tuned for neighbour contrast,**
+  with fixed-N override palettes when the category count is known — reinforces our
+  capped, colour-blind-safe group palette.
+- **Non-text contrast ≥ 3:1** for any *meaningful* graphic (a role/group-coloured
+  border, a line), per WCAG SC 1.4.11 — alongside text ≥ 4.5:1. *Enforced:* rich-
+  policy role/group borders are now gated to 3:1 via `ensureContrast` (neutral
+  structural outlines stay subtle).
+- **Provide an alternative data-table view** of every visualisation
+  (accessibility) — a future Diagram addition: "show as table" of nodes/edges.
+- **Status/alert semantics:** red = danger, orange = serious warning, yellow =
+  warning, green = success — reserve these hues for status only.
+
+---
+
 ### Sources
 - **Visualisation Manifesto** (`MANIFESTO.md`) — the 10 tenets; render pipeline (schema gate → principled defaults → linter); 8 positional contracts (`SYSTEM-ARCHITECTURE.md` L4) + per-contract `MODEL-SPECS.md`.
+- **Carbon Design System** — Data visualisation: [colour palettes](https://carbondesignsystem.com/data-visualization/color-palettes/) (categorical / sequential / diverging / gradients), [chart anatomy](https://carbondesignsystem.com/data-visualization/chart-anatomy/), and accessibility (WCAG 2.1, SC 1.4.11 non-text 3:1, alt data table).
 - Knaflic, *Storytelling with Data* (Gestalt p.75–80, colour p.133–134, clutter/alignment Ch.3 p.98).
 - Healy, *Data Visualization* (encoding effectiveness p.27; perceptually-uniform palettes 17–18, 202–205; "structure in random data" p.22).
 - Kirk, *Data Visualisation: A Handbook* (Ch.6 encoding, Ch.9 colour, Ch.10 composition; node-link reading p.220).
