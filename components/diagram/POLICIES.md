@@ -75,21 +75,20 @@ length/bends/crossings and re-arrange — never restyle.
 | Tenet | In the DS Diagram today |
 |---|---|
 | 1 Form follows the question | ✅ `intent`/`kind` required; idiom picked from it |
-| 2 Distance must be earned | ⚠️ partial — cluster offers hulls; **no explicit "force distance is not meaning" guard / stress-true idiom** |
+| 2 Distance must be earned | ✅ distance-true `similarity` idiom (MDS + stress score); force/cluster carries a "distance is exploratory" guard note |
 | 3 Position first | ✅ structured idioms; colour is category only |
-| 4 Group by region | ✅ hulls + lane bands + proximity linter |
-| 5 Dim by default, reveal on hover | ⚠️ click-to-isolate exists; **default-dim not yet** |
-| 6 One accent / consistent colour | ✅ adaptive minimal/rich, capped palette |
-| 7 Declutter to the data | ✅ label thinning, clearance; ⚠️ **bend/crossing metric not yet** |
+| 4 Group by region | ✅ hulls + lane bands + proximity linter + **region-overlap check** |
+| 5 Dim by default, reveal on hover | ✅ cluster dims edges by default, reveals neighbourhood on hover; structured keeps click-to-isolate |
+| 6 One accent / consistent colour | ✅ adaptive minimal/rich, capped palette, **contrast-gated text** |
+| 7 Declutter to the data | ✅ label thinning, clearance, **long-edge metric** (re-arrange, don't restyle) |
 | 8 Tell the truth (mark unknown) | ❌ not yet — no undated/unknown marking in Diagram |
 | 9 Fact is not inference | ✅ dashed reserved for uncertainty/return |
 | 10 Explore or explain | n/a at component level (app-level split) |
 
-**Open gaps to close next:** hull containment/overlap check + edge
-length/bend/crossing metric (Policy 1/3 enforcement); default-dim + reveal-on-hover
-(Tenet 5); honest "unknown/undated" marking (Tenet 8); an explicit distance-true
-(stress/MDS) idiom so Tenet 2 is representable, with the linter blocking a
-similarity intent on a force layout (your registry rule).
+**Open gaps to close next:** honest "unknown/undated" marking (Tenet 8) — mark
+nodes/edges of unknown provenance or missing dates rather than silently dropping;
+and a registry-style linter rule that *blocks* a similarity intent forced onto a
+non-distance-true layout (the idiom now exists; the hard block doesn't).
 
 ---
 
