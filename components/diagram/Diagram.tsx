@@ -20,7 +20,11 @@ import { GroupLayer } from "./GroupLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
 import { wrap, uniformSizes, elkOptions } from "./layout";
+import { planEdges, type Side } from "./edgePolicy";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
+
+// port side → cytoscape endpoint (percent of node bbox, centre origin, +y down)
+const SIDE_ENDPOINT: Record<Side, string> = { NORTH: "0% -50%", SOUTH: "0% 50%", EAST: "50% 0%", WEST: "-50% 0%" };
 
 try {
   cytoscape.use(elk);
@@ -461,34 +465,25 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     });
     cy.on("tap", (e) => { if (e.target === cy) cy.elements().removeClass("faded hl"); });
 
-    // Smarter routing — pick each edge's exact entry/exit vertex from the FAN-OUT
-    // and the placed positions, so connectors read with the fewest corners. Every
-    // edge enters its target's TOP. Out of a node:
-    //   · decision      → primary branch leaves the BOTTOM (straight down), the
-    //                      secondary leaves the near SIDE (the pass-through look)
-    //   · 1 → 2 split    → leaves the two SIDES, one per child
-    //   · 1 → 1 / 1 → n  → leaves the BOTTOM, straight into each child's top
-    // (Horizontal idioms — er / swimlane — keep ELK's default routing.)
+    // Routing driven by the EDGE POLICY (edgePolicy.planEdges) — the same plan the
+    // headless linter verifies. Each edge attaches to the port side the policy
+    // assigned from its fan-out + direction (chain→bottom, split→sides,
+    // decision-primary→bottom pass-through, decision-secondary→side, every edge
+    // into its target's leading edge), so the rendered ports match the verified
+    // routes. Cluster/similarity webs keep their bezier curves.
+    const edgePlans = planEdges(resolvedKind, built.nodes, built.edges, (id) => roleById.get(id)!);
+    const planByEdgeId = new Map(edgePlans.map((p) => ["e" + p.index, p]));
+    const horizontal = resolvedKind === "er" || resolvedKind === "swimlane";
     const smartRoute = () => {
-      if (resolvedKind === "er" || resolvedKind === "swimlane") return;
-      cy.nodes().forEach((p) => {
-        const outs = p.outgoers("edge");
-        if (!outs.length) return;
-        const px = p.position("x");
-        if (p.data("role") === "decision") {
-          let best = outs[0], bd = Infinity;
-          outs.forEach((e) => { const d = Math.abs(e.target().position("x") - px); if (d < bd) { bd = d; best = e; } });
-          outs.forEach((e) => {
-            const src = e.id() === best.id() ? "0% 50%" : e.target().position("x") >= px ? "50% 0%" : "-50% 0%";
-            e.style({ "source-endpoint": src, "target-endpoint": "0% -50%", "taxi-direction": "downward" });
-          });
-        } else if (outs.length === 2) {
-          const s = outs.sort((a, b) => a.target().position("x") - b.target().position("x"));
-          s.eq(0).style({ "source-endpoint": "-50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward" });
-          s.eq(1).style({ "source-endpoint": "50% 0%", "target-endpoint": "0% -50%", "taxi-direction": "downward" });
-        } else {
-          outs.forEach((e) => e.style({ "source-endpoint": "0% 50%", "target-endpoint": "0% -50%", "taxi-direction": "downward" }));
-        }
+      if (resolvedKind === "cluster" || resolvedKind === "similarity") return;
+      cy.edges().forEach((e) => {
+        const p = planByEdgeId.get(e.id());
+        if (!p) return;
+        e.style({
+          "source-endpoint": SIDE_ENDPOINT[p.sourceSide],
+          "target-endpoint": SIDE_ENDPOINT[p.targetSide],
+          "taxi-direction": horizontal ? "rightward" : "downward",
+        });
       });
     };
 
