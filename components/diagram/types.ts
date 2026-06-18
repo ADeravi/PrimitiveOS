@@ -116,6 +116,9 @@ export interface SNode {
   /** state-machine markers. */
   initial?: boolean;
   final?: boolean;
+  /** uncertain / unknown provenance — shown and MARKED, never silently dropped
+   *  (Tenet 8). Renders dashed + muted with a "?" so it can't pass as certain. */
+  unknown?: boolean;
 }
 
 /** A structured connector. Meaning only. */
@@ -126,4 +129,6 @@ export interface SEdge {
   kind?: EdgeKind;
   /** ER cardinality, e.g. "1", "*", "1..N". */
   card?: string;
+  /** uncertain / inferred connection — rendered dashed + faint (Tenet 8/9). */
+  unknown?: boolean;
 }

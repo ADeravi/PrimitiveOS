@@ -141,3 +141,23 @@ export const Similarity: S = {
   parameters: { docs: { description: { story: "The one idiom where distance MEANS similarity (Tenet 2): graph distances are embedded by stress majorisation (MDS), so near = related. Edges fade back, only hubs are labelled, and a stress score discloses how trustworthy the distances are." } } },
   args: { kind: "similarity", nodes: SIM_N, edges: SIM_E },
 };
+
+// ── tell the truth: mark the unknown, disclose the dropped (Tenet 8) ─────────
+const TRUTH_N: SNode[] = [
+  { id: "s", label: "Ingest", role: "start" },
+  { id: "v", label: "Validate", role: "process" },
+  { id: "u", label: "Source", role: "process", unknown: true },
+  { id: "e", label: "Store", role: "end" },
+];
+const TRUTH_E: SEdge[] = [
+  { source: "s", target: "v" },
+  { source: "v", target: "u", unknown: true },
+  { source: "u", target: "e" },
+  { source: "v", target: "ghost" }, // references a node that isn't in the set
+];
+
+export const TruthMarking: S = {
+  name: "Mark the unknown (Tenet 8)",
+  parameters: { docs: { description: { story: "Uncertain elements are shown but visibly marked (dashed + muted + ?), never silently dropped. Anything that can't be drawn — here an edge to a missing node — is disclosed in the caption rather than hidden." } } },
+  args: { intent: "flow", nodes: TRUTH_N, edges: TRUTH_E },
+};

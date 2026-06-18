@@ -81,14 +81,15 @@ length/bends/crossings and re-arrange — never restyle.
 | 5 Dim by default, reveal on hover | ✅ cluster dims edges by default, reveals neighbourhood on hover; structured keeps click-to-isolate |
 | 6 One accent / consistent colour | ✅ adaptive minimal/rich, capped palette, **contrast-gated text** |
 | 7 Declutter to the data | ✅ label thinning, clearance, **long-edge metric** (re-arrange, don't restyle) |
-| 8 Tell the truth (mark unknown) | ❌ not yet — no undated/unknown marking in Diagram |
+| 8 Tell the truth (mark unknown) | ✅ `unknown` elements shown dashed + muted + "?"; dropped references (missing nodes) disclosed in the caption |
 | 9 Fact is not inference | ✅ dashed reserved for uncertainty/return |
 | 10 Explore or explain | n/a at component level (app-level split) |
 
-**Open gaps to close next:** honest "unknown/undated" marking (Tenet 8) — mark
-nodes/edges of unknown provenance or missing dates rather than silently dropping;
-and a registry-style linter rule that *blocks* a similarity intent forced onto a
-non-distance-true layout (the idiom now exists; the hard block doesn't).
+**Open gaps to close next:** 9 of 10 tenets are now enforced in the component +
+linter. Remaining: a registry-style linter rule that *blocks* a similarity intent
+forced onto a non-distance-true layout (the idiom exists; the hard block doesn't),
+and Carbon's alt data-table view for accessibility. Tenet 10 (explore vs explain)
+is an app-level split, not a component concern.
 
 ---
 

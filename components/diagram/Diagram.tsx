@@ -186,12 +186,17 @@ function normalize(kind: DiagramKind, nodesIn: SNode[], edgesIn: SEdge[]) {
     edgesIn = edgesIn.filter((e) => keep.has(e.source) && keep.has(e.target));
   }
   const ids = new Set(nodes.map((n) => n.id));
+  // Tenet 8 — never silently drop. Disclose edges that reference a missing node.
+  const refDropped = edgesIn.filter((e) => !ids.has(e.source) || !ids.has(e.target)).length;
+  if (refDropped) notes.push(`${refDropped} edge(s) referenced a missing node — omitted.`);
   const eseen = new Set<string>();
   const edges = edgesIn.filter((e) => {
     if (!ids.has(e.source) || !ids.has(e.target)) return false;
     const k = e.source + "→" + e.target + "·" + (e.label || "");
     return eseen.has(k) ? false : (eseen.add(k), true);
   });
+  const unknownN = nodes.filter((n) => n.unknown).length;
+  if (unknownN) notes.push(`${unknownN} element(s) marked uncertain.`);
 
   // infer roles for flow when omitted: zero in-degree → start, zero out → end.
   if (kind === "flow") {
@@ -314,6 +319,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": "20px" } as unknown as cytoscape.Css.Node },
       { selector: 'node[mark = "initial"]', style: { "border-width": 3, "border-color": t.primary } as cytoscape.Css.Node },
       { selector: 'node[mark = "final"]', style: { "border-width": 3.5, "border-color": t.fg } as cytoscape.Css.Node },
+      // Tenet 8 — uncertain elements are shown but visibly marked, not dropped.
+      { selector: 'node[unknown = "1"]', style: { "border-style": "dashed", "border-color": t.mutedF, "background-opacity": 0.6, opacity: 0.78 } as unknown as cytoscape.Css.Node },
       {
         selector: "edge",
         style: {
@@ -349,6 +356,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       },
       { selector: 'edge[kind = "no"]', style: { "line-style": "dashed", "line-color": t.mutedF } as cytoscape.Css.Edge },
       { selector: 'edge[kind = "async"], edge[kind = "return"]', style: { "line-style": "dashed" } as cytoscape.Css.Edge },
+      // Tenet 8/9 — uncertain / inferred connections render dashed + faint.
+      { selector: 'edge[unknown = "1"]', style: { "line-style": "dashed", opacity: 0.45 } as cytoscape.Css.Edge },
       // Decision branches fan SYMMETRICALLY: yes leaves the left vertex, no the
       // right vertex, and both drop into the TOP of their target — mirror image
       // about the diamond, each label on its own edge.
@@ -383,11 +392,12 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         const showLbl = !hubLabels || hubLabels.has(n.id);
         return {
           data: {
-            id: n.id, label: showLbl ? labelFor(n, role) : "", role, shape: shapeFor(role, resolvedKind),
+            id: n.id, label: showLbl ? (n.unknown ? labelFor(n, role) + "  ?" : labelFor(n, role)) : "", role, shape: shapeFor(role, resolvedKind),
             w, h, fill: rs.fill, border: rs.border, text: rs.text,
             // importance (rich policy only): hubs get a heavier border.
             bw: policy === "rich" ? 1.5 + Math.min(3, deg * 0.5) : 1.6,
             mark: n.initial ? "initial" : n.final ? "final" : "",
+            unknown: n.unknown ? "1" : "",
           },
         };
       }),
@@ -398,6 +408,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           id: `e${i}`, source: e.source, target: e.target,
           label: e.label || (e.card ? e.card : ""), kind: e.kind || "flow",
           branch: roleById.get(e.source) === "decision" ? e.kind || "" : "",
+          unknown: e.unknown ? "1" : "",
         },
       })),
     ];
