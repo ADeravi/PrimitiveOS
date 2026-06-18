@@ -82,55 +82,9 @@ function oklchToRgb(str: string): string {
   return `rgb(${ch(lr)}, ${ch(lg)}, ${ch(lb)})`;
 }
 
-// ── WCAG contrast, built on oklchToRgb above (every DS token is oklch) ────────
-function toRGB(str: string): [number, number, number] {
-  const s = str.trim().toLowerCase().startsWith("oklch") ? oklchToRgb(str) : str.trim();
-  if (s.startsWith("#")) {
-    const h = s.slice(1);
-    const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-    return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16)];
-  }
-  const m = s.match(/rgba?\(([^)]+)\)/i);
-  if (m) { const p = m[1].split(",").map((x) => parseFloat(x)); return [p[0] || 0, p[1] || 0, p[2] || 0]; }
-  return [0, 0, 0];
-}
-function relLum([r, g, b]: [number, number, number]): number {
-  const f = (c: number) => { const x = c / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
-  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-}
-/** WCAG 2.x contrast ratio (1–21) between two CSS colours (oklch tokens ok). */
-export function contrastRatio(a: string, b: string): number {
-  const la = relLum(toRGB(a)), lb = relLum(toRGB(b));
-  const hi = Math.max(la, lb), lo = Math.min(la, lb);
-  return (hi + 0.05) / (lo + 0.05);
-}
-/** The most readable foreground for a background, chosen from candidates by
- *  measured contrast — so we never paint e.g. white on a light accent. Default
- *  candidates are the themed foreground, white and near-black. */
-export function readableOn(bg: string, candidates: string[] = ["#ffffff", "#111111"]): string {
-  let best = candidates[0], bestC = -1;
-  for (const c of candidates) { const cr = contrastRatio(bg, c); if (cr > bestC) { bestC = cr; best = c; } }
-  return best;
-}
-
-function mix(a: [number, number, number], b: [number, number, number], t: number): string {
-  const r = Math.round(a[0] + (b[0] - a[0]) * t), g = Math.round(a[1] + (b[1] - a[1]) * t), bl = Math.round(a[2] + (b[2] - a[2]) * t);
-  return `rgb(${r}, ${g}, ${bl})`;
-}
-/** Keep a hue but darken/lighten it just enough to meet a contrast ratio against
- *  `bg` — so a group's own colour can still label it legibly (a light amber on a
- *  light band becomes a darker amber, not switched to grey). */
-export function ensureContrast(color: string, bg: string, min = 4.5): string {
-  if (contrastRatio(color, bg) >= min) return color;
-  const bgLight = relLum(toRGB(bg)) > 0.4;
-  const target: [number, number, number] = bgLight ? [17, 17, 17] : [255, 255, 255];
-  const c = toRGB(color);
-  for (let t = 0.15; t <= 1.0001; t += 0.15) {
-    const m = mix(c, target, t);
-    if (contrastRatio(m, bg) >= min) return m;
-  }
-  return bgLight ? "#111111" : "#ffffff";
-}
+// WCAG contrast helpers now live in ./contrast (pure, no React/cytoscape — shared
+// with the chart linter). Re-export so existing importers of ./network are unchanged.
+export { contrastRatio, readableOn, ensureContrast } from "./contrast";
 
 export function readTokens(el: HTMLElement) {
   const cs = getComputedStyle(el);
