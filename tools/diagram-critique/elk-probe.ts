@@ -11,6 +11,8 @@
 
 import ELK from "elkjs";
 import { uniformSizes, elkOptions, BOX_ROLES } from "../../components/diagram/layout";
+import { planEdges, buildElkGraph, extractRoutes } from "../../components/diagram/edgePolicy";
+import { lintEdges } from "../../components/diagram/edgeLint";
 import type { DiagramKind, NodeRole, SNode } from "../../components/diagram/types";
 
 const elk = new ELK();
@@ -108,6 +110,17 @@ async function probe(fx: Fixture) {
   return { name: fx.name, checks };
 }
 
+// edge-routing pass: plan ports → ELK orthogonal route → lint the polylines
+async function probeEdges(fx: Fixture) {
+  const roleOfId = (id: string) => fx.nodes.find((x) => x.id === id)!.role;
+  const sizes = uniformSizes(fx.nodes, (n) => roleOfId(n.id));
+  const plans = planEdges(fx.kind, fx.nodes, fx.edges.map(([s, t]) => ({ source: s, target: t })), roleOfId);
+  const graph = buildElkGraph(fx.kind, fx.nodes.map((n) => n.id), (id) => sizes.get(id)!, plans);
+  const res = await elk.layout(graph as never);
+  const { boxes, routes } = extractRoutes(res);
+  return lintEdges(plans, routes, boxes);
+}
+
 async function main() {
   let failed = 0;
   for (const fx of FIXTURES) {
@@ -117,8 +130,13 @@ async function main() {
       console.log(`  ${c.pass ? "✓" : "✗"} ${c.label.padEnd(20)} ${c.detail}`);
       if (!c.pass) failed++;
     }
+    const el = await probeEdges(fx);
+    const m = el.metrics;
+    const noHits = m.nodeHits === 0;
+    console.log(`  ${noHits ? "✓" : "✗"} ${"edges clear of nodes".padEnd(20)} ${m.edges} edges, ${m.corners} corners, ${m.crossings} crossings → ${el.grade}`);
+    if (!noHits) { failed++; el.violations.filter((v) => v.severity === "error").forEach((v) => console.log(`      · ${v.detail}`)); }
   }
-  console.log(failed === 0 ? "\nAll layout checks passed." : `\n${failed} layout check(s) FAILED.`);
+  console.log(failed === 0 ? "\nAll layout + edge checks passed." : `\n${failed} check(s) FAILED.`);
   process.exit(failed === 0 ? 0 : 1);
 }
 
