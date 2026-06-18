@@ -19,6 +19,7 @@ import { readTokens, readableOn, ensureContrast } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
+import { wrap, uniformSizes, elkOptions } from "./layout";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
 try {
@@ -101,36 +102,8 @@ function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: Col
   return { fill, border: gborder, text: readableOn(fill, [t.fg, "#ffffff", "#111111"]) };
 }
 
-// ── deterministic label measuring (ELK needs sizes up front) ─────────────────
-function wrap(label: string, max = 18): string[] {
-  const words = label.split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    if ((cur + " " + w).trim().length > max && cur) { lines.push(cur); cur = w; }
-    else cur = (cur + " " + w).trim();
-  }
-  if (cur) lines.push(cur);
-  return lines.length ? lines : [label];
-}
-
-// One padding budget for every shape, so the visual margin around the text is
-// consistent. Diamonds and parallelograms inscribe their label, so they're
-// enlarged geometrically to keep the SAME breathing room as the rectangles.
-const CHAR_W = 7.4, LINE_H = 18, PAD_X = 20, PAD_Y = 14;
-function sizeFor(n: SNode, role: NodeRole) {
-  const head = n.label || n.id;
-  const allLines = [...wrap(head), ...(role === "entity" ? (n.attrs || []) : [])];
-  const longest = Math.max(1, ...allLines.map((l) => l.length));
-  const textW = longest * CHAR_W, textH = allLines.length * LINE_H;
-  let w = Math.min(240, Math.max(76, textW + PAD_X * 2));
-  let h = Math.max(40, textH + PAD_Y * 2);
-  if (role === "decision") { w = textW * 1.8 + PAD_X * 2; h = textH * 1.9 + PAD_Y * 2; }
-  else if (role === "io") { w = textW + PAD_X * 3; } // parallelogram slant eats width
-  else if (role === "start" || role === "end") { w = Math.max(76, textW + PAD_X * 2.2); }
-  return { w: Math.round(w), h: Math.round(h) };
-}
-
+// Label measuring + uniform sizing + ELK options live in ./layout (pure, shared
+// with the headless layout probe). labelFor is the on-canvas string only.
 function labelFor(n: SNode, role: NodeRole): string {
   const head = wrap(n.label || n.id).join("\n");
   if (role === "entity" && n.attrs && n.attrs.length) return head + "\n" + n.attrs.map((a) => "· " + a).join("\n");
@@ -153,27 +126,12 @@ function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
 
 // ── ELK layout per kind ──────────────────────────────────────────────────────
 function elkLayout(kind: DiagramKind): cytoscape.LayoutOptions {
-  const dir = kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN";
   return {
     name: "elk",
     fit: true,
     padding: 24,
     nodeDimensionsIncludeLabels: false,
-    elk: {
-      algorithm: "layered",
-      "elk.direction": dir,
-      "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? 56 : 64,
-      "elk.spacing.nodeNode": 38,
-      "elk.layered.spacing.edgeNodeBetweenLayers": 24,
-      // BRANDES_KOEPF + BALANCED straightens the main spine and centres parents
-      // over their children, so the trunk reads as one vertical line and decision
-      // branches fan symmetrically (verified headless against the flow/tree idioms).
-      "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
-      "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
-      "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
-      "elk.edgeRouting": "ORTHOGONAL",
-      "elk.layered.crossingMinimization.semiInteractive": kind === "tree",
-    },
+    elk: elkOptions(kind),
   } as unknown as cytoscape.LayoutOptions;
 }
 
@@ -392,31 +350,18 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
 
     const roleById = new Map(built.nodes.map((n) => [n.id, defaultRole(resolvedKind, n)]));
 
-    // Uniform sizing — the fundamental that makes a diagram read as deliberate
-    // rather than ragged. Every rectangular role shares ONE width (and one height
-    // for single-line boxes), so they stack into a clean centred column. Diamonds
-    // stay proportional to their (short) label; entities keep their attribute
-    // height but share the column width. Together with BRANDES_KOEPF/BALANCED
-    // node placement (see elkLayout), the main spine comes out straight and the
-    // decision branches fan symmetrically.
-    const BOXY = new Set<NodeRole>(["process", "start", "end", "state", "subprocess", "node", "actor", "io"]);
-    const natural = new Map(built.nodes.map((n) => [n.id, sizeFor(n, roleById.get(n.id)!)]));
-    const boxNat = built.nodes.filter((n) => BOXY.has(roleById.get(n.id)!)).map((n) => natural.get(n.id)!);
-    const uniW = boxNat.length ? Math.min(240, Math.max(96, ...boxNat.map((s) => s.w))) : 120;
-    const uniH = boxNat.length ? Math.max(...boxNat.map((s) => s.h)) : 44;
-    const sizeOf = (n: SNode, role: NodeRole, deg: number) => {
-      if (resolvedKind === "similarity") { const d = 14 + Math.min(16, deg * 2); return { w: d, h: d }; }
-      if (role === "decision") return natural.get(n.id)!;                                   // proportional diamond
-      if (role === "entity") return { w: Math.max(uniW, natural.get(n.id)!.w), h: natural.get(n.id)!.h }; // uniform width, attr height
-      if (BOXY.has(role)) return { w: uniW, h: uniH };                                      // the shared box
-      return natural.get(n.id)!;
-    };
+    // Uniform sizing (see ./layout) — shared with the headless probe, so the
+    // sizes verified offline are exactly the sizes rendered here.
+    const sizeMap = uniformSizes(built.nodes, (n) => roleById.get(n.id)!, {
+      similarity: resolvedKind === "similarity",
+      degOf: (id) => degMap.get(id) || 0,
+    });
 
     const elements: cytoscape.ElementDefinition[] = [
       ...built.nodes.map((n) => {
         const role = roleById.get(n.id)!;
         const deg = degMap.get(n.id) || 0;
-        const { w, h } = sizeOf(n, role, deg);
+        const { w, h } = sizeMap.get(n.id)!;
         const rs = roleStyle(role, t0, policy);
         const showLbl = !hubLabels || hubLabels.has(n.id);
         return {

@@ -55,3 +55,26 @@ checks the *drawing* actually reads. Findings share one action vocabulary
   as recommendations for the pipeline rather than applied automatically.
 - The rubric is a starting point; calibrate weights/thresholds against a corpus
   of human-rated diagrams before trusting the scores.
+
+## Headless layout probe (no browser)
+
+`elk-probe.ts` is the fast, deterministic complement to the screenshot loop. It
+runs the **real ELK engine** over canonical fixtures (flow, tree, state, ER)
+using the exact pure module the component imports — `components/diagram/layout.ts`
+(`uniformSizes`, `elkOptions`) — and asserts the fundamentals the eye reads
+first:
+
+- **uniform box width** — every rectangular role shares one column width
+- **straight spine** — the trunk nodes are collinear on the cross-axis
+- **symmetric branches** — a decision's children fan equally about it
+
+Because the probe and the component share `layout.ts`, they can't drift: the
+sizes verified here are the sizes rendered. It needs no browser, so it's a cheap
+CI gate and the first check to run after touching layout.
+
+```
+npm run probe:diagram     # → ✓/✗ per check, non-zero exit on failure
+```
+
+Use it for geometry (sizing, alignment, balance); use the screenshot loop above
+for the things only pixels reveal (label legibility, routing noise, colour).

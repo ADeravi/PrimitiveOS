@@ -11,7 +11,8 @@
     "build-storybook": "storybook build",
     "typecheck": "tsc --noEmit",
     "test-storybook": "test-storybook",
-    "tokens": "node scripts/export-tokens.mjs"
+    "tokens": "node scripts/export-tokens.mjs",
+    "probe:diagram": "npx -y tsx tools/diagram-critique/elk-probe.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
