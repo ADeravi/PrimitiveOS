@@ -16,13 +16,46 @@ import {
 } from "recharts";
 import { pickChart, type DataShape, type FieldSpec, type FieldType, type ChartType } from "./pickChart";
 import { validateChart, type ChartSpec } from "./chartLint";
+import { oklchToRgb, ensureContrast } from "./contrast";
 
 type Row = Record<string, string | number>;
 
-// Okabe–Ito, colour-blind-safe, capped at 6 (Carbon / Healy ≤6).
-const PALETTE = ["#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00"];
+// Okabe–Ito, colour-blind-safe, capped at 6 (Carbon / Healy ≤6). This is the
+// FALLBACK — see usePalette: at runtime <Chart> prefers the active Design Layer's
+// --chart-* tokens, contrast-gated, so it re-themes AND stays accessible.
+const FALLBACK = ["#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00"];
 const AXIS = "var(--muted-foreground, #777)";
 const GRID = "var(--border, #e5e5e5)";
+
+// Read the Design Layer's --chart-1…6 tokens, convert oklch→sRGB, and gate each
+// against the background to the non-text 3:1 floor (Carbon SC 1.4.11). Any token
+// that's missing or can't be made to clear the floor falls back to Okabe-Ito.
+// Re-reads on layer/theme switches via a MutationObserver. Theming AND contrast.
+function usePalette(ref: React.RefObject<HTMLElement | null>) {
+  const [pal, setPal] = React.useState<string[]>(FALLBACK);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof getComputedStyle === "undefined") return;
+    const read = () => {
+      const cs = getComputedStyle(el);
+      const bgRaw = cs.getPropertyValue("--background").trim() || "#ffffff";
+      const bg = bgRaw.toLowerCase().startsWith("oklch") ? oklchToRgb(bgRaw) : bgRaw;
+      const next = FALLBACK.map((fb, i) => {
+        const raw = cs.getPropertyValue(`--chart-${i + 1}`).trim();
+        if (!raw) return fb;
+        const rgb = raw.toLowerCase().startsWith("oklch") ? oklchToRgb(raw) : raw;
+        const gated = ensureContrast(rgb, bg, 3);
+        return gated || fb;
+      });
+      setPal(next);
+    };
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
+    return () => mo.disconnect();
+  }, [ref]);
+  return pal;
+}
 
 function inferFields(data: Row[], fields?: FieldSpec[]): FieldSpec[] {
   if (fields?.length) return fields;
@@ -60,6 +93,8 @@ export interface ChartProps {
 }
 
 export function Chart({ intent, data = [], fields, title, height = 300, showGrade = false }: ChartProps) {
+  const hostRef = React.useRef<HTMLElement>(null);
+  const palette = usePalette(hostRef);
   const f = React.useMemo(() => inferFields(data, fields), [data, fields]);
   const catField = f.find((x) => x.type === "categorical");
   const catCount = catField ? new Set(data.map((r) => r[catField.name])).size : 0;
@@ -72,7 +107,7 @@ export function Chart({ intent, data = [], fields, title, height = 300, showGrad
     chart: pick.chart, encoding: pick.encoding, data: shape,
     options: {
       baseline: 0, title,
-      palette: { type: colorType === "quantitative" ? "sequential" : "categorical", colors: PALETTE.slice(0, Math.max(1, Math.min(6, catCount || 1))) },
+      palette: { type: colorType === "quantitative" ? "sequential" : "categorical", colors: palette.slice(0, Math.max(1, Math.min(6, catCount || 1))) },
     },
   };
   const lint = validateChart(spec);
@@ -80,7 +115,7 @@ export function Chart({ intent, data = [], fields, title, height = 300, showGrad
   const notes = [...pick.warnings, ...lint.violations.filter((v) => v.severity !== "error").map((v) => v.detail)];
 
   return (
-    <figure style={{ margin: 0, width: "100%", maxWidth: 720 }}>
+    <figure ref={hostRef} style={{ margin: 0, width: "100%", maxWidth: 720 }}>
       {title && <figcaption style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 8px" }}>{title}</figcaption>}
       <div style={{ position: "relative", height, width: "100%" }}>
         {showGrade && (
@@ -88,7 +123,7 @@ export function Chart({ intent, data = [], fields, title, height = 300, showGrad
             {pick.chart} · {lint.grade}
           </span>
         )}
-        <ChartBody pick={pick} data={data} f={f} height={height} />
+        <ChartBody pick={pick} data={data} f={f} height={height} palette={palette} />
       </div>
       {notes.length > 0 && (
         <figcaption style={{ marginTop: 8, fontSize: 11.5, color: "var(--muted-foreground, #777)", lineHeight: 1.45 }}>{notes.join(" · ")}</figcaption>
@@ -104,7 +139,7 @@ export function Chart({ intent, data = [], fields, title, height = 300, showGrad
   );
 }
 
-function ChartBody({ pick, data, f, height }: { pick: ReturnType<typeof pickChart>; data: Row[]; f: FieldSpec[]; height: number }) {
+function ChartBody({ pick, data, f, height, palette }: { pick: ReturnType<typeof pickChart>; data: Row[]; f: FieldSpec[]; height: number; palette: string[] }) {
   const e = pick.encoding;
   const cat = e.color || e.x || f.find((x) => x.type === "categorical")?.name || "";
   const val = e.y || f.find((x) => x.type === "quantitative")?.name || "";
@@ -128,7 +163,7 @@ function ChartBody({ pick, data, f, height }: { pick: ReturnType<typeof pickChar
           <Tooltip />
           {/* one colour: category is already on the axis, so colour here would
               be decoration, not encoding (Tenet 6). */}
-          <Bar dataKey={val} fill={PALETTE[0]} radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey={val} fill={palette[0]} radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     );
@@ -142,7 +177,7 @@ function ChartBody({ pick, data, f, height }: { pick: ReturnType<typeof pickChar
           <XAxis dataKey={e.x || ""} tick={tick} stroke={GRID} />
           <YAxis tick={tick} stroke={GRID} />
           <Tooltip />
-          <Line type="monotone" dataKey={val} stroke={PALETTE[0]} strokeWidth={2} dot={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey={val} stroke={palette[0]} strokeWidth={2} dot={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     );
@@ -156,7 +191,7 @@ function ChartBody({ pick, data, f, height }: { pick: ReturnType<typeof pickChar
           <XAxis type="number" dataKey={e.x || ""} name={e.x} tick={tick} stroke={GRID} />
           <YAxis type="number" dataKey={e.y || ""} name={e.y} tick={tick} stroke={GRID} />
           <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-          <Scatter data={data} fill={PALETTE[0]} fillOpacity={0.7} isAnimationActive={false} />
+          <Scatter data={data} fill={palette[0]} fillOpacity={0.7} isAnimationActive={false} />
         </ScatterChart>
       </ResponsiveContainer>
     );
@@ -168,7 +203,7 @@ function ChartBody({ pick, data, f, height }: { pick: ReturnType<typeof pickChar
       <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie data={rows} dataKey={val} nameKey={cat} startAngle={90} endAngle={-270} innerRadius={0} outerRadius={Math.min(height, 280) / 2.6} isAnimationActive={false} label>
-            {rows.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
+            {rows.map((_, i) => <Cell key={i} fill={palette[i % palette.length]} />)}
           </Pie>
           <Legend /><Tooltip />
         </PieChart>
@@ -188,7 +223,7 @@ function ChartBody({ pick, data, f, height }: { pick: ReturnType<typeof pickChar
         <BarChart data={hist} margin={{ top: 8, right: 12, bottom: 8, left: 8 }}>
           <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="bin" tick={tick} stroke={GRID} /><YAxis tick={tick} stroke={GRID} /><Tooltip />
-          <Bar dataKey="count" fill={PALETTE[0]} isAnimationActive={false} />
+          <Bar dataKey="count" fill={palette[0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     );
