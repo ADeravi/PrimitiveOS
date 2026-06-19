@@ -81,7 +81,9 @@ export function buildElkGraph(
   kind: DiagramKind,
   nodeIds: string[],
   sizeOf: (id: string) => { w: number; h: number },
-  plans: EdgePlan[]
+  plans: EdgePlan[],
+  /** optional lane index per node → ELK partitioning (swimlanes as bands). */
+  partitionOf?: (id: string) => number
 ): unknown {
   const sides = new Map<string, Set<Side>>();
   nodeIds.forEach((id) => sides.set(id, new Set<Side>()));
@@ -90,6 +92,7 @@ export function buildElkGraph(
   const layoutOptions: Record<string, string> = {};
   for (const [k, v] of Object.entries(elkOptions(kind))) layoutOptions[k] = String(v);
   layoutOptions["elk.edgeRouting"] = "ORTHOGONAL";
+  if (partitionOf) layoutOptions["elk.partitioning.activate"] = "true"; // lanes as ordered bands
 
   return {
     id: "root",
@@ -98,7 +101,10 @@ export function buildElkGraph(
       const { w, h } = sizeOf(id);
       return {
         id, width: w, height: h,
-        layoutOptions: { "elk.portConstraints": "FIXED_SIDE" },
+        layoutOptions: {
+          "elk.portConstraints": "FIXED_SIDE",
+          ...(partitionOf ? { "elk.partitioning.partition": String(partitionOf(id)) } : {}),
+        },
         ports: [...sides.get(id)!].map((side) => ({ id: portId(id, side), layoutOptions: { "elk.port.side": side } })),
       };
     }),

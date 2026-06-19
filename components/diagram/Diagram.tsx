@@ -22,7 +22,7 @@ import { EdgeLayer } from "./EdgeLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
 import { wrap, uniformSizes, elkOptions } from "./layout";
-import { TYPE, OPACITY, RADIUS, STROKE } from "./primitives";
+import { TYPE, OPACITY, RADIUS, STROKE, neutralRoles } from "./primitives";
 import { planEdges, buildElkGraph, extractRoutes, type Side, type RoutedEdge } from "./edgePolicy";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
@@ -31,7 +31,7 @@ const SIDE_ENDPOINT: Record<Side, string> = { NORTH: "0% -50%", SOUTH: "0% 50%",
 
 // Idioms whose edges are drawn from ELK's actual routed sections (EdgeLayer),
 // not cytoscape's taxi router — so the rendered route == the verified policy.
-const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er"]);
+const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er", "swimlane"]);
 // one shared elkjs instance for direct (route-returning) layout in the browser.
 const elkEngine = new ELK();
 
@@ -92,29 +92,24 @@ function colorPolicy(kind: DiagramKind, nodeCount: number, groupCount: number): 
 // never hardcoded — it's chosen by measured WCAG contrast against the fill
 // (readableOn), so e.g. white can't land on a light accent (Policy 2 / Tenet 6).
 function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: ColorPolicy = "rich") {
-  const fb = (): { fill: string; border: string } => {
-    if (policy === "minimal") {
-      // Carbon organises greys as a ramp: fills carry identity, but BORDERS stay
-      // SUBTLE (border-subtle, the light --border) — never mid-grey, which muddies.
-      if (role === "start") return { fill: t.primary, border: t.border };
-      if (role === "end") return { fill: t.mutedF, border: t.border };
-      return { fill: t.bg, border: t.border };
-    }
-    const accent = t.c[0], decide = t.c[2] || t.c[0], term = t.primary;
-    switch (role) {
-      case "start": return { fill: term, border: term };
-      case "end": return { fill: t.mutedF, border: t.mutedF };
-      case "decision": return { fill: t.bg, border: decide };
-      case "entity": return { fill: t.bg, border: t.c[1] || accent };
-      case "io": return { fill: t.bg, border: t.c[3] || accent };
-      default: return { fill: t.bg, border: accent };
-    }
-  };
-  const { fill, border } = fb();
-  // Carbon SC 1.4.11 — a meaningful (role/group-coloured) border must clear 3:1
-  // against the background; neutral structural outlines (minimal) stay subtle.
-  const gborder = policy === "rich" ? ensureContrast(border, t.bg, 3) : border;
-  return { fill, border: gborder, text: readableOn(fill, [t.fg, "#ffffff", "#111111"]) };
+  // Carbon neutral baseline: light surface tiles, dark text, subtle borders —
+  // never a mid-grey fill behind text. Polarity from the resolved canvas.
+  const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
+  const n = neutralRoles(light);
+  let fill = n.surface, border = n.border;
+  if (policy === "minimal") {
+    // terminators read with a slightly stronger (still neutral) outline.
+    if (role === "start" || role === "end") border = n.borderStrong;
+  } else {
+    // rich: keep neutral tiles, but encode role with ONE accent on the border
+    // (contrast-gated), instead of colouring the whole fill — calmer, Carbon-like.
+    const accent = t.c[0], decide = t.c[2] || t.c[0];
+    const a = role === "decision" ? decide : role === "entity" ? (t.c[1] || accent) : role === "io" ? (t.c[3] || accent) : accent;
+    border = ensureContrast(a, n.surface, 3);
+  }
+  // text from the dark/light END of the ramp by measured contrast on the fill.
+  const text = readableOn(fill, [n.text, n.surfaceAlt]);
+  return { fill, border, text };
 }
 
 // Label measuring + uniform sizing + ELK options live in ./layout (pure, shared
@@ -287,9 +282,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
 
   const buildStyle = React.useCallback(
     (t: ReturnType<typeof readTokens>): cytoscape.Stylesheet[] => {
-      // edges & connectors stay SUBTLE/light (Carbon dividers) — the lightest
-      // structural token, so they recede behind the nodes and labels.
-      const edgeColor = t.border;
+      // edges & connectors use the neutral CONNECTOR step (light divider weight)
+      // from the Carbon ramp — visible but quiet, recedes behind nodes/labels.
+      const edgeColor = neutralRoles(readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000").line;
       return [
       {
         selector: "node",
@@ -462,7 +457,12 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // node positions AND edge routes, place the nodes, and hand the routes to the
     // EdgeLayer — so the rendered routing is exactly what the policy/probe verify.
     if (elkRouted) {
-      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans);
+      // swimlanes → ELK partitioning by lane (bands), so positions AND routes
+      // come from one engine (no manual snap), and EdgeLayer draws them.
+      const partitionOf = resolvedKind === "swimlane" && grouping
+        ? (id: string) => Math.max(0, grouping.order.indexOf(grouping.keyOf(id)))
+        : undefined;
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans, partitionOf);
       elkEngine.layout(graph as never).then((res) => {
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => { const n = cy.$id(b.id); if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 }); }));
@@ -471,18 +471,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       }).catch(() => { /* preset fallback stays */ });
     }
 
-    // Swimlane: snap each node onto its lane row so the lane bands are clean
-    // common regions (one positional encoding per axis: rank = x, lane = y).
-    if (resolvedKind === "swimlane" && grouping?.order.length) {
-      const order = grouping.order, LANE_H = 120;
-      cy.one("layoutstop", () => {
-        cy.batch(() => cy.nodes().forEach((node) => {
-          const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
-          node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
-        }));
-        cy.fit(undefined, 58);
-      });
-    }
+    // (Swimlane lanes now come from ELK partitioning above — no manual snap; the
+    // lane bands in GroupLayer derive from the resulting node positions.)
 
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {

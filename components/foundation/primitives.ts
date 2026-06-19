@@ -49,6 +49,34 @@ export const isReservedOpacity = (o: number): boolean => o === 1 || RESERVED_OPA
 export const RADIUS = { sharp: 0, sm: 4, md: 8, pill: 20 } as const;
 export const STROKE = { hair: 1, regular: 1.5, bold: 2, heavy: 2.5 } as const;
 
+// ── Neutral ramp — IBM Carbon greys (gray-10 … gray-100) ─────────────────────
+// The aesthetic baseline. Carbon organises neutrals as a 10-step ramp and assigns
+// roles by step: SURFACES at the light end, TEXT at the dark end, BORDERS subtle,
+// connectors a light divider — never a mid-grey fill behind text (that's the
+// muddy look). Roles are chosen by canvas polarity so light & dark themes both
+// read correctly. Sources: Carbon colour tokens + IBM Design Language.
+export const GRAY: Record<number, string> = {
+  0: "#ffffff", 10: "#f4f4f4", 20: "#e0e0e0", 30: "#c6c6c6", 40: "#a8a8a8",
+  50: "#8d8d8d", 60: "#6f6f6f", 70: "#525252", 80: "#393939", 90: "#262626",
+  100: "#161616", 1000: "#000000",
+};
+
+export interface NeutralRoles {
+  surface: string;      // node fill (Carbon $layer)
+  surfaceAlt: string;   // the lightest/darkest plate (chip bg, end of ramp)
+  text: string;         // $text-primary (the opposite end)
+  textSoft: string;     // $text-secondary
+  border: string;       // $border-subtle — quiet
+  borderStrong: string; // $border-strong — for terminators / marks
+  line: string;         // connector / divider weight (light, but visible)
+}
+/** Carbon role assignment for a light or dark canvas. */
+export function neutralRoles(light: boolean): NeutralRoles {
+  return light
+    ? { surface: GRAY[10], surfaceAlt: GRAY[0], text: GRAY[100], textSoft: GRAY[70], border: GRAY[20], borderStrong: GRAY[50], line: GRAY[30] }
+    : { surface: GRAY[90], surfaceAlt: GRAY[100], text: GRAY[10], textSoft: GRAY[40], border: GRAY[70], borderStrong: GRAY[50], line: GRAY[60] };
+}
+
 // ── the primitives linter ────────────────────────────────────────────────────
 export interface PrimitiveViolation { kind: "spacing" | "type" | "opacity"; value: number; detail: string }
 export function lintPrimitives(input: { spacing?: number[]; typeSize?: number[]; opacity?: number[] }): {

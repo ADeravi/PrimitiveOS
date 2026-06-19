@@ -71,6 +71,17 @@ const FIXTURES: Fixture[] = [
     ],
     edges: [["author", "paper"], ["paper", "venue"], ["paper", "topic"]],
   },
+  {
+    name: "swimlane", kind: "swimlane",
+    nodes: [
+      { id: "req", label: "Raise request", role: "start", lane: "Requester" },
+      { id: "tri", label: "Triage", role: "process", lane: "Reviewer" },
+      { id: "ok", label: "Approve?", role: "decision", lane: "Reviewer" },
+      { id: "do", label: "Implement", role: "process", lane: "Owner" },
+      { id: "done", label: "Close", role: "end", lane: "Requester" },
+    ],
+    edges: [["req", "tri"], ["tri", "ok"], ["ok", "do"], ["ok", "done"], ["do", "done"]],
+  },
 ];
 
 async function probe(fx: Fixture) {
@@ -117,7 +128,12 @@ async function probeEdges(fx: Fixture) {
   const roleOfId = (id: string) => fx.nodes.find((x) => x.id === id)!.role;
   const sizes = uniformSizes(fx.nodes, (n) => roleOfId(n.id));
   const plans = planEdges(fx.kind, fx.nodes, fx.edges.map(([s, t]) => ({ source: s, target: t })), roleOfId);
-  const graph = buildElkGraph(fx.kind, fx.nodes.map((n) => n.id), (id) => sizes.get(id)!, plans);
+  // swimlane → ELK partitioning by lane order (same as the component)
+  const laneOrder = [...new Set(fx.nodes.map((n) => n.lane).filter(Boolean) as string[])];
+  const partitionOf = fx.kind === "swimlane"
+    ? (id: string) => Math.max(0, laneOrder.indexOf(fx.nodes.find((n) => n.id === id)?.lane ?? ""))
+    : undefined;
+  const graph = buildElkGraph(fx.kind, fx.nodes.map((n) => n.id), (id) => sizes.get(id)!, plans, partitionOf);
   const res = await elk.layout(graph as never);
   const { boxes, routes } = extractRoutes(res);
   return lintEdges(plans, routes, boxes);

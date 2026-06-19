@@ -10,6 +10,7 @@
 import * as React from "react";
 import type cytoscape from "cytoscape";
 import { readTokens, readableOn } from "../charts/network";
+import { neutralRoles } from "../foundation/primitives";
 import type { EdgePlan, RoutedEdge } from "./edgePolicy";
 
 export interface EdgeLayerProps {
@@ -37,10 +38,11 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
         const t = readTokens(el as HTMLElement);
         // canvas is light if black contrasts it more than white does.
         const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
+        const n = neutralRoles(light);
         setCol({
-          edge: t.border,                       // subtle/light connector (Carbon divider)
-          bg: light ? "#ffffff" : "#161616",    // chip pinned to an END of the grey ramp
-          text: light ? "#161616" : "#f4f4f4",  // the OPPOSITE end — never mid-grey, so it can't wash out
+          edge: n.line,        // neutral connector step (light divider)
+          bg: n.surfaceAlt,    // chip at the END of the ramp (white / near-black)
+          text: n.text,        // opposite END — strong, never mid-grey
         });
       }
     };
