@@ -94,11 +94,11 @@ function colorPolicy(kind: DiagramKind, nodeCount: number, groupCount: number): 
 function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: ColorPolicy = "rich") {
   const fb = (): { fill: string; border: string } => {
     if (policy === "minimal") {
-      if (role === "start") return { fill: t.primary, border: t.primary };
-      if (role === "end") return { fill: t.mutedF, border: t.mutedF };
-      // medium (muted-fg) outline, not the near-invisible --border, so EVERY box
-      // carries the same visible border weight and nothing looks border-less.
-      return { fill: t.bg, border: t.mutedF };
+      // Carbon organises greys as a ramp: fills carry identity, but BORDERS stay
+      // SUBTLE (border-subtle, the light --border) — never mid-grey, which muddies.
+      if (role === "start") return { fill: t.primary, border: t.border };
+      if (role === "end") return { fill: t.mutedF, border: t.border };
+      return { fill: t.bg, border: t.border };
     }
     const accent = t.c[0], decide = t.c[2] || t.c[0], term = t.primary;
     switch (role) {
@@ -287,7 +287,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
 
   const buildStyle = React.useCallback(
     (t: ReturnType<typeof readTokens>): cytoscape.Stylesheet[] => {
-      const edgeColor = resolvedKind === "cluster" || resolvedKind === "similarity" ? t.border : t.mutedF;
+      // edges & connectors stay SUBTLE/light (Carbon dividers) — the lightest
+      // structural token, so they recede behind the nodes and labels.
+      const edgeColor = t.border;
       return [
       {
         selector: "node",
@@ -318,8 +320,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       // Initial / final states marked CONSISTENTLY: same accent colour and the
       // same modest weight as each other (not a jarring heavy black) — final adds
       // a double ring, the state-machine convention.
-      { selector: 'node[mark = "initial"]', style: { "border-width": STROKE.heavy, "border-color": t.primary } as cytoscape.Css.Node },
-      { selector: 'node[mark = "final"]', style: { "border-width": STROKE.heavy, "border-color": t.primary, "border-style": "double" } as unknown as cytoscape.Css.Node },
+      { selector: 'node[mark = "initial"]', style: { "border-width": STROKE.heavy, "border-color": t.mutedF } as cytoscape.Css.Node },
+      { selector: 'node[mark = "final"]', style: { "border-width": STROKE.heavy, "border-color": t.mutedF, "border-style": "double" } as unknown as cytoscape.Css.Node },
       // Tenet 8 — uncertain elements are shown but visibly marked, not dropped.
       { selector: 'node[unknown = "1"]', style: { "border-style": "dashed", "border-color": t.mutedF, "background-opacity": OPACITY.ghost, opacity: OPACITY.ghost } as unknown as cytoscape.Css.Node },
       {
@@ -338,7 +340,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "taxi-direction": resolvedKind === "er" || resolvedKind === "swimlane" ? "horizontal" : "downward",
           "taxi-turn": "50%",
           "taxi-turn-min-distance": "8px",
-          "target-arrow-color": t.mutedF,
+          "target-arrow-color": edgeColor,
           "target-arrow-shape": resolvedKind === "er" || resolvedKind === "cluster" || resolvedKind === "similarity" ? "none" : "triangle",
           "arrow-scale": 0.95,
           label: "data(label)",

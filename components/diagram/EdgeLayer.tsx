@@ -35,7 +35,13 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
       const el = cy.container();
       if (el) {
         const t = readTokens(el as HTMLElement);
-        setCol({ edge: t.mutedF, bg: t.bgSolid, text: readableOn(t.bgSolid, ["#333333", "#dddddd"]) });
+        // canvas is light if black contrasts it more than white does.
+        const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
+        setCol({
+          edge: t.border,                       // subtle/light connector (Carbon divider)
+          bg: light ? "#ffffff" : "#161616",    // chip pinned to an END of the grey ramp
+          text: light ? "#161616" : "#f4f4f4",  // the OPPOSITE end — never mid-grey, so it can't wash out
+        });
       }
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(recompute); };
