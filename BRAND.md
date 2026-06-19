@@ -1,104 +1,122 @@
-# BRAND.md — Design Token Reference
+# BRAND.md — ScnTw Design Token Reference
 
-This file documents the **default shadcn/ui neutral baseline** as shipped.  
-Edit values here when you are ready to apply a brand; then mirror every change  
-into both `:root` and `.dark` inside `app/globals.css`.
+ScnTw uses a **Radix Color + shadcn/ui + Tailwind v4** three-tier token system.
+The canonical source is `app/globals.css`; `tokens.json` is generated from it via `npm run tokens`.
 
 ---
 
-## Base Color — Neutral (OKLCH)
+## Architecture
 
-All colour tokens use the OKLCH colour space (`oklch(L C H)`).  
-Neutral has **zero chroma (C = 0)**, so hue (H) is irrelevant — every swatch
-is a pure grey.  Change C and H together when you introduce brand colour.
+| Tier | Where defined | Use in |
+|---|---|---|
+| **1 — Primitives** | `@radix-ui/colors/*.css` in `node_modules` | Never reference directly in components |
+| **2 — Semantic** | `:root` block in `globals.css` | Components, Tailwind utilities |
+| **3 — Functional** | `:root` block in `globals.css` | Status states; AI provenance |
 
-### Light mode (`:root`)
+### Dark mode — fully automatic
+
+Radix ships paired `*-dark.css` files that redefine every `--scale-N` variable inside `.dark`.
+Adding `.dark` to `<html>` shifts **all** semantic tokens without any manual `.dark {}` overrides.
+
+---
+
+## Current brand: Slate surfaces · Violet actions · Crimson AI accent
+
+| Role | Radix scale | Key step |
+|---|---|---|
+| Surfaces, borders, text | **Slate** (`--slate-1…12`) | Step 1 = bg, 6 = border, 11 = muted text, 12 = heading |
+| Brand actions, ring | **Violet** (`--violet-1…12`) | Step 9 = solid primary, 3 = accent bg, 11 = accent text |
+| AI provenance accent | **Crimson** (`--crimson-9`) | Exposed as `--rose` |
+
+---
+
+## Semantic tokens (Tier 2)
+
+### Surfaces — Radix Slate
 
 | Token | Value | Purpose |
 |---|---|---|
-| `--background` | `oklch(1 0 0)` | Page background |
-| `--foreground` | `oklch(0.145 0 0)` | Default body text |
-| `--card` | `oklch(1 0 0)` | Card surface |
-| `--card-foreground` | `oklch(0.145 0 0)` | Text on cards |
-| `--popover` | `oklch(1 0 0)` | Popover / dropdown surface |
-| `--popover-foreground` | `oklch(0.145 0 0)` | Text in popovers |
-| `--primary` | `oklch(0.205 0 0)` | Primary action (button fill, active state) |
-| `--primary-foreground` | `oklch(0.985 0 0)` | Text on primary |
-| `--secondary` | `oklch(0.97 0 0)` | Secondary button / subtle surface |
-| `--secondary-foreground` | `oklch(0.205 0 0)` | Text on secondary |
-| `--muted` | `oklch(0.97 0 0)` | Muted surface (disabled, placeholder bg) |
-| `--muted-foreground` | `oklch(0.556 0 0)` | Placeholder / helper text |
-| `--accent` | `oklch(0.97 0 0)` | Hover / focus highlight |
-| `--accent-foreground` | `oklch(0.205 0 0)` | Text on accent |
-| `--destructive` | `oklch(0.577 0.245 27.325)` | Error / danger red |
-| `--border` | `oklch(0.922 0 0)` | Default border |
-| `--input` | `oklch(0.922 0 0)` | Input field border |
-| `--ring` | `oklch(0.708 0 0)` | Focus ring |
+| `--background` | `var(--slate-1)` | Page background |
+| `--foreground` | `var(--slate-12)` | Default body text |
+| `--card` | `var(--slate-2)` | Card surface |
+| `--card-foreground` | `var(--slate-12)` | Text on cards |
+| `--popover` | `var(--slate-2)` | Popover / dropdown surface |
+| `--popover-foreground` | `var(--slate-12)` | Text in popovers |
+| `--muted` | `var(--slate-3)` | Muted / disabled surfaces |
+| `--muted-foreground` | `var(--slate-11)` | Placeholder / helper text |
+| `--border` | `var(--slate-6)` | Default border |
+| `--input` | `var(--slate-6)` | Input field border |
+| `--ring` | `var(--violet-7)` | Focus ring |
 
-### Dark mode (`.dark`)
+### Brand — Radix Violet
 
-| Token | Value |
-|---|---|
-| `--background` | `oklch(0.145 0 0)` |
-| `--foreground` | `oklch(0.985 0 0)` |
-| `--card` | `oklch(0.205 0 0)` |
-| `--card-foreground` | `oklch(0.985 0 0)` |
-| `--popover` | `oklch(0.205 0 0)` |
-| `--popover-foreground` | `oklch(0.985 0 0)` |
-| `--primary` | `oklch(0.985 0 0)` |
-| `--primary-foreground` | `oklch(0.205 0 0)` |
-| `--secondary` | `oklch(0.269 0 0)` |
-| `--secondary-foreground` | `oklch(0.985 0 0)` |
-| `--muted` | `oklch(0.269 0 0)` |
-| `--muted-foreground` | `oklch(0.708 0 0)` |
-| `--accent` | `oklch(0.269 0 0)` |
-| `--accent-foreground` | `oklch(0.985 0 0)` |
-| `--destructive` | `oklch(0.704 0.191 22.216)` |
-| `--border` | `oklch(1 0 0 / 10%)` |
-| `--input` | `oklch(1 0 0 / 15%)` |
-| `--ring` | `oklch(0.556 0 0)` |
-
----
-
-## Chart Palette
-
-| Token | Light | Dark |
+| Token | Value | Purpose |
 |---|---|---|
-| `--chart-1` | `oklch(0.646 0.222 41.116)` | `oklch(0.488 0.243 264.376)` |
-| `--chart-2` | `oklch(0.6 0.118 184.704)` | `oklch(0.696 0.17 162.48)` |
-| `--chart-3` | `oklch(0.398 0.07 227.392)` | `oklch(0.769 0.188 70.08)` |
-| `--chart-4` | `oklch(0.828 0.189 84.429)` | `oklch(0.627 0.265 303.9)` |
-| `--chart-5` | `oklch(0.769 0.188 70.08)` | `oklch(0.645 0.246 16.439)` |
+| `--primary` | `var(--violet-9)` | Primary action (button fill, active state) |
+| `--primary-foreground` | `var(--violet-1)` | Text on primary |
+| `--secondary` | `var(--slate-3)` | Secondary button / subtle surface |
+| `--secondary-foreground` | `var(--slate-12)` | Text on secondary |
+| `--accent` | `var(--violet-3)` | Hover / focus highlight bg |
+| `--accent-foreground` | `var(--violet-11)` | Text on accent |
 
 ---
 
-## Sidebar Tokens
+## Functional / status tokens (Tier 3)
 
-| Token | Light | Dark |
+| Token | Value | Purpose |
 |---|---|---|
-| `--sidebar` | `oklch(0.985 0 0)` | `oklch(0.205 0 0)` |
-| `--sidebar-foreground` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` |
-| `--sidebar-primary` | `oklch(0.205 0 0)` | `oklch(0.488 0.243 264.376)` |
-| `--sidebar-primary-foreground` | `oklch(0.985 0 0)` | `oklch(0.985 0 0)` |
-| `--sidebar-accent` | `oklch(0.97 0 0)` | `oklch(0.269 0 0)` |
-| `--sidebar-accent-foreground` | `oklch(0.205 0 0)` | `oklch(0.985 0 0)` |
-| `--sidebar-border` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 10%)` |
-| `--sidebar-ring` | `oklch(0.708 0 0)` | `oklch(0.556 0 0)` |
+| `--destructive` | `var(--red-9)` | Error / danger |
+| `--success` | `var(--green-9)` | Success |
+| `--success-foreground` | `var(--green-1)` | Text on success |
+| `--warning` | `var(--amber-9)` | Warning |
+| `--warning-foreground` | `var(--amber-12)` | Text on warning |
+| `--info` | `var(--blue-9)` | Informational |
+| `--info-foreground` | `var(--blue-1)` | Text on info |
+| `--rose` | `var(--crimson-9)` | **AI provenance only** — see below |
+
+### `--rose` — AI provenance accent
+
+`--rose` is **reserved for AI-inferred content** (edges, highlights, badges).
+It must never appear in search canvases or on more than 1 node per view.
+
+Downstream consumers (e.g. Symantic Relationship Visualiser) read it as:
+```js
+resolveToken('--rose', 'oklch(0.514 0.222 16.935)')
+```
+The browser resolves the two-level chain (`--rose → --crimson-9 → concrete colour`)
+at runtime, including automatic dark-mode shift.
 
 ---
 
-## Border Radius
+## Chart palette
+
+| Token | Value | Hue family |
+|---|---|---|
+| `--chart-1` | `var(--violet-9)` | Violet |
+| `--chart-2` | `var(--cyan-9)` | Cyan |
+| `--chart-3` | `var(--amber-9)` | Amber |
+| `--chart-4` | `var(--green-9)` | Green |
+| `--chart-5` | `var(--red-9)` | Red |
+
+---
+
+## Sidebar tokens
+
+All sidebar tokens mirror the surface/brand pattern:
+`--sidebar` → `var(--slate-2)`, `--sidebar-primary` → `var(--violet-9)`, etc.
+See `globals.css` for the full list.
+
+---
+
+## Border radius
 
 | Token | Value | Resolves to |
 |---|---|---|
-| `--radius` | `0.625rem` | Base (10px) |
-| `--radius-sm` | `calc(var(--radius) - 4px)` | 6px |
-| `--radius-md` | `calc(var(--radius) - 2px)` | 8px |
-| `--radius-lg` | `var(--radius)` | 10px |
-| `--radius-xl` | `calc(var(--radius) + 4px)` | 14px |
-
-To make the UI more rounded, increase `--radius` (e.g. `0.75rem` → 12px base).  
-To make it sharp/square, lower it toward `0`.
+| `--radius` | `0.625rem` | Base (10 px) |
+| `--radius-sm` | `calc(var(--radius) - 4px)` | 6 px |
+| `--radius-md` | `calc(var(--radius) - 2px)` | 8 px |
+| `--radius-lg` | `var(--radius)` | 10 px |
+| `--radius-xl` | `calc(var(--radius) + 4px)` | 14 px |
 
 ---
 
@@ -111,18 +129,15 @@ Fonts are loaded via `next/font/google` in `app/layout.tsx`.
 | `--font-geist-sans` | Geist Sans | Default sans-serif body + UI |
 | `--font-geist-mono` | Geist Mono | Code / monospace |
 
-To swap fonts: replace the `Geist` imports in `app/layout.tsx`, update the  
-CSS variable names, and expose them in the `@theme inline` block in `globals.css`.
-
 ---
 
-## How to apply brand colours
+## How to change the brand colour
 
-1. Pick your primary brand colour and convert it to OKLCH  
-   (use <https://oklch.com> or the DevTools colour picker).
-2. In `app/globals.css`, edit `--primary` / `--primary-foreground` in `:root`.
-3. Edit the corresponding `.dark` values to maintain parity.
-4. The `@theme inline` block maps these to Tailwind utility classes automatically —  
-   no `tailwind.config.js` changes needed (Tailwind v4 theme lives in CSS).
-5. Never edit files inside `components/ui/` directly for branding;  
-   create wrapper components in `components/` instead to preserve the shadcn update path.
+1. Pick a Radix hue that fits (violet → indigo, teal, etc.) — see [radix-ui.com/colors](https://www.radix-ui.com/colors).
+2. In `globals.css`, replace `var(--violet-*)` references in the **Brand** section with your chosen scale.
+3. Ensure the matching `@import "@radix-ui/colors/<hue>.css"` and `<hue>-dark.css` lines exist.
+4. Run `npm run tokens` to regenerate `tokens.json`.
+5. Never edit files inside `components/ui/` for branding — create wrappers in `components/` to preserve the shadcn update path.
+
+To add a new semantic token: add the `--name: var(--scale-step);` line to `:root` in `globals.css`,
+map it in the `@theme inline` block, then re-run `npm run tokens`.
