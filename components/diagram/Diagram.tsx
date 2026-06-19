@@ -515,7 +515,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // decision-primary→bottom pass-through, decision-secondary→side, every edge
     // into its target's leading edge), so the rendered ports match the verified
     // routes. Cluster/similarity webs keep their bezier curves.
-    const edgePlans = planEdges(resolvedKind, built.nodes, built.edges, (id) => roleById.get(id)!);
+    // (edgePlans is the component-level memo above — reuse it, don't redeclare.)
     const planByEdgeId = new Map(edgePlans.map((p) => ["e" + p.index, p]));
     const horizontal = resolvedKind === "er" || resolvedKind === "swimlane";
     const smartRoute = () => {
