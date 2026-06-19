@@ -86,19 +86,25 @@ function oklchToRgb(str: string): string {
 // with the chart linter). Re-export so existing importers of ./network are unchanged.
 export { contrastRatio, readableOn, ensureContrast } from "./contrast";
 
-// The BROWSER-RESOLVED background colour behind an element: walk up to the first
-// ancestor with a non-transparent background and return its computed
-// background-color (always a concrete rgb()/rgba()). Use this for anything handed
-// to a <canvas> renderer like cytoscape, which can't parse raw CSS-variable token
-// strings (oklch/hsl-triplet) and silently falls back to black.
+// The BROWSER-RESOLVED background colour behind an element: walk up a few levels
+// (staying within the diagram's own container, NOT into Storybook/app chrome) and
+// return the first concrete, opaque computed background-color. Used for canvas
+// fills (cytoscape) which can't parse raw CSS-variable token strings.
 function resolvedBg(el: HTMLElement): string {
   let node: HTMLElement | null = el;
-  while (node) {
+  for (let i = 0; node && i < 5; i++, node = node.parentElement) {
     const bg = getComputedStyle(node).backgroundColor;
-    if (bg && bg !== "transparent" && !/^rgba?\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)$/.test(bg)) return bg;
-    node = node.parentElement;
+    if (bg && bg !== "transparent" && !/^rgba?\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/.test(bg)) return bg;
   }
   return "";
+}
+
+// luminance test on an "rgb(r, g, b)" string (post oklch→rgb conversion).
+function isDarkColor(rgb: string): boolean {
+  const m = rgb.match(/(\d+)\D+(\d+)\D+(\d+)/);
+  if (!m) return false;
+  const [r, g, b] = [m[1], m[2], m[3]].map(Number);
+  return 0.299 * r + 0.587 * g + 0.114 * b < 128;
 }
 
 export function readTokens(el: HTMLElement) {
@@ -108,15 +114,18 @@ export function readTokens(el: HTMLElement) {
     return raw.toLowerCase().startsWith("oklch") ? oklchToRgb(raw) : raw;
   };
   const bg = v("--background", "#fff");
+  const fg = v("--foreground", "#111");
   return {
     c: [1, 2, 3, 4, 5].map((i) => v(`--chart-${i}`, "#888")),
     border: v("--border", "#ddd"),
-    fg: v("--foreground", "#111"),
+    fg,
     mutedF: v("--muted-foreground", "#888"),
     bg,
-    // a guaranteed-parseable background for canvas fills (the label chip), from
-    // the actual rendered pixels rather than the token string.
-    bgSolid: resolvedBg(el) || bg,
+    // A guaranteed-parseable, theme-correct chip background: prefer the actual
+    // rendered pixels; if nothing concrete is found (token is an unparseable
+    // triplet / the canvas is the UA default), derive it from the FOREGROUND —
+    // dark fg ⇒ light canvas, light fg ⇒ dark canvas. Never an unparseable string.
+    bgSolid: resolvedBg(el) || (isDarkColor(fg) ? "#ffffff" : "#111111"),
     primary: v("--primary", "#333"),
     // A RESOLVED font stack (the active layer's font). Cytoscape paints labels
     // to <canvas> and can't measure the CSS keyword "inherit", which silently
