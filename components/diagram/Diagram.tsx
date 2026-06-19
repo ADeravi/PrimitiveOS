@@ -608,6 +608,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           role="img"
           aria-label={`${resolvedKind} diagram, ${built.nodes.length} elements`}
         />
+        {cyState && <ZoomControls cy={cyState} />}
       </div>
       {tip && (
         <div
@@ -670,6 +671,39 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         </span>
       )}
     </figure>
+  );
+}
+
+// Floating zoom / fit control — Carbon's pattern for diagrams: scale controls in
+// a small elevated tile over the canvas, so the user can zoom and pan freely and
+// reset to fit. Zoom stays within the component's min/max.
+function ZoomControls({ cy }: { cy: cytoscape.Core }) {
+  const z = (f: number) => {
+    const level = Math.min(2.4, Math.max(0.35, cy.zoom() * f));
+    cy.zoom({ level, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
+  };
+  const btn: React.CSSProperties = {
+    width: 30, height: 30, display: "grid", placeItems: "center", border: "none",
+    background: "var(--background, #fff)", color: "var(--foreground, #111)", cursor: "pointer",
+    fontSize: 16, lineHeight: 1, padding: 0,
+  };
+  const div: React.CSSProperties = { height: 1, background: "var(--border, #e5e5e5)" };
+  return (
+    <div
+      style={{
+        position: "absolute", right: 10, bottom: 10, zIndex: 3, display: "flex", flexDirection: "column",
+        borderRadius: 8, overflow: "hidden", border: "1px solid var(--border, #e5e5e5)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.12)", background: "var(--background, #fff)",
+      }}
+      role="group"
+      aria-label="Diagram zoom controls"
+    >
+      <button style={btn} onClick={() => z(1.2)} title="Zoom in" aria-label="Zoom in">+</button>
+      <div style={div} />
+      <button style={btn} onClick={() => z(1 / 1.2)} title="Zoom out" aria-label="Zoom out">−</button>
+      <div style={div} />
+      <button style={{ ...btn, fontSize: 13 }} onClick={() => cy.fit(undefined, 28)} title="Fit to view" aria-label="Fit to view">⤢</button>
+    </div>
   );
 }
 
