@@ -15,17 +15,25 @@ import * as React from "react";
 import cytoscape from "cytoscape";
 import elk from "cytoscape-elk";
 import fcose from "cytoscape-fcose";
+import ELK from "elkjs/lib/elk.bundled.js";
 import { readTokens, readableOn, ensureContrast } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
+import { EdgeLayer } from "./EdgeLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
 import { wrap, uniformSizes, elkOptions } from "./layout";
 import { TYPE, OPACITY, RADIUS, STROKE } from "./primitives";
-import { planEdges, type Side } from "./edgePolicy";
+import { planEdges, buildElkGraph, extractRoutes, type Side, type RoutedEdge } from "./edgePolicy";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
 // port side → cytoscape endpoint (percent of node bbox, centre origin, +y down)
 const SIDE_ENDPOINT: Record<Side, string> = { NORTH: "0% -50%", SOUTH: "0% 50%", EAST: "50% 0%", WEST: "-50% 0%" };
+
+// Idioms whose edges are drawn from ELK's actual routed sections (EdgeLayer),
+// not cytoscape's taxi router — so the rendered route == the verified policy.
+const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er"]);
+// one shared elkjs instance for direct (route-returning) layout in the browser.
+const elkEngine = new ELK();
 
 try {
   cytoscape.use(elk);
@@ -264,6 +272,19 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     return new Set(top.map((n) => n.id));
   }, [built, resolvedKind]);
 
+  // Edge policy plans (pure) — shared by the layout (ELK ports) and the EdgeLayer
+  // overlay. ELK-routed idioms draw edges from the routed sections, not cytoscape.
+  const elkRouted = ELK_ROUTED.has(resolvedKind);
+  const edgePlans = React.useMemo(
+    () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
+      const n = built.nodes.find((x) => x.id === id);
+      return n ? defaultRole(resolvedKind, n) : "process";
+    }),
+    [resolvedKind, built]
+  );
+  const edgeLabels = React.useMemo(() => built.edges.map((e) => e.label || e.card || ""), [built]);
+  const [edgeRoutes, setEdgeRoutes] = React.useState<RoutedEdge[]>([]);
+
   const buildStyle = React.useCallback(
     (t: ReturnType<typeof readTokens>): cytoscape.Stylesheet[] => {
       const edgeColor = resolvedKind === "cluster" || resolvedKind === "similarity" ? t.border : t.mutedF;
@@ -304,6 +325,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       {
         selector: "edge",
         style: {
+          // ELK-routed idioms draw edges in the SVG EdgeLayer (from ELK's actual
+          // routes); hide cytoscape's own edge so they don't double-draw.
+          display: ELK_ROUTED.has(resolvedKind) ? "none" : "element",
           width: STROKE.regular,
           // structured idioms get crisp, darker connectors (box-and-arrow);
           // force/similarity webs stay light so they don't overpower the nodes.
@@ -408,11 +432,14 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     ];
 
     // similarity uses the distance-true MDS embedding (preset positions);
-    // everything else uses its ELK / fcose / structured layout.
+    // ELK-routed idioms get positions from elkjs below (preset, applied async);
+    // everything else uses its cytoscape-elk / fcose layout.
     const layout: cytoscape.LayoutOptions =
       resolvedKind === "similarity" && sim
         ? ({ name: "preset", positions: sim.pos, fit: true, padding: 40 } as unknown as cytoscape.LayoutOptions)
-        : layoutFor(resolvedKind);
+        : elkRouted
+          ? ({ name: "preset", fit: true, padding: 30 } as unknown as cytoscape.LayoutOptions)
+          : layoutFor(resolvedKind);
 
     const cy = cytoscape({
       container: host,
@@ -428,6 +455,19 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     setCyState(cy);
     setPalette(t0.c);
     setBgColor(t0.bg);
+
+    // ELK-routed idioms: run elkjs directly (ports from the edge policy) to get
+    // node positions AND edge routes, place the nodes, and hand the routes to the
+    // EdgeLayer — so the rendered routing is exactly what the policy/probe verify.
+    if (elkRouted) {
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans);
+      elkEngine.layout(graph as never).then((res) => {
+        const { boxes, routes } = extractRoutes(res);
+        cy.batch(() => boxes.forEach((b) => { const n = cy.$id(b.id); if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 }); }));
+        setEdgeRoutes(routes);
+        cy.fit(undefined, 28);
+      }).catch(() => { /* preset fallback stays */ });
+    }
 
     // Swimlane: snap each node onto its lane row so the lane bands are clean
     // common regions (one positional encoding per axis: rank = x, lane = y).
@@ -479,7 +519,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     const planByEdgeId = new Map(edgePlans.map((p) => ["e" + p.index, p]));
     const horizontal = resolvedKind === "er" || resolvedKind === "swimlane";
     const smartRoute = () => {
-      if (resolvedKind === "cluster" || resolvedKind === "similarity") return;
+      if (resolvedKind === "cluster" || resolvedKind === "similarity" || elkRouted) return;
       cy.edges().forEach((e) => {
         const p = planByEdgeId.get(e.id());
         if (!p) return;
@@ -558,6 +598,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             labelOf={grouping.named ? (k) => k : undefined}
             bg={bgColor || undefined}
           />
+        )}
+        {elkRouted && cyState && (
+          <EdgeLayer cy={cyState} routes={edgeRoutes} plans={edgePlans} labels={edgeLabels} />
         )}
         <div
           ref={hostRef}
