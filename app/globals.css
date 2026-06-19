@@ -146,6 +146,12 @@
   --info:                 var(--blue-9);
   --info-foreground:      var(--blue-1);
 
+  /* AI provenance — reserved for AI-inferred content only.
+     Uses Radix crimson-9 (solid vivid rose-crimson); auto-shifts in dark mode
+     via @import "@radix-ui/colors/crimson-dark.css" above.
+     Read as var(--rose) in downstream consumers (graph-theme.js, etc.). */
+  --rose:                 var(--crimson-9);
+
   /* Charts — five step-9 colours across distinct hue families */
   --chart-1:              var(--violet-9);
   --chart-2:              var(--cyan-9);
@@ -200,6 +206,7 @@
   --color-warning-foreground:           var(--warning-foreground);
   --color-info:                         var(--info);
   --color-info-foreground:              var(--info-foreground);
+  --color-rose:                         var(--rose);
   --color-border:                       var(--border);
   --color-input:                        var(--input);
   --color-ring:                         var(--ring);
