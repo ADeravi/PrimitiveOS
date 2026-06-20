@@ -11,6 +11,7 @@ import * as React from "react";
 import type cytoscape from "cytoscape";
 import { readTokens, readableOn } from "../charts/network";
 import { neutralRoles } from "../foundation/primitives";
+import { placeLabel } from "./edgeLint";
 import type { EdgePlan, RoutedEdge } from "./edgePolicy";
 
 export interface EdgeLayerProps {
@@ -54,6 +55,13 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
 
   const planByIdx = React.useMemo(() => new Map(plans.map((p) => [p.index, p])), [plans]);
 
+  // node boxes in MODEL coords (for node-aware label placement). tf in deps so
+  // it recomputes after layout/zoom settle.
+  const boxes = React.useMemo(() => (cy ? cy.nodes().map((n) => {
+    const p = n.position();
+    return { id: n.id(), x: p.x - n.width() / 2, y: p.y - n.height() / 2, w: n.width(), h: n.height() };
+  }) : []), [cy, tf]);
+
   return (
     <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }} aria-hidden>
       <g transform={`translate(${tf.x} ${tf.y}) scale(${tf.z})`}>
@@ -71,17 +79,13 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
             ? `${a.x},${a.y} ${a.x - s * Math.cos(ang - 0.45)},${a.y - s * Math.sin(ang - 0.45)} ${a.x - s * Math.cos(ang + 0.45)},${a.y - s * Math.sin(ang + 0.45)}`
             : null;
 
-          // label on the LONGEST straight segment (never on a corner)
+          // label on the longest NODE-CLEAR segment (shared placer — same logic
+          // the linter verifies; avoids the chip landing on a node).
           const lbl = labels[r.index];
           let chip: React.ReactNode = null;
           if (lbl) {
-            let best = -1, bi = 0;
-            for (let i = 0; i < r.points.length - 1; i++) {
-              const len = Math.hypot(r.points[i + 1].x - r.points[i].x, r.points[i + 1].y - r.points[i].y);
-              if (len > best) { best = len; bi = i; }
-            }
-            const mx = (r.points[bi].x + r.points[bi + 1].x) / 2;
-            const my = (r.points[bi].y + r.points[bi + 1].y) / 2;
+            const at = placeLabel(r.points, lbl.length, boxes);
+            const mx = at.x, my = at.y;
             const fs = 12, w = lbl.length * fs * 0.62 + 12, h = fs + 8;
             chip = (
               <g>

@@ -11,7 +11,7 @@ export interface EdgeViolation { rule: string; severity: "error" | "warn"; detai
 export interface EdgeLintResult {
   score: number; grade: string; pass: boolean;
   violations: EdgeViolation[];
-  metrics: { edges: number; overBudget: number; nodeHits: number; crossings: number; corners: number };
+  metrics: { edges: number; overBudget: number; nodeHits: number; crossings: number; corners: number; labelHits: number };
 }
 
 type Pt = { x: number; y: number };
@@ -51,10 +51,34 @@ function crosses(s1: [Pt, Pt], s2: [Pt, Pt]): boolean {
   return x > hx0 + EPS && x < hx1 - EPS && y > vy0 + EPS && y < vy1 - EPS;
 }
 
-export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBox[]): EdgeLintResult {
+// axis-aligned rect overlap (rects are {x,y,w,h}, top-left origin).
+function rectsOverlap(a: { x: number; y: number; w: number; h: number }, b: NodeBox, pad = 2): boolean {
+  return a.x < b.x + b.w - pad && a.x + a.w > b.x + pad && a.y < b.y + b.h - pad && a.y + a.h > b.y + pad;
+}
+const CHAR_W = 7.4, LBL_H = 20;
+
+// Node-aware label placement (yFiles' lesson): put the label on the LONGEST
+// straight segment whose chip is clear of every node; if none is clear, fall
+// back to the longest segment and report it. Shared by the renderer (EdgeLayer)
+// and the linter, so what's drawn is what's verified.
+export function placeLabel(points: Pt[], textLen: number, boxes: NodeBox[]): { x: number; y: number; clear: boolean } {
+  const w = textLen * CHAR_W + 12, h = LBL_H;
+  const segs: [Pt, Pt][] = [];
+  for (let i = 0; i < points.length - 1; i++) segs.push([points[i], points[i + 1]]);
+  segs.sort((p, q) => Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) - Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y));
+  for (const [p, q] of segs) {
+    const cx = (p.x + q.x) / 2, cy = (p.y + q.y) / 2;
+    const r = { x: cx - w / 2, y: cy - h / 2, w, h };
+    if (!boxes.some((b) => rectsOverlap(r, b))) return { x: cx, y: cy, clear: true };
+  }
+  const f = segs[0] ?? [points[0], points[points.length - 1]];
+  return { x: (f[0].x + f[1].x) / 2, y: (f[0].y + f[1].y) / 2, clear: false };
+}
+
+export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBox[], labels: string[] = []): EdgeLintResult {
   const planBy = new Map(plans.map((p) => [p.index, p]));
   const v: EdgeViolation[] = [];
-  let penalty = 0, overBudget = 0, nodeHits = 0, crossings = 0, corners = 0;
+  let penalty = 0, overBudget = 0, nodeHits = 0, crossings = 0, corners = 0, labelHits = 0;
 
   // corners over budget + node overlaps
   for (const r of routes) {
@@ -88,12 +112,23 @@ export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBo
     v.push({ rule: "route.manyCrossings", severity: "warn", detail: `${crossings} edge crossings — consider re-ordering siblings or splitting the view.` });
   }
 
+  // label overlap (yFiles): a label must find a node-clear spot on its edge.
+  for (const r of routes) {
+    const p = planBy.get(r.index);
+    const lbl = labels[r.index];
+    if (!p || !lbl || r.points.length < 2) continue;
+    if (!placeLabel(r.points, lbl.length, boxes).clear) {
+      labelHits++; penalty += 0.15;
+      v.push({ rule: "label.overlapsNode", severity: "warn", detail: `${p.source}→${p.target} label "${lbl}" has no node-clear position on its edge.` });
+    }
+  }
+
   const score = Math.max(0, Math.min(1, 1 - penalty));
   const grade = score >= 0.9 ? "A" : score >= 0.75 ? "B" : score >= 0.6 ? "C" : score >= 0.4 ? "D" : "F";
   return {
     score, grade,
     pass: nodeHits === 0 && grade <= "C",
     violations: v,
-    metrics: { edges: routes.length, overBudget, nodeHits, crossings, corners },
+    metrics: { edges: routes.length, overBudget, nodeHits, crossings, corners, labelHits },
   };
 }

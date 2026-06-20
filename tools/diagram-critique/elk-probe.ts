@@ -23,7 +23,7 @@ interface Fixture {
   name: string;
   kind: DiagramKind;
   nodes: (SNode & { role: NodeRole })[];
-  edges: [string, string][];
+  edges: [string, string, string?][]; // [source, target, optional label]
   /** node ids that must be collinear on the cross-axis (the trunk). */
   spine?: string[];
   /** [parent, leftChild, rightChild] that must fan symmetrically. */
@@ -69,7 +69,7 @@ const FIXTURES: Fixture[] = [
       { id: "venue", label: "Venue", role: "entity", attrs: ["id", "name"] },
       { id: "topic", label: "Topic", role: "entity", attrs: ["id", "label"] },
     ],
-    edges: [["author", "paper"], ["paper", "venue"], ["paper", "topic"]],
+    edges: [["author", "paper", "writes"], ["paper", "venue", "published in"], ["paper", "topic", "tagged"]],
   },
   {
     name: "swimlane", kind: "swimlane",
@@ -80,7 +80,7 @@ const FIXTURES: Fixture[] = [
       { id: "do", label: "Implement", role: "process", lane: "Owner" },
       { id: "done", label: "Close", role: "end", lane: "Requester" },
     ],
-    edges: [["req", "tri"], ["tri", "ok"], ["ok", "do"], ["ok", "done"], ["do", "done"]],
+    edges: [["req", "tri"], ["tri", "ok"], ["ok", "do", "yes"], ["ok", "done", "no"], ["do", "done"]],
   },
 
   // ── STRESS MATRIX — adversarial topologies an AI might push ────────────────
@@ -198,7 +198,8 @@ async function probeEdges(fx: Fixture) {
   const graph = buildElkGraph(fx.kind, fx.nodes.map((n) => n.id), (id) => sizes.get(id)!, plans, partitionOf);
   const res = await elk.layout(graph as never);
   const { boxes, routes } = extractRoutes(res);
-  return lintEdges(plans, routes, boxes);
+  const labels = fx.edges.map((e) => e[2] ?? "");
+  return lintEdges(plans, routes, boxes, labels);
 }
 
 async function main() {
@@ -245,6 +246,9 @@ async function main() {
     const noHits = m.nodeHits === 0;
     console.log(`  ${noHits ? "✓" : "✗"} ${"edges clear of nodes".padEnd(20)} ${m.edges} edges, ${m.corners} corners, ${m.crossings} crossings → ${el.grade}`);
     if (!noHits) { failed++; el.violations.filter((v) => v.severity === "error").forEach((v) => console.log(`      · ${v.detail}`)); }
+    const labelsOk = m.labelHits === 0;
+    console.log(`  ${labelsOk ? "✓" : "✗"} ${"labels clear of nodes".padEnd(20)} ${m.labelHits} label(s) without a node-clear spot`);
+    if (!labelsOk) { failed++; el.violations.filter((v) => v.rule === "label.overlapsNode").forEach((v) => console.log(`      · ${v.detail}`)); }
   }
   console.log(failed === 0 ? "\nAll layout + edge checks passed." : `\n${failed} check(s) FAILED.`);
   process.exit(failed === 0 ? 0 : 1);
