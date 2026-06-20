@@ -82,6 +82,68 @@ const FIXTURES: Fixture[] = [
     ],
     edges: [["req", "tri"], ["tri", "ok"], ["ok", "do"], ["ok", "done"], ["do", "done"]],
   },
+
+  // ── STRESS MATRIX — adversarial topologies an AI might push ────────────────
+  {
+    name: "flow · 3-way decision + 3→1 merge", kind: "flow",
+    nodes: [
+      { id: "s", label: "Start", role: "start" }, { id: "d", label: "Route?", role: "decision" },
+      { id: "a", label: "Path A", role: "process" }, { id: "b", label: "Path B", role: "process" },
+      { id: "c", label: "Path C", role: "process" }, { id: "e", label: "Done", role: "end" },
+    ],
+    edges: [["s", "d"], ["d", "a"], ["d", "b"], ["d", "c"], ["a", "e"], ["b", "e"], ["c", "e"]],
+  },
+  {
+    name: "flow · long chain + long labels", kind: "flow",
+    nodes: ["Authenticate the incoming request", "Validate and normalise payload", "Check authorisation scope",
+      "Persist to the primary store", "Emit domain event to the bus", "Return the serialised response"]
+      .map((label, i) => ({ id: "n" + i, label, role: (i === 0 ? "start" : i === 5 ? "end" : "process") as NodeRole })),
+    edges: [["n0", "n1"], ["n1", "n2"], ["n2", "n3"], ["n3", "n4"], ["n4", "n5"]],
+    spine: ["n0", "n1", "n2", "n3", "n4", "n5"],
+  },
+  {
+    name: "tree · wide (1→6)", kind: "tree",
+    nodes: ["Root", "A", "B", "C", "D", "E", "F"].map((label, i) => ({ id: "w" + i, label, role: "node" as NodeRole })),
+    edges: [["w0", "w1"], ["w0", "w2"], ["w0", "w3"], ["w0", "w4"], ["w0", "w5"], ["w0", "w6"]],
+  },
+  {
+    name: "tree · deep (4 levels)", kind: "tree",
+    nodes: ["L0", "L1a", "L1b", "L2a", "L2b", "L3a", "L3b"].map((label, i) => ({ id: "d" + i, label, role: "node" as NodeRole })),
+    edges: [["d0", "d1"], ["d0", "d2"], ["d1", "d3"], ["d1", "d4"], ["d3", "d5"], ["d3", "d6"]],
+  },
+  {
+    name: "state · multi-cycle", kind: "state",
+    nodes: [
+      { id: "a", label: "Idle", role: "state", initial: true }, { id: "b", label: "Running", role: "state" },
+      { id: "c", label: "Paused", role: "state" }, { id: "z", label: "Stopped", role: "state", final: true },
+    ],
+    edges: [["a", "b"], ["b", "c"], ["c", "b"], ["b", "a"], ["b", "z"]],
+  },
+  {
+    name: "er · 6 entities (hub)", kind: "er",
+    nodes: ["User", "Order", "Item", "Payment", "Address", "Coupon"].map((label, i) => ({ id: "e" + i, label, role: "entity" as NodeRole, attrs: ["id", "name"] })),
+    edges: [["e0", "e1"], ["e1", "e2"], ["e1", "e3"], ["e0", "e4"], ["e1", "e5"]],
+  },
+  {
+    name: "swimlane · 4 lanes + cross-lane", kind: "swimlane",
+    nodes: [
+      { id: "a", label: "Submit", role: "start", lane: "Customer" },
+      { id: "b", label: "Screen", role: "process", lane: "Support" },
+      { id: "c", label: "Escalate?", role: "decision", lane: "Support" },
+      { id: "d", label: "Fix", role: "process", lane: "Engineering" },
+      { id: "e", label: "Verify", role: "process", lane: "QA" },
+      { id: "f", label: "Close", role: "end", lane: "Customer" },
+    ],
+    edges: [["a", "b"], ["b", "c"], ["c", "d"], ["c", "f"], ["d", "e"], ["e", "f"]],
+  },
+  {
+    name: "flow · disconnected components", kind: "flow",
+    nodes: [
+      { id: "x", label: "Ingest", role: "start" }, { id: "y", label: "Store", role: "end" },
+      { id: "p", label: "Poll", role: "start" }, { id: "q", label: "Transform", role: "process" }, { id: "r", label: "Sink", role: "end" },
+    ],
+    edges: [["x", "y"], ["p", "q"], ["q", "r"]],
+  },
 ];
 
 async function probe(fx: Fixture) {
