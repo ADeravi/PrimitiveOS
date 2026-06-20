@@ -71,17 +71,8 @@ const FIXTURES: Fixture[] = [
     ],
     edges: [["author", "paper", "writes"], ["paper", "venue", "published in"], ["paper", "topic", "tagged"]],
   },
-  {
-    name: "swimlane", kind: "swimlane",
-    nodes: [
-      { id: "req", label: "Raise request", role: "start", lane: "Requester" },
-      { id: "tri", label: "Triage", role: "process", lane: "Reviewer" },
-      { id: "ok", label: "Approve?", role: "decision", lane: "Reviewer" },
-      { id: "do", label: "Implement", role: "process", lane: "Owner" },
-      { id: "done", label: "Close", role: "end", lane: "Requester" },
-    ],
-    edges: [["req", "tri"], ["tri", "ok"], ["ok", "do", "yes"], ["ok", "done", "no"], ["do", "done"]],
-  },
+  // (swimlane is laid out by cytoscape-elk + a lane-row snap — ELK can't lane —
+  //  so it isn't modelled by this ELK-based probe; verify it visually.)
 
   // ── STRESS MATRIX — adversarial topologies an AI might push ────────────────
   {
@@ -123,18 +114,6 @@ const FIXTURES: Fixture[] = [
     name: "er · 6 entities (hub)", kind: "er",
     nodes: ["User", "Order", "Item", "Payment", "Address", "Coupon"].map((label, i) => ({ id: "e" + i, label, role: "entity" as NodeRole, attrs: ["id", "name"] })),
     edges: [["e0", "e1"], ["e1", "e2"], ["e1", "e3"], ["e0", "e4"], ["e1", "e5"]],
-  },
-  {
-    name: "swimlane · 4 lanes + cross-lane", kind: "swimlane",
-    nodes: [
-      { id: "a", label: "Submit", role: "start", lane: "Customer" },
-      { id: "b", label: "Screen", role: "process", lane: "Support" },
-      { id: "c", label: "Escalate?", role: "decision", lane: "Support" },
-      { id: "d", label: "Fix", role: "process", lane: "Engineering" },
-      { id: "e", label: "Verify", role: "process", lane: "QA" },
-      { id: "f", label: "Close", role: "end", lane: "Customer" },
-    ],
-    edges: [["a", "b"], ["b", "c"], ["c", "d"], ["c", "f"], ["d", "e"], ["e", "f"]],
   },
   {
     name: "flow · disconnected components", kind: "flow",

@@ -31,7 +31,9 @@ const SIDE_ENDPOINT: Record<Side, string> = { NORTH: "0% -50%", SOUTH: "0% 50%",
 
 // Idioms whose edges are drawn from ELK's actual routed sections (EdgeLayer),
 // not cytoscape's taxi router — so the rendered route == the verified policy.
-const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er", "swimlane"]);
+// swimlane is NOT here: ELK can't lane (its partitioning is layer-axis), so it
+// lays out via cytoscape-elk + a lane-row snap + cytoscape's own edge routing.
+const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er"]);
 // one shared elkjs instance for direct (route-returning) layout in the browser.
 const elkEngine = new ELK();
 
@@ -465,12 +467,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // node positions AND edge routes, place the nodes, and hand the routes to the
     // EdgeLayer — so the rendered routing is exactly what the policy/probe verify.
     if (elkRouted) {
-      // swimlanes → ELK partitioning by lane (bands), so positions AND routes
-      // come from one engine (no manual snap), and EdgeLayer draws them.
-      const partitionOf = resolvedKind === "swimlane" && grouping
-        ? (id: string) => Math.max(0, grouping.order.indexOf(grouping.keyOf(id)))
-        : undefined;
-      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans, partitionOf);
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans);
       elkEngine.layout(graph as never).then((res) => {
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => { const n = cy.$id(b.id); if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 }); }));
@@ -479,8 +476,20 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       }).catch(() => { /* preset fallback stays */ });
     }
 
-    // (Swimlane lanes now come from ELK partitioning above — no manual snap; the
-    // lane bands in GroupLayer derive from the resulting node positions.)
+    // Swimlane: ELK has no native lanes (its `partitioning` controls LAYERS, not
+    // cross-axis bands — that was the bug). Lay the flow out left→right, then SNAP
+    // each node onto its lane row so the bands are clean. cytoscape then routes
+    // its edges from these positions (so swimlane stays on cytoscape, not EdgeLayer).
+    if (resolvedKind === "swimlane" && grouping?.order.length) {
+      const order = grouping.order, LANE_H = 130;
+      cy.one("layoutstop", () => {
+        cy.batch(() => cy.nodes().forEach((node) => {
+          const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
+          node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
+        }));
+        cy.fit(undefined, 58);
+      });
+    }
 
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
