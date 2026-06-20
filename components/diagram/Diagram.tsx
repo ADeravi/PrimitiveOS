@@ -319,6 +319,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       { selector: 'node[mark = "final"]', style: { "border-width": STROKE.heavy, "border-color": t.mutedF, "border-style": "double" } as unknown as cytoscape.Css.Node },
       // Tenet 8 — uncertain elements are shown but visibly marked, not dropped.
       { selector: 'node[unknown = "1"]', style: { "border-style": "dashed", "border-color": t.mutedF, "background-opacity": OPACITY.ghost, opacity: OPACITY.ghost } as unknown as cytoscape.Css.Node },
+      // Tenet 9 — AI-inferred elements carry the --rose provenance accent (dashed),
+      // so inference is never mistaken for asserted fact.
+      { selector: 'node[inferred = "1"]', style: { "border-style": "dashed", "border-color": t.rose, "border-width": STROKE.bold } as unknown as cytoscape.Css.Node },
       {
         selector: "edge",
         style: {
@@ -367,6 +370,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       { selector: 'edge[kind = "async"], edge[kind = "return"]', style: { "line-style": "dashed" } as cytoscape.Css.Edge },
       // Tenet 8/9 — uncertain / inferred connections render dashed + faint.
       { selector: 'edge[unknown = "1"]', style: { "line-style": "dashed", opacity: OPACITY.inferred } as cytoscape.Css.Edge },
+      // Tenet 9 — AI-inferred connections in the --rose provenance accent (cluster/
+      // similarity webs; ELK-routed idioms get the same accent via EdgeLayer).
+      { selector: 'edge[inferred = "1"]', style: { "line-style": "dashed", "line-color": t.rose, "target-arrow-color": t.rose } as cytoscape.Css.Edge },
       // Decision branches are routed by ELK's orthogonal layered router — each
       // branch keeps its own label. (Earlier custom source/target-endpoints on
       // taxi edges produced degenerate stubs / boxes at the junction.)
@@ -413,6 +419,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             bw: policy === "rich" ? STROKE.regular + Math.min(3, deg * 0.5) : STROKE.regular,
             mark: n.initial ? "initial" : n.final ? "final" : "",
             unknown: n.unknown ? "1" : "",
+            inferred: n.inferred ? "1" : "",
           },
         };
       }),
@@ -424,6 +431,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           label: e.label || (e.card ? e.card : ""), kind: e.kind || "flow",
           branch: roleById.get(e.source) === "decision" ? e.kind || "" : "",
           unknown: e.unknown ? "1" : "",
+          inferred: e.inferred ? "1" : "",
         },
       })),
     ];

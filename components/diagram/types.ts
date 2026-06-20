@@ -119,6 +119,9 @@ export interface SNode {
   /** uncertain / unknown provenance — shown and MARKED, never silently dropped
    *  (Tenet 8). Renders dashed + muted with a "?" so it can't pass as certain. */
   unknown?: boolean;
+  /** AI-derived, not asserted fact (Tenet 9). Rendered in the --rose provenance
+   *  accent so inference is never mistaken for ground truth. */
+  inferred?: boolean;
 }
 
 /** A structured connector. Meaning only. */
@@ -129,6 +132,9 @@ export interface SEdge {
   kind?: EdgeKind;
   /** ER cardinality, e.g. "1", "*", "1..N". */
   card?: string;
-  /** uncertain / inferred connection — rendered dashed + faint (Tenet 8/9). */
+  /** uncertain connection — rendered dashed + faint (Tenet 8). */
   unknown?: boolean;
+  /** AI-inferred connection (Tenet 9) — rendered dashed in the --rose provenance
+   *  accent, so it can't pass as ground truth. */
+  inferred?: boolean;
 }

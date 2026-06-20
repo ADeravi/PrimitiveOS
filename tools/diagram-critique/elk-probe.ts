@@ -234,6 +234,14 @@ async function main() {
   console.log(`  ${chartsOk ? "✓" : "✗"} ${"chartLint good vs bad".padEnd(20)} good ${g.grade}, bad ${bad.grade} (${bad.violations.filter((v) => v.severity === "error").length} errors)`);
   if (!chartsOk) failed++;
 
+  // provenance (Tenet 9): an AI-inferred edge is flagged + dashed (→ --rose accent)
+  const prov = planEdges("flow", [{ id: "a", label: "A", role: "process" }, { id: "b", label: "B", role: "process" }],
+    [{ source: "a", target: "b", inferred: true }], () => "process");
+  const provOk = !!prov[0]?.inferred && !!prov[0]?.dashed;
+  console.log("provenance");
+  console.log(`  ${provOk ? "✓" : "✗"} ${"inferred → dashed/rose".padEnd(20)} Tenet 9 (fact ≠ inference)`);
+  if (!provOk) failed++;
+
   for (const fx of FIXTURES) {
     const { name, checks } = await probe(fx);
     console.log(`\n${name}`);

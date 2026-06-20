@@ -26,7 +26,7 @@ type Tf = { x: number; y: number; z: number };
 
 export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
   const [tf, setTf] = React.useState<Tf>({ x: 0, y: 0, z: 1 });
-  const [col, setCol] = React.useState({ edge: "#8a8a8a", bg: "#ffffff", text: "#333333" });
+  const [col, setCol] = React.useState({ edge: "#8a8a8a", bg: "#ffffff", text: "#333333", rose: "#d6336c" });
 
   React.useEffect(() => {
     if (!cy) return;
@@ -44,6 +44,7 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
           edge: n.line,        // neutral connector step (light divider)
           bg: n.surfaceAlt,    // chip at the END of the ramp (white / near-black)
           text: n.text,        // opposite END — strong, never mid-grey
+          rose: t.rose,        // AI-provenance accent for inferred edges (Tenet 9)
         });
       }
     };
@@ -95,10 +96,12 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
             );
           }
 
+          // AI-inferred edges carry the --rose provenance accent (Tenet 9).
+          const stroke = p?.inferred ? col.rose : col.edge;
           return (
             <g key={r.index}>
-              <path d={d} fill="none" stroke={col.edge} strokeWidth={1.6} strokeDasharray={dash} strokeLinejoin="round" opacity={0.95} />
-              {arrow && <polygon points={arrow} fill={col.edge} />}
+              <path d={d} fill="none" stroke={stroke} strokeWidth={1.6} strokeDasharray={dash} strokeLinejoin="round" opacity={0.95} />
+              {arrow && <polygon points={arrow} fill={stroke} />}
               {chip}
             </g>
           );

@@ -30,6 +30,7 @@ export interface EdgePlan {
   budget: number;          // max corners this edge is allowed
   dashed: boolean;
   directed: boolean;
+  inferred: boolean;       // AI-derived (Tenet 9) → --rose provenance accent
 }
 
 export function planEdges(
@@ -54,7 +55,8 @@ export function planEdges(
     const sib = outIdx.get(e.source)!;
     const pos = sib.indexOf(i);
     const n = sib.length;
-    const dashed = e.kind === "no" || e.kind === "async" || e.kind === "return" || !!e.unknown;
+    const inferred = !!e.inferred;
+    const dashed = e.kind === "no" || e.kind === "async" || e.kind === "return" || !!e.unknown || inferred;
     const directed = kind !== "er";
 
     let sourceSide: Side = OUT, fan: Fan = "chain", budget = 1;
@@ -68,7 +70,7 @@ export function planEdges(
     } else if ((inCount.get(e.target) || 0) >= 2) {
       sourceSide = OUT; fan = "merge"; budget = 2;
     }
-    return { index: i, source: e.source, target: e.target, sourceSide, targetSide: IN, fan, budget, dashed, directed };
+    return { index: i, source: e.source, target: e.target, sourceSide, targetSide: IN, fan, budget, dashed, directed, inferred };
   });
 }
 

@@ -36,7 +36,9 @@ leading edge (top for vertical idioms, left for horizontal). Each fan has a
 | decision · secondary | the near **side** | top | ≤2 |
 
 Semantics ride alongside: `no` / async / return / uncertain edges are **dashed**
-(Tenets 8–9), ER relations are **undirected** (crow's-foot, no arrowhead).
+(Tenet 8); **AI-inferred** edges (`inferred`) are dashed in the **`--rose`
+provenance accent** (Tenet 9 — fact ≠ inference; resolved to a concrete colour
+before the canvas); ER relations are **undirected** (crow's-foot, no arrowhead).
 
 ## What `lintEdges` enforces
 

@@ -92,3 +92,21 @@ export const Disconnected: S = {
   parameters: { docs: { description: { story: "Two independent components in one diagram — they should pack side by side without their edges tangling." } } },
   args: { intent: "flow", nodes: DC_N, edges: DC_E },
 };
+
+// provenance · AI-inferred elements carry the --rose accent (Tenet 9)
+const PR_N: SNode[] = [
+  { id: "q", label: "User query", role: "start" },
+  { id: "r", label: "Retrieved doc", role: "process" },
+  { id: "g", label: "Generated answer", role: "process", inferred: true },
+  { id: "o", label: "Response", role: "end" },
+];
+const PR_E: SEdge[] = [
+  { source: "q", target: "r" },
+  { source: "r", target: "g", label: "infers", inferred: true },
+  { source: "g", target: "o" },
+];
+export const Provenance: S = {
+  name: "Provenance · AI-inferred in --rose (Tenet 9)",
+  parameters: { docs: { description: { story: "AI-derived node and edge marked with the **--rose** provenance accent (dashed), so inference is never mistaken for asserted fact — converging the brand's provenance token with the edge policy." } } },
+  args: { intent: "flow", nodes: PR_N, edges: PR_E },
+};

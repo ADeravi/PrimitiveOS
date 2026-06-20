@@ -99,6 +99,23 @@ function resolvedBg(el: HTMLElement): string {
   return "";
 }
 
+// Resolve a CSS variable that may be a var()-chain (e.g. --rose → --crimson-9 →
+// oklch(...)) to a CONCRETE rgb() the browser computes — so it's safe to hand to
+// a <canvas> renderer. getPropertyValue would return the literal "var(--…)".
+function resolvedVar(el: HTMLElement, name: string, fallback: string): string {
+  try {
+    const probe = document.createElement("span");
+    probe.style.cssText = "position:absolute;width:0;height:0;opacity:0;pointer-events:none";
+    probe.style.color = `var(${name})`;
+    el.appendChild(probe);
+    const c = getComputedStyle(probe).color;
+    el.removeChild(probe);
+    return c && !/^rgba?\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/.test(c) ? c : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // luminance test on an "rgb(r, g, b)" string (post oklch→rgb conversion).
 function isDarkColor(rgb: string): boolean {
   const m = rgb.match(/(\d+)\D+(\d+)\D+(\d+)/);
@@ -126,6 +143,9 @@ export function readTokens(el: HTMLElement) {
     // triplet / the canvas is the UA default), derive it from the FOREGROUND —
     // dark fg ⇒ light canvas, light fg ⇒ dark canvas. Never an unparseable string.
     bgSolid: resolvedBg(el) || (isDarkColor(fg) ? "#ffffff" : "#111111"),
+    // AI-provenance accent (Tenet 9), resolved through the --rose → --crimson-9
+    // chain to a concrete colour the canvas can paint.
+    rose: resolvedVar(el, "--rose", "#d6336c"),
     primary: v("--primary", "#333"),
     // A RESOLVED font stack (the active layer's font). Cytoscape paints labels
     // to <canvas> and can't measure the CSS keyword "inherit", which silently
