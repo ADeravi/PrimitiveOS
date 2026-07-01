@@ -1702,27 +1702,32 @@ var SPARK = Array.from({ length: 20 }, (_, i) => ({
   signups: Math.round(120 + 48 * Math.cos(i / 1.7) + i * 2.4),
   errors: Math.round((4 + 2 * Math.sin(i / 1.2 + 2) + (i % 5 === 0 ? 3 : 0)) * 10) / 10
 }));
-var METRICS = {
-  sessions: { label: "Sessions", color: TOKEN3[0], kind: "area", fmt: (v) => `${(v / 1e3).toFixed(1)}k` },
-  signups: { label: "Sign-ups", color: TOKEN3[1], kind: "line", fmt: (v) => `${v}` },
-  errors: { label: "Errors", color: TOKEN3[4], kind: "bar", fmt: (v) => `${v}%` }
-};
+var SPARK_METRICS = [
+  { key: "sessions", label: "Sessions", color: TOKEN3[0], kind: "area", fmt: (v) => `${(v / 1e3).toFixed(1)}k` },
+  { key: "signups", label: "Sign-ups", color: TOKEN3[1], kind: "line", fmt: (v) => `${v}` },
+  { key: "errors", label: "Errors", color: TOKEN3[4], kind: "bar", fmt: (v) => `${v}%` }
+];
 function ChartSparkline({
+  data = SPARK,
+  metrics = SPARK_METRICS,
   title = "Sparkline",
-  description = "One stat card, three metrics \u2014 each with its own micro-chart idiom."
+  description = "One stat card, several metrics \u2014 each with its own micro-chart idiom."
 }) {
-  const [metric, setMetric] = React6.useState("sessions");
-  const m = METRICS[metric];
-  const latest = SPARK[SPARK.length - 1][metric];
-  const first = SPARK[0][metric];
-  const change = Math.round((latest - first) / first * 100);
-  const cfg = { [metric]: { label: m.label, color: m.color } };
-  return /* @__PURE__ */ jsxs9(ChartCard, { title, description, exportData: SPARK, children: [
-    /* @__PURE__ */ jsx15(ChartControls, { children: /* @__PURE__ */ jsx15(SegmentedControl, { options: ["sessions", "signups", "errors"], value: metric, onChange: setMetric, ariaLabel: "Metric" }) }),
+  const [metricKey, setMetricKey] = React6.useState(metrics[0].key);
+  const m = metrics.find((x) => x.key === metricKey) ?? metrics[0];
+  const kind = m.kind ?? "line";
+  const color = m.color ?? "var(--chart-1)";
+  const fmt = m.fmt ?? ((v) => `${v}`);
+  const latest = Number(data[data.length - 1][m.key]);
+  const first = Number(data[0][m.key]);
+  const change = first ? Math.round((latest - first) / first * 100) : 0;
+  const cfg = { [m.key]: { label: m.label ?? m.key, color } };
+  return /* @__PURE__ */ jsxs9(ChartCard, { title, description, exportData: data, children: [
+    /* @__PURE__ */ jsx15(ChartControls, { children: /* @__PURE__ */ jsx15(SegmentedControl, { options: metrics.map((x) => x.key), value: metricKey, onChange: setMetricKey, ariaLabel: "Metric" }) }),
     /* @__PURE__ */ jsxs9("div", { className: "rounded-lg border border-border p-4", children: [
-      /* @__PURE__ */ jsx15("p", { className: "text-xs text-muted-foreground", children: m.label }),
+      /* @__PURE__ */ jsx15("p", { className: "text-xs text-muted-foreground", children: m.label ?? m.key }),
       /* @__PURE__ */ jsxs9("p", { className: "flex items-baseline gap-2", children: [
-        /* @__PURE__ */ jsx15("span", { className: "text-2xl font-semibold tabular-nums text-foreground", children: m.fmt(latest) }),
+        /* @__PURE__ */ jsx15("span", { className: "text-2xl font-semibold tabular-nums text-foreground", children: fmt(latest) }),
         /* @__PURE__ */ jsxs9("span", { className: "text-xs font-medium", style: { color: change >= 0 ? "var(--success)" : "var(--destructive)" }, children: [
           change >= 0 ? "\u25B2" : "\u25BC",
           " ",
@@ -1730,15 +1735,15 @@ function ChartSparkline({
           "%"
         ] })
       ] }),
-      /* @__PURE__ */ jsx15(ChartContainer, { config: cfg, className: "mt-2 h-16 w-full", children: m.kind === "area" ? /* @__PURE__ */ jsxs9(AreaChart2, { data: SPARK, margin: { top: 2, bottom: 2, left: 0, right: 0 }, children: [
+      /* @__PURE__ */ jsx15(ChartContainer, { config: cfg, className: "mt-2 h-16 w-full", children: kind === "area" ? /* @__PURE__ */ jsxs9(AreaChart2, { data, margin: { top: 2, bottom: 2, left: 0, right: 0 }, children: [
         /* @__PURE__ */ jsx15(ChartTooltip, { content: /* @__PURE__ */ jsx15(ChartTooltipContent, { hideLabel: true }) }),
-        /* @__PURE__ */ jsx15(Area2, { dataKey: metric, type: "monotone", stroke: m.color, fill: m.color, fillOpacity: 0.2, strokeWidth: 1.5 })
-      ] }) : m.kind === "line" ? /* @__PURE__ */ jsxs9(LineChart2, { data: SPARK, margin: { top: 2, bottom: 2, left: 0, right: 0 }, children: [
+        /* @__PURE__ */ jsx15(Area2, { dataKey: m.key, type: "monotone", stroke: color, fill: color, fillOpacity: 0.2, strokeWidth: 1.5 })
+      ] }) : kind === "line" ? /* @__PURE__ */ jsxs9(LineChart2, { data, margin: { top: 2, bottom: 2, left: 0, right: 0 }, children: [
         /* @__PURE__ */ jsx15(ChartTooltip, { content: /* @__PURE__ */ jsx15(ChartTooltipContent, { hideLabel: true }) }),
-        /* @__PURE__ */ jsx15(Line2, { dataKey: metric, type: "monotone", stroke: m.color, dot: false, strokeWidth: 1.5 })
-      ] }) : /* @__PURE__ */ jsxs9(BarChart4, { data: SPARK, margin: { top: 2, bottom: 2, left: 0, right: 0 }, children: [
+        /* @__PURE__ */ jsx15(Line2, { dataKey: m.key, type: "monotone", stroke: color, dot: false, strokeWidth: 1.5 })
+      ] }) : /* @__PURE__ */ jsxs9(BarChart4, { data, margin: { top: 2, bottom: 2, left: 0, right: 0 }, children: [
         /* @__PURE__ */ jsx15(ChartTooltip, { content: /* @__PURE__ */ jsx15(ChartTooltipContent, { hideLabel: true }) }),
-        /* @__PURE__ */ jsx15(Bar3, { dataKey: metric, fill: m.color, radius: 1 })
+        /* @__PURE__ */ jsx15(Bar3, { dataKey: m.key, fill: color, radius: 1 })
       ] }) })
     ] })
   ] });
@@ -1760,12 +1765,13 @@ function smoothRows(data, win) {
   });
 }
 function ChartBrush({
+  data = BRUSH_RAW,
   title = "Brush & Zoom",
   description = "Drag the brush handles to zoom; smooth the series with a moving average."
 }) {
   const [win, setWin] = React6.useState("5");
   const [showRaw, setShowRaw] = React6.useState(true);
-  const rows = smoothRows(BRUSH_RAW, Number(win));
+  const rows = smoothRows(data, Number(win));
   return /* @__PURE__ */ jsxs9(ChartCard, { title, description, exportData: rows, children: [
     /* @__PURE__ */ jsxs9(ChartControls, { children: [
       /* @__PURE__ */ jsx15(SegmentedControl, { options: ["1", "5", "9"], value: win, onChange: setWin, ariaLabel: "Smoothing window" }),
@@ -1799,12 +1805,13 @@ function makeCandles(n) {
   return out;
 }
 function ChartCandlestick({
+  data = makeCandles(30),
   title = "Candlestick",
   description = "OHLC sessions \u2014 change the window length and hover for the readout."
 }) {
   const [count, setCount] = React6.useState("18");
   const [hover, setHover] = React6.useState(null);
-  const candles = makeCandles(Number(count));
+  const candles = data.slice(0, Number(count));
   const W = 560;
   const H = 210;
   const min = Math.min(...candles.map((d) => d.l));

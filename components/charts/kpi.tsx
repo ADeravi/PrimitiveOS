@@ -150,53 +150,62 @@ const SPARK = Array.from({ length: 20 }, (_, i) => ({
   errors: Math.round((4 + 2 * Math.sin(i / 1.2 + 2) + (i % 5 === 0 ? 3 : 0)) * 10) / 10,
 }));
 
-const METRICS = {
-  sessions: { label: "Sessions", color: TOKEN[0], kind: "area" as const, fmt: (v: number) => `${(v / 1000).toFixed(1)}k` },
-  signups: { label: "Sign-ups", color: TOKEN[1], kind: "line" as const, fmt: (v: number) => `${v}` },
-  errors: { label: "Errors", color: TOKEN[4], kind: "bar" as const, fmt: (v: number) => `${v}%` },
-};
+export interface SparkMetric { key: string; label?: string; color?: string; kind?: "area" | "line" | "bar"; fmt?: (v: number) => string }
+
+const SPARK_METRICS: SparkMetric[] = [
+  { key: "sessions", label: "Sessions", color: TOKEN[0], kind: "area", fmt: (v) => `${(v / 1000).toFixed(1)}k` },
+  { key: "signups", label: "Sign-ups", color: TOKEN[1], kind: "line", fmt: (v) => `${v}` },
+  { key: "errors", label: "Errors", color: TOKEN[4], kind: "bar", fmt: (v) => `${v}%` },
+];
 
 export function ChartSparkline({
+  data = SPARK,
+  metrics = SPARK_METRICS,
   title = "Sparkline",
-  description = "One stat card, three metrics — each with its own micro-chart idiom.",
+  description = "One stat card, several metrics — each with its own micro-chart idiom.",
 }: {
+  data?: Record<string, number>[];
+  metrics?: SparkMetric[];
   title?: string;
   description?: string;
 }) {
-  const [metric, setMetric] = React.useState<keyof typeof METRICS>("sessions");
-  const m = METRICS[metric];
-  const latest = SPARK[SPARK.length - 1][metric];
-  const first = SPARK[0][metric];
-  const change = Math.round(((latest - first) / first) * 100);
-  const cfg = { [metric]: { label: m.label, color: m.color } } as ChartConfig;
+  const [metricKey, setMetricKey] = React.useState(metrics[0].key);
+  const m = metrics.find((x) => x.key === metricKey) ?? metrics[0];
+  const kind = m.kind ?? "line";
+  const color = m.color ?? "var(--chart-1)";
+  const fmt = m.fmt ?? ((v: number) => `${v}`);
+  const latest = Number(data[data.length - 1][m.key]);
+  const first = Number(data[0][m.key]);
+  const change = first ? Math.round(((latest - first) / first) * 100) : 0;
+  const cfg = { [m.key]: { label: m.label ?? m.key, color } } as ChartConfig;
   return (
-    <ChartCard title={title} description={description} exportData={SPARK}>
+    <ChartCard title={title} description={description} exportData={data}>
       <ChartControls>
-        <SegmentedControl options={["sessions", "signups", "errors"] as const} value={metric} onChange={setMetric} ariaLabel="Metric" />
+        <SegmentedControl options={metrics.map((x) => x.key)} value={metricKey} onChange={setMetricKey} ariaLabel="Metric" />
       </ChartControls>
       <div className="rounded-lg border border-border p-4">
-        <p className="text-xs text-muted-foreground">{m.label}</p>
+        <p className="text-xs text-muted-foreground">{m.label ?? m.key}</p>
         <p className="flex items-baseline gap-2">
-          <span className="text-2xl font-semibold tabular-nums text-foreground">{m.fmt(latest)}</span>
+          <span className="text-2xl font-semibold tabular-nums text-foreground">{fmt(latest)}</span>
           <span className="text-xs font-medium" style={{ color: change >= 0 ? "var(--success)" : "var(--destructive)" }}>
             {change >= 0 ? "▲" : "▼"} {Math.abs(change)}%
           </span>
         </p>
         <ChartContainer config={cfg} className="mt-2 h-16 w-full">
-          {m.kind === "area" ? (
-            <AreaChart data={SPARK} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
+          {kind === "area" ? (
+            <AreaChart data={data} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Area dataKey={metric} type="monotone" stroke={m.color} fill={m.color} fillOpacity={0.2} strokeWidth={1.5} />
+              <Area dataKey={m.key} type="monotone" stroke={color} fill={color} fillOpacity={0.2} strokeWidth={1.5} />
             </AreaChart>
-          ) : m.kind === "line" ? (
-            <LineChart data={SPARK} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
+          ) : kind === "line" ? (
+            <LineChart data={data} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Line dataKey={metric} type="monotone" stroke={m.color} dot={false} strokeWidth={1.5} />
+              <Line dataKey={m.key} type="monotone" stroke={color} dot={false} strokeWidth={1.5} />
             </LineChart>
           ) : (
-            <BarChart data={SPARK} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
+            <BarChart data={data} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Bar dataKey={metric} fill={m.color} radius={1} />
+              <Bar dataKey={m.key} fill={color} radius={1} />
             </BarChart>
           )}
         </ChartContainer>
@@ -218,7 +227,7 @@ const brushConfig = {
   smooth: { label: "Smoothed", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
-function smoothRows(data: typeof BRUSH_RAW, win: number) {
+function smoothRows(data: { x: string; v: number }[], win: number) {
   return data.map((d, i) => {
     const lo = Math.max(0, i - Math.floor(win / 2));
     const hi = Math.min(data.length, i + Math.ceil(win / 2));
@@ -228,15 +237,17 @@ function smoothRows(data: typeof BRUSH_RAW, win: number) {
 }
 
 export function ChartBrush({
+  data = BRUSH_RAW,
   title = "Brush & Zoom",
   description = "Drag the brush handles to zoom; smooth the series with a moving average.",
 }: {
+  data?: { x: string; v: number }[];
   title?: string;
   description?: string;
 }) {
   const [win, setWin] = React.useState<"1" | "5" | "9">("5");
   const [showRaw, setShowRaw] = React.useState(true);
-  const rows = smoothRows(BRUSH_RAW, Number(win));
+  const rows = smoothRows(data, Number(win));
   return (
     <ChartCard title={title} description={description} exportData={rows}>
       <ChartControls>
@@ -278,16 +289,20 @@ function makeCandles(n: number) {
   return out;
 }
 
+export interface Candle { o: number; c: number; h: number; l: number }
+
 export function ChartCandlestick({
+  data = makeCandles(30),
   title = "Candlestick",
   description = "OHLC sessions — change the window length and hover for the readout.",
 }: {
+  data?: Candle[];
   title?: string;
   description?: string;
 }) {
   const [count, setCount] = React.useState<"12" | "18" | "30">("18");
   const [hover, setHover] = React.useState<string | null>(null);
-  const candles = makeCandles(Number(count));
+  const candles = data.slice(0, Number(count));
   const W = 560;
   const H = 210;
   const min = Math.min(...candles.map((d) => d.l));
