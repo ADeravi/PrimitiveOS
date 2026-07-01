@@ -354,33 +354,24 @@ const PLANS = [
   { key: "c", label: "Plan C", color: TOKEN[1] },
 ] as const;
 
-const radarConfig = {
-  a: { label: "Plan A", color: "var(--chart-1)" },
-  b: { label: "Plan B", color: "var(--chart-3)" },
-  c: { label: "Plan C", color: "var(--chart-2)" },
-} satisfies ChartConfig;
+// Radar config/colours derive from the series prop (configFromSeries / colorAt).
 
 export function ChartRadar({
+  data = RADAR_DATA,
+  xKey = "metric",
+  series = PLANS,
   title = "Radar",
-  description = "Compare up to three plans; tune the fill opacity for overlap legibility.",
-}: {
-  title?: string;
-  description?: string;
-}) {
-  const [on, setOn] = React.useState<Record<string, boolean>>({ a: true, b: true, c: false });
+  description = "Compare series across axes; tune the fill opacity for overlap legibility.",
+}: SeriesChartProps) {
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [opacity, setOpacity] = React.useState(45);
   return (
-    <ChartCard title={title} description={description} exportData={RADAR_DATA}>
+    <ChartCard title={title} description={description} exportData={data}>
       <ChartControls>
         <span className="flex items-center gap-1.5">
-          {PLANS.map((p) => (
-            <FilterPill
-              key={p.key}
-              label={p.label}
-              color={p.color}
-              active={on[p.key]}
-              onClick={() => setOn((s) => ({ ...s, [p.key]: !s[p.key] }))}
-            />
+          {series.map((s, i) => (
+            <FilterPill key={s.key} label={s.label ?? s.key} color={colorAt(s, i)} active={on[s.key]} onClick={() => toggle(s.key)} />
           ))}
         </span>
         <span className="flex w-44 items-center gap-2">
@@ -388,14 +379,14 @@ export function ChartRadar({
           <Slider value={[opacity]} onValueChange={([v]) => setOpacity(v)} min={0} max={80} step={5} />
         </span>
       </ChartControls>
-      <ChartContainer config={radarConfig} className="mx-auto aspect-square max-h-64">
-        <RadarChart data={RADAR_DATA}>
+      <ChartContainer config={cfg} className="mx-auto aspect-square max-h-64">
+        <RadarChart data={data}>
           <ChartTooltip content={<ChartTooltipContent />} />
-          <PolarAngleAxis dataKey="metric" />
+          <PolarAngleAxis dataKey={xKey} />
           <PolarGrid />
-          {PLANS.filter((p) => on[p.key]).map((p) => (
-            <Radar key={p.key} dataKey={p.key} stroke={p.color} fill={p.color} fillOpacity={opacity / 100} />
-          ))}
+          {series.map((s, i) => (on[s.key] ? (
+            <Radar key={s.key} dataKey={s.key} stroke={colorAt(s, i)} fill={colorAt(s, i)} fillOpacity={opacity / 100} />
+          ) : null))}
         </RadarChart>
       </ChartContainer>
     </ChartCard>

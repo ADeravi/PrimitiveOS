@@ -1056,29 +1056,19 @@ var PLANS = [
   { key: "b", label: "Plan B", color: TOKEN[2] },
   { key: "c", label: "Plan C", color: TOKEN[1] }
 ];
-var radarConfig = {
-  a: { label: "Plan A", color: "var(--chart-1)" },
-  b: { label: "Plan B", color: "var(--chart-3)" },
-  c: { label: "Plan C", color: "var(--chart-2)" }
-};
 function ChartRadar({
+  data = RADAR_DATA,
+  xKey = "metric",
+  series = PLANS,
   title = "Radar",
-  description = "Compare up to three plans; tune the fill opacity for overlap legibility."
+  description = "Compare series across axes; tune the fill opacity for overlap legibility."
 }) {
-  const [on, setOn] = React4.useState({ a: true, b: true, c: false });
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [opacity, setOpacity] = React4.useState(45);
-  return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: RADAR_DATA, children: [
+  return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: data, children: [
     /* @__PURE__ */ jsxs7(ChartControls, { children: [
-      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: PLANS.map((p) => /* @__PURE__ */ jsx13(
-        FilterPill,
-        {
-          label: p.label,
-          color: p.color,
-          active: on[p.key],
-          onClick: () => setOn((s) => ({ ...s, [p.key]: !s[p.key] }))
-        },
-        p.key
-      )) }),
+      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: series.map((s, i) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label ?? s.key, color: colorAt(s, i), active: on[s.key], onClick: () => toggle(s.key) }, s.key)) }),
       /* @__PURE__ */ jsxs7("span", { className: "flex w-44 items-center gap-2", children: [
         /* @__PURE__ */ jsxs7(Label, { className: "text-xs text-muted-foreground whitespace-nowrap", children: [
           "Fill ",
@@ -1088,11 +1078,11 @@ function ChartRadar({
         /* @__PURE__ */ jsx13(Slider, { value: [opacity], onValueChange: ([v]) => setOpacity(v), min: 0, max: 80, step: 5 })
       ] })
     ] }),
-    /* @__PURE__ */ jsx13(ChartContainer, { config: radarConfig, className: "mx-auto aspect-square max-h-64", children: /* @__PURE__ */ jsxs7(RadarChart, { data: RADAR_DATA, children: [
+    /* @__PURE__ */ jsx13(ChartContainer, { config: cfg, className: "mx-auto aspect-square max-h-64", children: /* @__PURE__ */ jsxs7(RadarChart, { data, children: [
       /* @__PURE__ */ jsx13(ChartTooltip, { content: /* @__PURE__ */ jsx13(ChartTooltipContent, {}) }),
-      /* @__PURE__ */ jsx13(PolarAngleAxis, { dataKey: "metric" }),
+      /* @__PURE__ */ jsx13(PolarAngleAxis, { dataKey: xKey }),
       /* @__PURE__ */ jsx13(PolarGrid, {}),
-      PLANS.filter((p) => on[p.key]).map((p) => /* @__PURE__ */ jsx13(Radar, { dataKey: p.key, stroke: p.color, fill: p.color, fillOpacity: opacity / 100 }, p.key))
+      series.map((s, i) => on[s.key] ? /* @__PURE__ */ jsx13(Radar, { dataKey: s.key, stroke: colorAt(s, i), fill: colorAt(s, i), fillOpacity: opacity / 100 }, s.key) : null)
     ] }) })
   ] });
 }
