@@ -137,18 +137,22 @@ const SANKEY_DATA = {
   ],
 };
 
+export interface SankeyData { nodes: { name: string }[]; links: { source: number; target: number; value: number }[] }
+
 export function ChartSankey({
+  data = SANKEY_DATA,
   title = "Sankey",
   description = "Tune node padding and link opacity to balance flow legibility.",
 }: {
+  data?: SankeyData;
   title?: string;
   description?: string;
 }) {
   const [padding, setPadding] = React.useState(28);
   const [opacity, setOpacity] = React.useState(35);
-  const csv = SANKEY_DATA.links.map((l) => ({
-    source: SANKEY_DATA.nodes[l.source].name,
-    target: SANKEY_DATA.nodes[l.target].name,
+  const csv = data.links.map((l) => ({
+    source: data.nodes[l.source].name,
+    target: data.nodes[l.target].name,
     value: l.value,
   }));
   return (
@@ -165,7 +169,7 @@ export function ChartSankey({
       </ChartControls>
       <ChartContainer config={{}} className="h-64 w-full">
         <Sankey
-          data={SANKEY_DATA}
+          data={data}
           nodePadding={padding}
           margin={{ top: 8, right: 70, bottom: 8, left: 8 }}
           node={{ fill: "var(--chart-1)", stroke: "none" }}
@@ -327,19 +331,23 @@ const OFFSETS = {
 } as const;
 
 export function ChartStreamgraph({
+  data = STREAM_DATA,
+  keys = STREAM_KEYS,
   title = "Streamgraph",
   description = "The same stack on four baselines — wiggle, silhouette, zero and 100%.",
 }: {
+  data?: Record<string, number>[];
+  keys?: readonly string[];
   title?: string;
   description?: string;
 }) {
   const [mode, setMode] = React.useState<keyof typeof OFFSETS>("wiggle");
   const W = 560;
   const H = 200;
-  const layers = stack<(typeof STREAM_DATA)[number]>()
-    .keys(STREAM_KEYS as unknown as string[])
+  const layers = stack<Record<string, number>>()
+    .keys(keys as unknown as string[])
     .offset(OFFSETS[mode])
-    .order(stackOrderInsideOut)(STREAM_DATA);
+    .order(stackOrderInsideOut)(data);
   let min = Infinity;
   let max = -Infinity;
   layers.forEach((l) =>
@@ -348,7 +356,7 @@ export function ChartStreamgraph({
       max = Math.max(max, b);
     })
   );
-  const x = (i: number) => (i / (STREAM_DATA.length - 1)) * W;
+  const x = (i: number) => (i / (data.length - 1)) * W;
   const y = (v: number) => ((v - min) / (max - min || 1)) * (H - 8) + 4;
   const areaGen = area<[number, number]>()
     .x((_, i) => x(i))
@@ -356,7 +364,7 @@ export function ChartStreamgraph({
     .y1((d) => y(d[1]))
     .curve(curveBasis);
   return (
-    <ChartCard title={title} description={description} exportData={STREAM_DATA}>
+    <ChartCard title={title} description={description} exportData={data}>
       <ChartControls>
         <SegmentedControl
           options={["wiggle", "silhouette", "stacked", "expand"] as const}
@@ -379,7 +387,7 @@ export function ChartStreamgraph({
 // ---------------------------------------------------------------------------
 // Sunburst — group focus
 // ---------------------------------------------------------------------------
-type SunDatum = { id: string; size?: number; children?: SunDatum[] };
+export type SunDatum = { id: string; size?: number; children?: SunDatum[] };
 
 const SUN_TREE: SunDatum = {
   id: "root",
@@ -398,15 +406,19 @@ function topGroup(n: HierarchyRectangularNode<SunDatum>) {
 }
 
 export function ChartSunburst({
+  tree = SUN_TREE,
+  groups = SUN_GROUPS,
   title = "Sunburst",
   description = "Click a group pill to focus its ring segment; click again to clear.",
 }: {
+  tree?: SunDatum;
+  groups?: string[];
   title?: string;
   description?: string;
 }) {
   const [focus, setFocus] = React.useState<string | null>(null);
   const R = 100;
-  const root = hierarchy<SunDatum>(SUN_TREE).sum((d) => d.size ?? 0);
+  const root = hierarchy<SunDatum>(tree).sum((d) => d.size ?? 0);
   partition<SunDatum>().size([2 * Math.PI, R * R])(root);
   const arcGen = arc<HierarchyRectangularNode<SunDatum>>()
     .startAngle((d) => d.x0)
@@ -423,7 +435,7 @@ export function ChartSunburst({
     >
       <ChartControls>
         <span className="flex items-center gap-1.5">
-          {SUN_GROUPS.map((g, i) => (
+          {groups.map((g, i) => (
             <FilterPill
               key={g}
               label={g}
@@ -437,7 +449,7 @@ export function ChartSunburst({
       <svg viewBox="-105 -105 210 210" className="mx-auto w-full max-h-64">
         {nodes.map((n) => {
           const g = topGroup(n);
-          const gi = SUN_GROUPS.indexOf(g);
+          const gi = groups.indexOf(g);
           const dim = focus !== null && focus !== g;
           return (
             <path

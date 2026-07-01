@@ -1333,14 +1333,15 @@ var SANKEY_DATA = {
   ]
 };
 function ChartSankey({
+  data = SANKEY_DATA,
   title = "Sankey",
   description = "Tune node padding and link opacity to balance flow legibility."
 }) {
   const [padding, setPadding] = React5.useState(28);
   const [opacity, setOpacity] = React5.useState(35);
-  const csv = SANKEY_DATA.links.map((l) => ({
-    source: SANKEY_DATA.nodes[l.source].name,
-    target: SANKEY_DATA.nodes[l.target].name,
+  const csv = data.links.map((l) => ({
+    source: data.nodes[l.source].name,
+    target: data.nodes[l.target].name,
     value: l.value
   }));
   return /* @__PURE__ */ jsxs8(ChartCard, { title, description, exportData: csv, children: [
@@ -1364,7 +1365,7 @@ function ChartSankey({
     /* @__PURE__ */ jsx14(ChartContainer, { config: {}, className: "h-64 w-full", children: /* @__PURE__ */ jsx14(
       Sankey,
       {
-        data: SANKEY_DATA,
+        data,
         nodePadding: padding,
         margin: { top: 8, right: 70, bottom: 8, left: 8 },
         node: { fill: "var(--chart-1)", stroke: "none" },
@@ -1491,13 +1492,15 @@ var OFFSETS = {
   expand: stackOffsetExpand
 };
 function ChartStreamgraph({
+  data = STREAM_DATA,
+  keys = STREAM_KEYS,
   title = "Streamgraph",
   description = "The same stack on four baselines \u2014 wiggle, silhouette, zero and 100%."
 }) {
   const [mode, setMode] = React5.useState("wiggle");
   const W = 560;
   const H = 200;
-  const layers = stack().keys(STREAM_KEYS).offset(OFFSETS[mode]).order(stackOrderInsideOut)(STREAM_DATA);
+  const layers = stack().keys(keys).offset(OFFSETS[mode]).order(stackOrderInsideOut)(data);
   let min = Infinity;
   let max = -Infinity;
   layers.forEach(
@@ -1506,10 +1509,10 @@ function ChartStreamgraph({
       max = Math.max(max, b);
     })
   );
-  const x = (i) => i / (STREAM_DATA.length - 1) * W;
+  const x = (i) => i / (data.length - 1) * W;
   const y = (v) => (v - min) / (max - min || 1) * (H - 8) + 4;
   const areaGen = area().x((_, i) => x(i)).y0((d) => y(d[0])).y1((d) => y(d[1])).curve(curveBasis);
-  return /* @__PURE__ */ jsxs8(ChartCard, { title, description, exportData: STREAM_DATA, children: [
+  return /* @__PURE__ */ jsxs8(ChartCard, { title, description, exportData: data, children: [
     /* @__PURE__ */ jsx14(ChartControls, { children: /* @__PURE__ */ jsx14(
       SegmentedControl,
       {
@@ -1536,12 +1539,14 @@ function topGroup(n) {
   return (a[a.length - 2] ?? n).data.id;
 }
 function ChartSunburst({
+  tree = SUN_TREE,
+  groups = SUN_GROUPS,
   title = "Sunburst",
   description = "Click a group pill to focus its ring segment; click again to clear."
 }) {
   const [focus, setFocus] = React5.useState(null);
   const R = 100;
-  const root = hierarchy(SUN_TREE).sum((d) => d.size ?? 0);
+  const root = hierarchy(tree).sum((d) => d.size ?? 0);
   partition().size([2 * Math.PI, R * R])(root);
   const arcGen = arc().startAngle((d) => d.x0).endAngle((d) => d.x1).padAngle(0.012).innerRadius((d) => Math.sqrt(d.y0)).outerRadius((d) => Math.sqrt(d.y1) - 1.5);
   const nodes = root.descendants().filter((d) => d.depth > 0);
@@ -1552,7 +1557,7 @@ function ChartSunburst({
       description,
       exportData: nodes.map((n) => ({ id: n.data.id, group: topGroup(n), value: n.value })),
       children: [
-        /* @__PURE__ */ jsx14(ChartControls, { children: /* @__PURE__ */ jsx14("span", { className: "flex items-center gap-1.5", children: SUN_GROUPS.map((g, i) => /* @__PURE__ */ jsx14(
+        /* @__PURE__ */ jsx14(ChartControls, { children: /* @__PURE__ */ jsx14("span", { className: "flex items-center gap-1.5", children: groups.map((g, i) => /* @__PURE__ */ jsx14(
           FilterPill,
           {
             label: g,
@@ -1564,7 +1569,7 @@ function ChartSunburst({
         )) }) }),
         /* @__PURE__ */ jsx14("svg", { viewBox: "-105 -105 210 210", className: "mx-auto w-full max-h-64", children: nodes.map((n) => {
           const g = topGroup(n);
-          const gi = SUN_GROUPS.indexOf(g);
+          const gi = groups.indexOf(g);
           const dim = focus !== null && focus !== g;
           return /* @__PURE__ */ jsx14(
             "path",
