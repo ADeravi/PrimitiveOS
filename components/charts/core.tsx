@@ -62,8 +62,25 @@ const seriesConfig = {
   tablet: { label: "Tablet", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
-function useSeriesToggle() {
-  const [on, setOn] = React.useState<Record<string, boolean>>({ desktop: true, mobile: true, tablet: true });
+// General data contract for the categorical-x / multi-series charts (Line, Area):
+// rows of data + which field is the x-axis + which numeric series to plot. All
+// default to the demo above, so existing prop-less usage is unchanged.
+export type SeriesDatum = Record<string, string | number>;
+export interface SeriesSpec { key: string; label?: string; color?: string }
+export interface SeriesChartProps {
+  data?: SeriesDatum[];
+  xKey?: string;
+  series?: readonly SeriesSpec[];
+  title?: string;
+  description?: string;
+}
+
+const colorAt = (s: SeriesSpec, i: number) => s.color ?? `var(--chart-${(i % 5) + 1})`;
+const configFromSeries = (series: readonly SeriesSpec[]): ChartConfig =>
+  Object.fromEntries(series.map((s, i) => [s.key, { label: s.label ?? s.key, color: colorAt(s, i) }])) as ChartConfig;
+
+function useSeriesToggle(keys: string[]) {
+  const [on, setOn] = React.useState<Record<string, boolean>>(() => Object.fromEntries(keys.map((k) => [k, true])));
   const toggle = (k: string) => setOn((s) => ({ ...s, [k]: !s[k] }));
   return { on, toggle };
 }
@@ -81,10 +98,13 @@ export interface ChartLineProps {
 
 export function ChartLine({
   data = MONTHS24,
+  xKey = "month",
+  series = SERIES,
   title = "Line",
   description = "Range, curve interpolation, point markers and per-series visibility.",
-}: ChartLineProps) {
-  const { on, toggle } = useSeriesToggle();
+}: SeriesChartProps) {
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [range, setRange] = React.useState<(typeof RANGES)[number]>("12M");
   const [curve, setCurve] = React.useState<"smooth" | "linear" | "step">("smooth");
   const [dots, setDots] = React.useState(false);
@@ -100,20 +120,20 @@ export function ChartLine({
           <Label htmlFor="line-dots" className="text-xs text-muted-foreground">Dots</Label>
         </span>
         <span className="flex items-center gap-1.5">
-          {SERIES.map((s) => (
-            <FilterPill key={s.key} label={s.label} color={s.color} active={on[s.key]} onClick={() => toggle(s.key)} />
+          {series.map((s, i) => (
+            <FilterPill key={s.key} label={s.label ?? s.key} color={colorAt(s, i)} active={on[s.key]} onClick={() => toggle(s.key)} />
           ))}
         </span>
       </ChartControls>
-      <ChartContainer config={seriesConfig} className="h-64 w-full">
+      <ChartContainer config={cfg} className="h-64 w-full">
         <LineChart data={sliced} margin={{ left: 0, right: 12 }}>
           <CartesianGrid vertical={false} />
-          <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} minTickGap={28} />
+          <XAxis dataKey={xKey} tickLine={false} axisLine={false} tickMargin={8} minTickGap={28} />
           <YAxis tickLine={false} axisLine={false} width={36} />
           <ChartTooltip content={<ChartTooltipContent />} />
-          {SERIES.filter((s) => on[s.key]).map((s) => (
-            <Line key={s.key} dataKey={s.key} type={type} stroke={s.color} strokeWidth={2} dot={dots} />
-          ))}
+          {series.map((s, i) => (on[s.key] ? (
+            <Line key={s.key} dataKey={s.key} type={type} stroke={colorAt(s, i)} strokeWidth={2} dot={dots} />
+          ) : null))}
         </LineChart>
       </ChartContainer>
     </ChartCard>
@@ -125,10 +145,13 @@ export function ChartLine({
 // ---------------------------------------------------------------------------
 export function ChartArea({
   data = MONTHS24,
+  xKey = "month",
+  series = SERIES,
   title = "Area",
   description = "Stacked, overlapped or 100% normalised; toggle series in and out.",
-}: ChartLineProps) {
-  const { on, toggle } = useSeriesToggle();
+}: SeriesChartProps) {
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [range, setRange] = React.useState<(typeof RANGES)[number]>("12M");
   const [mode, setMode] = React.useState<"stacked" | "overlap" | "100%">("stacked");
   const stackId = mode === "overlap" ? undefined : "a";
@@ -139,15 +162,15 @@ export function ChartArea({
         <SegmentedControl options={RANGES} value={range} onChange={setRange} ariaLabel="Range" />
         <SegmentedControl options={["stacked", "overlap", "100%"] as const} value={mode} onChange={setMode} ariaLabel="Mode" />
         <span className="flex items-center gap-1.5">
-          {SERIES.map((s) => (
-            <FilterPill key={s.key} label={s.label} color={s.color} active={on[s.key]} onClick={() => toggle(s.key)} />
+          {series.map((s, i) => (
+            <FilterPill key={s.key} label={s.label ?? s.key} color={colorAt(s, i)} active={on[s.key]} onClick={() => toggle(s.key)} />
           ))}
         </span>
       </ChartControls>
-      <ChartContainer config={seriesConfig} className="h-64 w-full">
+      <ChartContainer config={cfg} className="h-64 w-full">
         <AreaChart data={sliced} stackOffset={mode === "100%" ? "expand" : "none"} margin={{ left: 0, right: 12 }}>
           <CartesianGrid vertical={false} />
-          <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} minTickGap={28} />
+          <XAxis dataKey={xKey} tickLine={false} axisLine={false} tickMargin={8} minTickGap={28} />
           <YAxis
             tickLine={false}
             axisLine={false}
@@ -155,17 +178,17 @@ export function ChartArea({
             tickFormatter={(v: number) => (mode === "100%" ? `${Math.round(v * 100)}%` : `${v}`)}
           />
           <ChartTooltip content={<ChartTooltipContent />} />
-          {SERIES.filter((s) => on[s.key]).map((s) => (
+          {series.map((s, i) => (on[s.key] ? (
             <Area
               key={s.key}
               dataKey={s.key}
               type="monotone"
               stackId={stackId}
-              stroke={s.color}
-              fill={s.color}
+              stroke={colorAt(s, i)}
+              fill={colorAt(s, i)}
               fillOpacity={mode === "overlap" ? 0.25 : 0.4}
             />
-          ))}
+          ) : null))}
         </AreaChart>
       </ChartContainer>
     </ChartCard>

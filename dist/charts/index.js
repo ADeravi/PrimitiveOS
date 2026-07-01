@@ -852,23 +852,23 @@ var SERIES = [
   { key: "mobile", label: "Mobile", color: TOKEN[1] },
   { key: "tablet", label: "Tablet", color: TOKEN[2] }
 ];
-var seriesConfig = {
-  desktop: { label: "Desktop", color: "var(--chart-1)" },
-  mobile: { label: "Mobile", color: "var(--chart-2)" },
-  tablet: { label: "Tablet", color: "var(--chart-3)" }
-};
-function useSeriesToggle() {
-  const [on, setOn] = React4.useState({ desktop: true, mobile: true, tablet: true });
+var colorAt = (s, i) => s.color ?? `var(--chart-${i % 5 + 1})`;
+var configFromSeries = (series) => Object.fromEntries(series.map((s, i) => [s.key, { label: s.label ?? s.key, color: colorAt(s, i) }]));
+function useSeriesToggle(keys) {
+  const [on, setOn] = React4.useState(() => Object.fromEntries(keys.map((k) => [k, true])));
   const toggle = (k) => setOn((s) => ({ ...s, [k]: !s[k] }));
   return { on, toggle };
 }
 var RANGES = ["6M", "12M", "24M"];
 function ChartLine({
   data = MONTHS24,
+  xKey = "month",
+  series = SERIES,
   title = "Line",
   description = "Range, curve interpolation, point markers and per-series visibility."
 }) {
-  const { on, toggle } = useSeriesToggle();
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [range, setRange] = React4.useState("12M");
   const [curve, setCurve] = React4.useState("smooth");
   const [dots, setDots] = React4.useState(false);
@@ -882,23 +882,26 @@ function ChartLine({
         /* @__PURE__ */ jsx13(Switch, { id: "line-dots", checked: dots, onCheckedChange: setDots }),
         /* @__PURE__ */ jsx13(Label, { htmlFor: "line-dots", className: "text-xs text-muted-foreground", children: "Dots" })
       ] }),
-      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: SERIES.map((s) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label, color: s.color, active: on[s.key], onClick: () => toggle(s.key) }, s.key)) })
+      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: series.map((s, i) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label ?? s.key, color: colorAt(s, i), active: on[s.key], onClick: () => toggle(s.key) }, s.key)) })
     ] }),
-    /* @__PURE__ */ jsx13(ChartContainer, { config: seriesConfig, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(LineChart, { data: sliced, margin: { left: 0, right: 12 }, children: [
+    /* @__PURE__ */ jsx13(ChartContainer, { config: cfg, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(LineChart, { data: sliced, margin: { left: 0, right: 12 }, children: [
       /* @__PURE__ */ jsx13(CartesianGrid, { vertical: false }),
-      /* @__PURE__ */ jsx13(XAxis, { dataKey: "month", tickLine: false, axisLine: false, tickMargin: 8, minTickGap: 28 }),
+      /* @__PURE__ */ jsx13(XAxis, { dataKey: xKey, tickLine: false, axisLine: false, tickMargin: 8, minTickGap: 28 }),
       /* @__PURE__ */ jsx13(YAxis, { tickLine: false, axisLine: false, width: 36 }),
       /* @__PURE__ */ jsx13(ChartTooltip, { content: /* @__PURE__ */ jsx13(ChartTooltipContent, {}) }),
-      SERIES.filter((s) => on[s.key]).map((s) => /* @__PURE__ */ jsx13(Line, { dataKey: s.key, type, stroke: s.color, strokeWidth: 2, dot: dots }, s.key))
+      series.map((s, i) => on[s.key] ? /* @__PURE__ */ jsx13(Line, { dataKey: s.key, type, stroke: colorAt(s, i), strokeWidth: 2, dot: dots }, s.key) : null)
     ] }) })
   ] });
 }
 function ChartArea({
   data = MONTHS24,
+  xKey = "month",
+  series = SERIES,
   title = "Area",
   description = "Stacked, overlapped or 100% normalised; toggle series in and out."
 }) {
-  const { on, toggle } = useSeriesToggle();
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [range, setRange] = React4.useState("12M");
   const [mode, setMode] = React4.useState("stacked");
   const stackId = mode === "overlap" ? void 0 : "a";
@@ -907,11 +910,11 @@ function ChartArea({
     /* @__PURE__ */ jsxs7(ChartControls, { children: [
       /* @__PURE__ */ jsx13(SegmentedControl, { options: RANGES, value: range, onChange: setRange, ariaLabel: "Range" }),
       /* @__PURE__ */ jsx13(SegmentedControl, { options: ["stacked", "overlap", "100%"], value: mode, onChange: setMode, ariaLabel: "Mode" }),
-      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: SERIES.map((s) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label, color: s.color, active: on[s.key], onClick: () => toggle(s.key) }, s.key)) })
+      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: series.map((s, i) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label ?? s.key, color: colorAt(s, i), active: on[s.key], onClick: () => toggle(s.key) }, s.key)) })
     ] }),
-    /* @__PURE__ */ jsx13(ChartContainer, { config: seriesConfig, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(AreaChart, { data: sliced, stackOffset: mode === "100%" ? "expand" : "none", margin: { left: 0, right: 12 }, children: [
+    /* @__PURE__ */ jsx13(ChartContainer, { config: cfg, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(AreaChart, { data: sliced, stackOffset: mode === "100%" ? "expand" : "none", margin: { left: 0, right: 12 }, children: [
       /* @__PURE__ */ jsx13(CartesianGrid, { vertical: false }),
-      /* @__PURE__ */ jsx13(XAxis, { dataKey: "month", tickLine: false, axisLine: false, tickMargin: 8, minTickGap: 28 }),
+      /* @__PURE__ */ jsx13(XAxis, { dataKey: xKey, tickLine: false, axisLine: false, tickMargin: 8, minTickGap: 28 }),
       /* @__PURE__ */ jsx13(
         YAxis,
         {
@@ -922,18 +925,18 @@ function ChartArea({
         }
       ),
       /* @__PURE__ */ jsx13(ChartTooltip, { content: /* @__PURE__ */ jsx13(ChartTooltipContent, {}) }),
-      SERIES.filter((s) => on[s.key]).map((s) => /* @__PURE__ */ jsx13(
+      series.map((s, i) => on[s.key] ? /* @__PURE__ */ jsx13(
         Area,
         {
           dataKey: s.key,
           type: "monotone",
           stackId,
-          stroke: s.color,
-          fill: s.color,
+          stroke: colorAt(s, i),
+          fill: colorAt(s, i),
           fillOpacity: mode === "overlap" ? 0.25 : 0.4
         },
         s.key
-      ))
+      ) : null)
     ] }) })
   ] });
 }
