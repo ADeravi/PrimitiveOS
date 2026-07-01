@@ -2,6 +2,13 @@
   "name": "scntw-ds",
   "version": "1.0.0",
   "private": true,
+  "exports": {
+    "./package.json": "./package.json",
+    "./app/globals.css": "./app/globals.css",
+    "./tokens.json": "./tokens.json",
+    "./charts": "./components/charts/logic.ts",
+    "./diagram": "./components/diagram/logic.ts"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "test-storybook": "test-storybook",
     "tokens": "node scripts/export-tokens.mjs",
+    "build:tokens": "node sd.config.mjs",
     "probe:diagram": "npx -y tsx tools/diagram-critique/elk-probe.ts",
     "lint:policies": "npx -y tsx tools/diagram-critique/elk-probe.ts"
   },
@@ -72,11 +80,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "culori": "^4.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "eslint-plugin-storybook": "*",
     "playwright": "^1.61.0",
     "storybook": "^10.4.2",
+    "style-dictionary": "^4.3.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
