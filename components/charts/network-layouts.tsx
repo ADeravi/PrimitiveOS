@@ -10,7 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { ChartCard, ChartControls } from "./chart-card";
-import { NODES, EDGES, EDGE_STYLES, readTokens } from "./network";
+import { NODES, EDGES, EDGE_STYLES, readTokens, type NetNode, type NetEdge, toEdgeTuples } from "./network";
+
+interface NetworkDataProps { nodes?: NetNode[]; edges?: NetEdge[] }
 
 // Layout extensions (force / hierarchy / circle). Concentric + grid are
 // built in. Guarded so HMR re-registration is a no-op.
@@ -24,15 +26,7 @@ try {
 
 type EdgeKey = (typeof EDGE_STYLES)[number];
 
-// Node degree map (the sample graph is constant, so compute it once).
-const DEG: Map<string, number> = (() => {
-  const d = new Map<string, number>();
-  EDGES.forEach(([s, t]) => {
-    d.set(s, (d.get(s) ?? 0) + 1);
-    d.set(t, (d.get(t) ?? 0) + 1);
-  });
-  return d;
-})();
+// Degree is computed per-graph inside NetworkGraph, from the edges prop.
 
 const byDegreeDesc = (a: cytoscape.NodeSingular, b: cytoscape.NodeSingular) =>
   b.degree(false) - a.degree(false);
@@ -45,13 +39,15 @@ const byDegreeDesc = (a: cytoscape.NodeSingular, b: cytoscape.NodeSingular) =>
 // (re-run whenever it changes) and its own `controls` row.
 // ---------------------------------------------------------------------------
 function NetworkGraph({
+  nodes = NODES,
+  edges = EDGES,
   title,
   description,
   layout,
   controls,
   defaultEdgeStyle = "curved",
   defaultArrows = false,
-}: {
+}: NetworkDataProps & {
   title: string;
   description: string;
   layout: cytoscape.LayoutOptions;
@@ -59,6 +55,7 @@ function NetworkGraph({
   defaultEdgeStyle?: EdgeKey;
   defaultArrows?: boolean;
 }) {
+  const edgeTuples = React.useMemo(() => toEdgeTuples(edges), [edges]);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
   const layoutRef = React.useRef(layout);
@@ -125,12 +122,17 @@ function NetworkGraph({
   React.useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    const deg = new Map<string, number>();
+    edgeTuples.forEach(([s, t]) => {
+      deg.set(s, (deg.get(s) ?? 0) + 1);
+      deg.set(t, (deg.get(t) ?? 0) + 1);
+    });
     const t0 = readTokens(host);
     const cy = cytoscape({
       container: host,
       elements: [
-        ...NODES.map((n) => ({ data: { ...n, deg: DEG.get(n.id) ?? 1, color: t0.c[n.group % t0.c.length] } })),
-        ...EDGES.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } })),
+        ...nodes.map((n) => ({ data: { id: n.id, label: n.label ?? n.id, group: n.group ?? 0, deg: deg.get(n.id) ?? 1, color: t0.c[(n.group ?? 0) % t0.c.length] } })),
+        ...edgeTuples.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } })),
       ],
       style: buildStyle(t0),
       layout: layoutRef.current,
@@ -191,7 +193,7 @@ function NetworkGraph({
       cyRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [nodes, edgeTuples]);
 
   // Re-apply the stylesheet (and re-raster labels) when display controls change.
   React.useEffect(() => {
@@ -229,7 +231,7 @@ function NetworkGraph({
     <ChartCard
       title={title}
       description={description}
-      exportData={NODES.map((n) => ({ id: n.id, label: n.label, group: n.group }))}
+      exportData={nodes.map((n) => ({ id: n.id, label: n.label ?? n.id, group: n.group ?? 0 }))}
     >
       {controls}
 
@@ -324,7 +326,7 @@ function Toggle({ id, label, checked, onChange }: {
 // gravity. fCoSE defaults (repulsion 4500, edge 50, gravity 0.25) are the
 // recommended starting point. [iVis-at-Bilkent/cytoscape.js-fcose]
 // ---------------------------------------------------------------------------
-export function ChartNetworkForce() {
+export function ChartNetworkForce({ nodes, edges }: NetworkDataProps = {}) {
   const [repulsion, setRepulsion] = React.useState(4500);
   const [edgeLen, setEdgeLen] = React.useState(50);
   const [gravity, setGravity] = React.useState(25); // /100 → 0.25 default
@@ -349,6 +351,8 @@ export function ChartNetworkForce() {
 
   return (
     <NetworkGraph
+      nodes={nodes}
+      edges={edges}
       title="Force-directed network"
       description="fCoSE spring embedder — clusters and hubs emerge from node repulsion balanced against edge springs. The best first look at an unfamiliar graph."
       layout={layout}
@@ -386,7 +390,7 @@ export function ChartNetworkForce() {
 const RANKERS = ["network-simplex", "tight-tree", "longest-path"] as const;
 const DIRS = ["TB", "LR", "BT", "RL"] as const;
 
-export function ChartNetworkHierarchy() {
+export function ChartNetworkHierarchy({ nodes, edges }: NetworkDataProps = {}) {
   const [dir, setDir] = React.useState<(typeof DIRS)[number]>("TB");
   const [ranker, setRanker] = React.useState<(typeof RANKERS)[number]>("network-simplex");
   const [nodeSep, setNodeSep] = React.useState(40);
@@ -408,6 +412,8 @@ export function ChartNetworkHierarchy() {
 
   return (
     <NetworkGraph
+      nodes={nodes}
+      edges={edges}
       title="Hierarchical network"
       description="Dagre layered (Sugiyama) layout — nodes ranked into levels flowing one way. Best for DAGs, trees and dependency or process flows."
       layout={layout}
@@ -452,7 +458,7 @@ export function ChartNetworkHierarchy() {
 // 3 · Circle. All nodes on one ring — ordering is everything, so sort by
 // degree to cluster hubs. Sweep < 360 draws an arc. [js.cytoscape.org circle]
 // ---------------------------------------------------------------------------
-export function ChartNetworkCircle() {
+export function ChartNetworkCircle({ nodes, edges }: NetworkDataProps = {}) {
   const [startAngle, setStartAngle] = React.useState(270);
   const [sweep, setSweep] = React.useState(360);
   const [spacing, setSpacing] = React.useState(100); // /100 → spacingFactor
@@ -475,6 +481,8 @@ export function ChartNetworkCircle() {
 
   return (
     <NetworkGraph
+      nodes={nodes}
+      edges={edges}
       title="Circle network"
       description="Every node on a single ring. Order carries the meaning — sort by degree to group hubs together; a sweep under 360° draws an arc."
       layout={layout}
@@ -499,7 +507,7 @@ export function ChartNetworkCircle() {
 // 4 · Concentric. Rings by importance (degree) — hubs at the centre, periphery
 // outward. levelWidth groups how many degree values share a ring. [concentric]
 // ---------------------------------------------------------------------------
-export function ChartNetworkConcentric() {
+export function ChartNetworkConcentric({ nodes, edges }: NetworkDataProps = {}) {
   const [minSpacing, setMinSpacing] = React.useState(10);
   const [levelWidth, setLevelWidth] = React.useState(1);
   const [spacing, setSpacing] = React.useState(100);
@@ -523,6 +531,8 @@ export function ChartNetworkConcentric() {
 
   return (
     <NetworkGraph
+      nodes={nodes}
+      edges={edges}
       title="Concentric network"
       description="Rings by importance — the highest-degree nodes sit in the centre and importance descends outward. Reveals hub-and-periphery structure at a glance."
       layout={layout}
@@ -547,7 +557,7 @@ export function ChartNetworkConcentric() {
 // 5 · Grid. Nodes snapped to a lattice — predictable scanning, good for small
 // sets or matrix-like reading. rows/cols 0 = auto. [js.cytoscape.org grid]
 // ---------------------------------------------------------------------------
-export function ChartNetworkGrid() {
+export function ChartNetworkGrid({ nodes, edges }: NetworkDataProps = {}) {
   const [cols, setCols] = React.useState(0); // 0 = auto
   const [rows, setRows] = React.useState(0);
   const [spacing, setSpacing] = React.useState(100);
@@ -571,6 +581,8 @@ export function ChartNetworkGrid() {
 
   return (
     <NetworkGraph
+      nodes={nodes}
+      edges={edges}
       title="Grid network"
       description="Nodes snapped to a tidy lattice — predictable left-to-right scanning, good for small sets or matrix-like reading. Rows / columns at 0 auto-fit."
       layout={layout}

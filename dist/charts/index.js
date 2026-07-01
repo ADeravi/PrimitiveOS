@@ -2568,16 +2568,10 @@ try {
   cytoscape2.use(avsdf2);
 } catch {
 }
-var DEG = (() => {
-  const d = /* @__PURE__ */ new Map();
-  EDGES.forEach(([s, t]) => {
-    d.set(s, (d.get(s) ?? 0) + 1);
-    d.set(t, (d.get(t) ?? 0) + 1);
-  });
-  return d;
-})();
 var byDegreeDesc = (a, b) => b.degree(false) - a.degree(false);
 function NetworkGraph({
+  nodes = NODES,
+  edges = EDGES,
   title,
   description,
   layout,
@@ -2585,6 +2579,7 @@ function NetworkGraph({
   defaultEdgeStyle = "curved",
   defaultArrows = false
 }) {
+  const edgeTuples = React9.useMemo(() => toEdgeTuples(edges), [edges]);
   const hostRef = React9.useRef(null);
   const cyRef = React9.useRef(null);
   const layoutRef = React9.useRef(layout);
@@ -2647,12 +2642,17 @@ function NetworkGraph({
   React9.useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    const deg = /* @__PURE__ */ new Map();
+    edgeTuples.forEach(([s, t]) => {
+      deg.set(s, (deg.get(s) ?? 0) + 1);
+      deg.set(t, (deg.get(t) ?? 0) + 1);
+    });
     const t0 = readTokens(host);
     const cy = cytoscape2({
       container: host,
       elements: [
-        ...NODES.map((n) => ({ data: { ...n, deg: DEG.get(n.id) ?? 1, color: t0.c[n.group % t0.c.length] } })),
-        ...EDGES.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } }))
+        ...nodes.map((n) => ({ data: { id: n.id, label: n.label ?? n.id, group: n.group ?? 0, deg: deg.get(n.id) ?? 1, color: t0.c[(n.group ?? 0) % t0.c.length] } })),
+        ...edgeTuples.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } }))
       ],
       style: buildStyle(t0),
       layout: layoutRef.current,
@@ -2710,7 +2710,7 @@ function NetworkGraph({
       cy.destroy();
       cyRef.current = null;
     };
-  }, []);
+  }, [nodes, edgeTuples]);
   React9.useEffect(() => {
     const cy = cyRef.current;
     const el = hostRef.current;
@@ -2742,7 +2742,7 @@ function NetworkGraph({
     {
       title,
       description,
-      exportData: NODES.map((n) => ({ id: n.id, label: n.label, group: n.group })),
+      exportData: nodes.map((n) => ({ id: n.id, label: n.label ?? n.id, group: n.group ?? 0 })),
       children: [
         controls,
         /* @__PURE__ */ jsxs12(ChartControls, { children: [
@@ -2827,7 +2827,7 @@ function Toggle({ id, label, checked, onChange }) {
     /* @__PURE__ */ jsx18(Label, { htmlFor: id, className: "text-xs text-muted-foreground", children: label })
   ] });
 }
-function ChartNetworkForce() {
+function ChartNetworkForce({ nodes, edges } = {}) {
   const [repulsion, setRepulsion] = React9.useState(4500);
   const [edgeLen, setEdgeLen] = React9.useState(50);
   const [gravity, setGravity] = React9.useState(25);
@@ -2851,6 +2851,8 @@ function ChartNetworkForce() {
   return /* @__PURE__ */ jsx18(
     NetworkGraph,
     {
+      nodes,
+      edges,
       title: "Force-directed network",
       description: "fCoSE spring embedder \u2014 clusters and hubs emerge from node repulsion balanced against edge springs. The best first look at an unfamiliar graph.",
       layout,
@@ -2880,7 +2882,7 @@ function ChartNetworkForce() {
 }
 var RANKERS = ["network-simplex", "tight-tree", "longest-path"];
 var DIRS = ["TB", "LR", "BT", "RL"];
-function ChartNetworkHierarchy() {
+function ChartNetworkHierarchy({ nodes, edges } = {}) {
   const [dir, setDir] = React9.useState("TB");
   const [ranker, setRanker] = React9.useState("network-simplex");
   const [nodeSep, setNodeSep] = React9.useState(40);
@@ -2901,6 +2903,8 @@ function ChartNetworkHierarchy() {
   return /* @__PURE__ */ jsx18(
     NetworkGraph,
     {
+      nodes,
+      edges,
       title: "Hierarchical network",
       description: "Dagre layered (Sugiyama) layout \u2014 nodes ranked into levels flowing one way. Best for DAGs, trees and dependency or process flows.",
       layout,
@@ -2944,7 +2948,7 @@ function ChartNetworkHierarchy() {
     }
   );
 }
-function ChartNetworkCircle() {
+function ChartNetworkCircle({ nodes, edges } = {}) {
   const [startAngle, setStartAngle] = React9.useState(270);
   const [sweep, setSweep] = React9.useState(360);
   const [spacing, setSpacing] = React9.useState(100);
@@ -2966,6 +2970,8 @@ function ChartNetworkCircle() {
   return /* @__PURE__ */ jsx18(
     NetworkGraph,
     {
+      nodes,
+      edges,
       title: "Circle network",
       description: "Every node on a single ring. Order carries the meaning \u2014 sort by degree to group hubs together; a sweep under 360\xB0 draws an arc.",
       layout,
@@ -2983,7 +2989,7 @@ function ChartNetworkCircle() {
     }
   );
 }
-function ChartNetworkConcentric() {
+function ChartNetworkConcentric({ nodes, edges } = {}) {
   const [minSpacing, setMinSpacing] = React9.useState(10);
   const [levelWidth, setLevelWidth] = React9.useState(1);
   const [spacing, setSpacing] = React9.useState(100);
@@ -3006,6 +3012,8 @@ function ChartNetworkConcentric() {
   return /* @__PURE__ */ jsx18(
     NetworkGraph,
     {
+      nodes,
+      edges,
       title: "Concentric network",
       description: "Rings by importance \u2014 the highest-degree nodes sit in the centre and importance descends outward. Reveals hub-and-periphery structure at a glance.",
       layout,
@@ -3021,7 +3029,7 @@ function ChartNetworkConcentric() {
     }
   );
 }
-function ChartNetworkGrid() {
+function ChartNetworkGrid({ nodes, edges } = {}) {
   const [cols, setCols] = React9.useState(0);
   const [rows, setRows] = React9.useState(0);
   const [spacing, setSpacing] = React9.useState(100);
@@ -3044,6 +3052,8 @@ function ChartNetworkGrid() {
   return /* @__PURE__ */ jsx18(
     NetworkGraph,
     {
+      nodes,
+      edges,
       title: "Grid network",
       description: "Nodes snapped to a tidy lattice \u2014 predictable left-to-right scanning, good for small sets or matrix-like reading. Rows / columns at 0 auto-fit.",
       layout,
