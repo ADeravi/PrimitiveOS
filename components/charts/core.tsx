@@ -410,27 +410,39 @@ const SCATTER = [0, 1].map((g) =>
   })
 );
 
-const scatterConfig = {
-  a: { label: "Plan A", color: "var(--chart-1)" },
-  b: { label: "Plan B", color: "var(--chart-3)" },
-} satisfies ChartConfig;
+// Scatter has its own shape: each series is a set of {x, y, z?} points.
+export interface ScatterPoint { x: number; y: number; z?: number }
+export interface ScatterSeries { key: string; label?: string; color?: string; points: ScatterPoint[] }
+export interface ScatterChartProps {
+  series?: ScatterSeries[];
+  xName?: string; yName?: string; zName?: string;
+  title?: string; description?: string;
+}
+
+const SCATTER_SERIES: ScatterSeries[] = [
+  { key: "a", label: "Plan A", color: TOKEN[0], points: SCATTER[0] },
+  { key: "b", label: "Plan B", color: TOKEN[2], points: SCATTER[1] },
+];
 
 export function ChartScatter({
+  series = SCATTER_SERIES,
+  xName = "Sessions (k)",
+  yName = "Revenue ($k)",
+  zName = "Accounts",
   title = "Scatter / Bubble",
   description = "Toggle series, switch bubble sizing on or off, scale the size range.",
-}: {
-  title?: string;
-  description?: string;
-}) {
-  const [on, setOn] = React.useState<Record<string, boolean>>({ a: true, b: true });
+}: ScatterChartProps) {
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [bubble, setBubble] = React.useState(true);
   const [size, setSize] = React.useState(160);
   return (
-    <ChartCard title={title} description={description} exportData={[...SCATTER[0], ...SCATTER[1]]}>
+    <ChartCard title={title} description={description} exportData={series.flatMap((s) => s.points)}>
       <ChartControls>
         <span className="flex items-center gap-1.5">
-          <FilterPill label="Plan A" color={TOKEN[0]} active={on.a} onClick={() => setOn((s) => ({ ...s, a: !s.a }))} />
-          <FilterPill label="Plan B" color={TOKEN[2]} active={on.b} onClick={() => setOn((s) => ({ ...s, b: !s.b }))} />
+          {series.map((s, i) => (
+            <FilterPill key={s.key} label={s.label ?? s.key} color={colorAt(s, i)} active={on[s.key]} onClick={() => toggle(s.key)} />
+          ))}
         </span>
         <span className="flex items-center gap-2">
           <Switch id="sc-bubble" checked={bubble} onCheckedChange={setBubble} />
@@ -441,15 +453,16 @@ export function ChartScatter({
           <Slider value={[size]} onValueChange={([v]) => setSize(v)} min={60} max={400} step={20} disabled={!bubble} />
         </span>
       </ChartControls>
-      <ChartContainer config={scatterConfig} className="h-64 w-full">
+      <ChartContainer config={cfg} className="h-64 w-full">
         <ScatterChart margin={{ left: 0, right: 12 }}>
           <CartesianGrid />
-          <XAxis type="number" dataKey="x" name="Sessions (k)" tickLine={false} axisLine={false} tickMargin={8} />
-          <YAxis type="number" dataKey="y" name="Revenue ($k)" tickLine={false} axisLine={false} width={32} />
-          <ZAxis type="number" dataKey="z" range={bubble ? [40, size] : [70, 70]} name="Accounts" />
+          <XAxis type="number" dataKey="x" name={xName} tickLine={false} axisLine={false} tickMargin={8} />
+          <YAxis type="number" dataKey="y" name={yName} tickLine={false} axisLine={false} width={32} />
+          <ZAxis type="number" dataKey="z" range={bubble ? [40, size] : [70, 70]} name={zName} />
           <ChartTooltip cursor={{ strokeDasharray: "3 3" }} content={<ChartTooltipContent hideLabel />} />
-          {on.a && <Scatter name="a" data={SCATTER[0]} fill={TOKEN[0]} fillOpacity={0.75} />}
-          {on.b && <Scatter name="b" data={SCATTER[1]} fill={TOKEN[2]} fillOpacity={0.75} />}
+          {series.map((s, i) => (on[s.key] ? (
+            <Scatter key={s.key} name={s.key} data={s.points} fill={colorAt(s, i)} fillOpacity={0.75} />
+          ) : null))}
         </ScatterChart>
       </ChartContainer>
     </ChartCard>
@@ -463,26 +476,34 @@ const HEAT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const heat = (d: number, w: number) =>
   (Math.sin(d * 3.7 + w * 1.3) + Math.cos(d * 1.9 - w * 2.3) + 2) / 4;
 
-export function ChartHeatmap({
-  title = "Heatmap",
-  description = "Adjust the visible window and filter low-intensity cells with the threshold.",
-}: {
+export interface HeatmapChartProps {
+  rows?: string[];
+  value?: (row: number, col: number) => number;  // 0..1 intensity for cell (row, col)
+  colOptions?: readonly string[];                  // selectable column counts
   title?: string;
   description?: string;
-}) {
-  const [weeks, setWeeks] = React.useState<"8" | "14" | "20">("14");
+}
+
+export function ChartHeatmap({
+  rows = HEAT_DAYS,
+  value = heat,
+  colOptions = ["8", "14", "20"],
+  title = "Heatmap",
+  description = "Adjust the visible window and filter low-intensity cells with the threshold.",
+}: HeatmapChartProps) {
+  const [weeks, setWeeks] = React.useState<string>(colOptions[Math.min(1, colOptions.length - 1)]);
   const [threshold, setThreshold] = React.useState(0);
   const [hover, setHover] = React.useState<string | null>(null);
   const W = Number(weeks);
   const cell = 16;
   const pad = 30;
-  const csv = HEAT_DAYS.flatMap((day, d) =>
-    Array.from({ length: W }, (_, w) => ({ day, week: w + 1, value: Math.round(heat(d, w) * 100) }))
+  const csv = rows.flatMap((day, d) =>
+    Array.from({ length: W }, (_, w) => ({ day, week: w + 1, value: Math.round(value(d, w) * 100) }))
   );
   return (
     <ChartCard title={title} description={description} exportData={csv}>
       <ChartControls>
-        <SegmentedControl options={["8", "14", "20"] as const} value={weeks} onChange={setWeeks} ariaLabel="Weeks" />
+        <SegmentedControl options={colOptions} value={weeks} onChange={setWeeks} ariaLabel="Columns" />
         <span className="flex w-52 items-center gap-2">
           <Label className="text-xs text-muted-foreground whitespace-nowrap">Min {threshold}%</Label>
           <Slider value={[threshold]} onValueChange={([v]) => setThreshold(v)} min={0} max={80} step={5} />
@@ -491,15 +512,15 @@ export function ChartHeatmap({
           {hover ?? "hover a cell"}
         </span>
       </ChartControls>
-      <svg viewBox={`0 0 ${pad + W * cell + 4} ${18 + 7 * cell + 4}`} className="w-full">
-        {HEAT_DAYS.map((d, i) => (
+      <svg viewBox={`0 0 ${pad + W * cell + 4} ${18 + rows.length * cell + 4}`} className="w-full">
+        {rows.map((d, i) => (
           <text key={d} x={pad - 5} y={18 + i * cell + cell * 0.7} textAnchor="end" fontSize={7} fontFamily="monospace" fill="var(--muted-foreground)">
             {d}
           </text>
         ))}
-        {HEAT_DAYS.map((_, d) =>
+        {rows.map((_, d) =>
           Array.from({ length: W }, (_, w) => {
-            const v = heat(d, w);
+            const v = value(d, w);
             const below = v * 100 < threshold;
             return (
               <rect
@@ -511,10 +532,10 @@ export function ChartHeatmap({
                 rx={3}
                 fill={below ? "var(--muted)" : "var(--chart-1)"}
                 opacity={below ? 0.5 : 0.25 + v * 0.75}
-                onMouseEnter={() => setHover(`${HEAT_DAYS[d]} W${w + 1}: ${Math.round(v * 100)}%`)}
+                onMouseEnter={() => setHover(`${rows[d]} W${w + 1}: ${Math.round(v * 100)}%`)}
                 onMouseLeave={() => setHover(null)}
               >
-                <title>{`${HEAT_DAYS[d]} W${w + 1}: ${Math.round(v * 100)}%`}</title>
+                <title>{`${rows[d]} W${w + 1}: ${Math.round(v * 100)}%`}</title>
               </rect>
             );
           })
@@ -534,41 +555,50 @@ const COMBO = Array.from({ length: 12 }, (_, i) => ({
   conversion: Math.round((2 + 0.8 * Math.sin(i / 1.6 + 2) + i * 0.09) * 10) / 10,
 }));
 
-const comboConfig = {
-  revenue: { label: "Revenue ($k)", color: "var(--chart-1)" },
-  users: { label: "Active users", color: "var(--chart-2)" },
-  conversion: { label: "Conversion (%)", color: "var(--chart-3)" },
-} satisfies ChartConfig;
+// Dual-axis series carry their own mark type + which axis they belong to.
+export interface DualSeries { key: string; label?: string; color?: string; type?: "bar" | "line"; axis?: "left" | "right"; dashed?: boolean }
+export interface DualAxisChartProps { data?: SeriesDatum[]; xKey?: string; series?: DualSeries[]; title?: string; description?: string }
+
+const COMBO_SERIES: DualSeries[] = [
+  { key: "revenue", label: "Revenue ($k)", color: "var(--chart-1)", type: "bar", axis: "left" },
+  { key: "users", label: "Active users", color: "var(--chart-2)", type: "line", axis: "right" },
+  { key: "conversion", label: "Conversion (%)", color: "var(--chart-3)", type: "line", axis: "right", dashed: true },
+];
 
 export function ChartDualAxis({
+  data = COMBO,
+  xKey = "month",
+  series = COMBO_SERIES,
   title = "Dual axis",
-  description = "Revenue as bars on the left scale; users and conversion as lines on the right.",
-}: {
-  title?: string;
-  description?: string;
-}) {
-  const [on, setOn] = React.useState<Record<string, boolean>>({ revenue: true, users: false, conversion: true });
+  description = "Bars on the left scale; lines on the right — mix mark types and axes per series.",
+}: DualAxisChartProps) {
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   return (
-    <ChartCard title={title} description={description} exportData={COMBO}>
+    <ChartCard title={title} description={description} exportData={data}>
       <ChartControls>
         <span className="flex items-center gap-1.5">
-          <FilterPill label="Revenue" color={TOKEN[0]} active={on.revenue} onClick={() => setOn((s) => ({ ...s, revenue: !s.revenue }))} />
-          <FilterPill label="Users" color={TOKEN[1]} active={on.users} onClick={() => setOn((s) => ({ ...s, users: !s.users }))} />
-          <FilterPill label="Conversion" color={TOKEN[2]} active={on.conversion} onClick={() => setOn((s) => ({ ...s, conversion: !s.conversion }))} />
+          {series.map((s, i) => (
+            <FilterPill key={s.key} label={s.label ?? s.key} color={colorAt(s, i)} active={on[s.key]} onClick={() => toggle(s.key)} />
+          ))}
         </span>
       </ChartControls>
-      <ChartContainer config={comboConfig} className="h-64 w-full">
-        <ComposedChart data={COMBO} margin={{ left: 0, right: 0 }}>
+      <ChartContainer config={cfg} className="h-64 w-full">
+        <ComposedChart data={data} margin={{ left: 0, right: 0 }}>
           <CartesianGrid vertical={false} />
-          <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+          <XAxis dataKey={xKey} tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis yAxisId="left" tickLine={false} axisLine={false} width={32} />
           <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} width={38} />
           <ChartTooltip content={<ChartTooltipContent />} />
-          {on.revenue && <Bar yAxisId="left" dataKey="revenue" fill="var(--chart-1)" radius={4} />}
-          {on.users && <Line yAxisId="right" dataKey="users" type="monotone" stroke="var(--chart-2)" strokeWidth={2} dot={false} />}
-          {on.conversion && (
-            <Line yAxisId="right" dataKey="conversion" type="monotone" stroke="var(--chart-3)" strokeWidth={2} strokeDasharray="4 3" dot={false} />
-          )}
+          {series.map((s, i) => {
+            if (!on[s.key]) return null;
+            const axis = s.axis ?? "left";
+            return s.type === "bar" ? (
+              <Bar key={s.key} yAxisId={axis} dataKey={s.key} fill={colorAt(s, i)} radius={4} />
+            ) : (
+              <Line key={s.key} yAxisId={axis} dataKey={s.key} type="monotone" stroke={colorAt(s, i)} strokeWidth={2} strokeDasharray={s.dashed ? "4 3" : undefined} dot={false} />
+            );
+          })}
         </ComposedChart>
       </ChartContainer>
     </ChartCard>

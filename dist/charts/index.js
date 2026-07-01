@@ -1099,23 +1099,25 @@ var SCATTER = [0, 1].map(
     };
   })
 );
-var scatterConfig = {
-  a: { label: "Plan A", color: "var(--chart-1)" },
-  b: { label: "Plan B", color: "var(--chart-3)" }
-};
+var SCATTER_SERIES = [
+  { key: "a", label: "Plan A", color: TOKEN[0], points: SCATTER[0] },
+  { key: "b", label: "Plan B", color: TOKEN[2], points: SCATTER[1] }
+];
 function ChartScatter({
+  series = SCATTER_SERIES,
+  xName = "Sessions (k)",
+  yName = "Revenue ($k)",
+  zName = "Accounts",
   title = "Scatter / Bubble",
   description = "Toggle series, switch bubble sizing on or off, scale the size range."
 }) {
-  const [on, setOn] = React4.useState({ a: true, b: true });
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
   const [bubble, setBubble] = React4.useState(true);
   const [size, setSize] = React4.useState(160);
-  return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: [...SCATTER[0], ...SCATTER[1]], children: [
+  return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: series.flatMap((s) => s.points), children: [
     /* @__PURE__ */ jsxs7(ChartControls, { children: [
-      /* @__PURE__ */ jsxs7("span", { className: "flex items-center gap-1.5", children: [
-        /* @__PURE__ */ jsx13(FilterPill, { label: "Plan A", color: TOKEN[0], active: on.a, onClick: () => setOn((s) => ({ ...s, a: !s.a })) }),
-        /* @__PURE__ */ jsx13(FilterPill, { label: "Plan B", color: TOKEN[2], active: on.b, onClick: () => setOn((s) => ({ ...s, b: !s.b })) })
-      ] }),
+      /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: series.map((s, i) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label ?? s.key, color: colorAt(s, i), active: on[s.key], onClick: () => toggle(s.key) }, s.key)) }),
       /* @__PURE__ */ jsxs7("span", { className: "flex items-center gap-2", children: [
         /* @__PURE__ */ jsx13(Switch, { id: "sc-bubble", checked: bubble, onCheckedChange: setBubble }),
         /* @__PURE__ */ jsx13(Label, { htmlFor: "sc-bubble", className: "text-xs text-muted-foreground", children: "Bubble size" })
@@ -1128,35 +1130,37 @@ function ChartScatter({
         /* @__PURE__ */ jsx13(Slider, { value: [size], onValueChange: ([v]) => setSize(v), min: 60, max: 400, step: 20, disabled: !bubble })
       ] })
     ] }),
-    /* @__PURE__ */ jsx13(ChartContainer, { config: scatterConfig, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(ScatterChart, { margin: { left: 0, right: 12 }, children: [
+    /* @__PURE__ */ jsx13(ChartContainer, { config: cfg, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(ScatterChart, { margin: { left: 0, right: 12 }, children: [
       /* @__PURE__ */ jsx13(CartesianGrid, {}),
-      /* @__PURE__ */ jsx13(XAxis, { type: "number", dataKey: "x", name: "Sessions (k)", tickLine: false, axisLine: false, tickMargin: 8 }),
-      /* @__PURE__ */ jsx13(YAxis, { type: "number", dataKey: "y", name: "Revenue ($k)", tickLine: false, axisLine: false, width: 32 }),
-      /* @__PURE__ */ jsx13(ZAxis, { type: "number", dataKey: "z", range: bubble ? [40, size] : [70, 70], name: "Accounts" }),
+      /* @__PURE__ */ jsx13(XAxis, { type: "number", dataKey: "x", name: xName, tickLine: false, axisLine: false, tickMargin: 8 }),
+      /* @__PURE__ */ jsx13(YAxis, { type: "number", dataKey: "y", name: yName, tickLine: false, axisLine: false, width: 32 }),
+      /* @__PURE__ */ jsx13(ZAxis, { type: "number", dataKey: "z", range: bubble ? [40, size] : [70, 70], name: zName }),
       /* @__PURE__ */ jsx13(ChartTooltip, { cursor: { strokeDasharray: "3 3" }, content: /* @__PURE__ */ jsx13(ChartTooltipContent, { hideLabel: true }) }),
-      on.a && /* @__PURE__ */ jsx13(Scatter, { name: "a", data: SCATTER[0], fill: TOKEN[0], fillOpacity: 0.75 }),
-      on.b && /* @__PURE__ */ jsx13(Scatter, { name: "b", data: SCATTER[1], fill: TOKEN[2], fillOpacity: 0.75 })
+      series.map((s, i) => on[s.key] ? /* @__PURE__ */ jsx13(Scatter, { name: s.key, data: s.points, fill: colorAt(s, i), fillOpacity: 0.75 }, s.key) : null)
     ] }) })
   ] });
 }
 var HEAT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 var heat = (d, w) => (Math.sin(d * 3.7 + w * 1.3) + Math.cos(d * 1.9 - w * 2.3) + 2) / 4;
 function ChartHeatmap({
+  rows = HEAT_DAYS,
+  value = heat,
+  colOptions = ["8", "14", "20"],
   title = "Heatmap",
   description = "Adjust the visible window and filter low-intensity cells with the threshold."
 }) {
-  const [weeks, setWeeks] = React4.useState("14");
+  const [weeks, setWeeks] = React4.useState(colOptions[Math.min(1, colOptions.length - 1)]);
   const [threshold, setThreshold] = React4.useState(0);
   const [hover, setHover] = React4.useState(null);
   const W = Number(weeks);
   const cell = 16;
   const pad = 30;
-  const csv = HEAT_DAYS.flatMap(
-    (day, d) => Array.from({ length: W }, (_, w) => ({ day, week: w + 1, value: Math.round(heat(d, w) * 100) }))
+  const csv = rows.flatMap(
+    (day, d) => Array.from({ length: W }, (_, w) => ({ day, week: w + 1, value: Math.round(value(d, w) * 100) }))
   );
   return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: csv, children: [
     /* @__PURE__ */ jsxs7(ChartControls, { children: [
-      /* @__PURE__ */ jsx13(SegmentedControl, { options: ["8", "14", "20"], value: weeks, onChange: setWeeks, ariaLabel: "Weeks" }),
+      /* @__PURE__ */ jsx13(SegmentedControl, { options: colOptions, value: weeks, onChange: setWeeks, ariaLabel: "Columns" }),
       /* @__PURE__ */ jsxs7("span", { className: "flex w-52 items-center gap-2", children: [
         /* @__PURE__ */ jsxs7(Label, { className: "text-xs text-muted-foreground whitespace-nowrap", children: [
           "Min ",
@@ -1167,11 +1171,11 @@ function ChartHeatmap({
       ] }),
       /* @__PURE__ */ jsx13("span", { className: "text-xs tabular-nums text-muted-foreground min-w-28", children: hover ?? "hover a cell" })
     ] }),
-    /* @__PURE__ */ jsxs7("svg", { viewBox: `0 0 ${pad + W * cell + 4} ${18 + 7 * cell + 4}`, className: "w-full", children: [
-      HEAT_DAYS.map((d, i) => /* @__PURE__ */ jsx13("text", { x: pad - 5, y: 18 + i * cell + cell * 0.7, textAnchor: "end", fontSize: 7, fontFamily: "monospace", fill: "var(--muted-foreground)", children: d }, d)),
-      HEAT_DAYS.map(
+    /* @__PURE__ */ jsxs7("svg", { viewBox: `0 0 ${pad + W * cell + 4} ${18 + rows.length * cell + 4}`, className: "w-full", children: [
+      rows.map((d, i) => /* @__PURE__ */ jsx13("text", { x: pad - 5, y: 18 + i * cell + cell * 0.7, textAnchor: "end", fontSize: 7, fontFamily: "monospace", fill: "var(--muted-foreground)", children: d }, d)),
+      rows.map(
         (_, d) => Array.from({ length: W }, (_2, w) => {
-          const v = heat(d, w);
+          const v = value(d, w);
           const below = v * 100 < threshold;
           return /* @__PURE__ */ jsx13(
             "rect",
@@ -1183,9 +1187,9 @@ function ChartHeatmap({
               rx: 3,
               fill: below ? "var(--muted)" : "var(--chart-1)",
               opacity: below ? 0.5 : 0.25 + v * 0.75,
-              onMouseEnter: () => setHover(`${HEAT_DAYS[d]} W${w + 1}: ${Math.round(v * 100)}%`),
+              onMouseEnter: () => setHover(`${rows[d]} W${w + 1}: ${Math.round(v * 100)}%`),
               onMouseLeave: () => setHover(null),
-              children: /* @__PURE__ */ jsx13("title", { children: `${HEAT_DAYS[d]} W${w + 1}: ${Math.round(v * 100)}%` })
+              children: /* @__PURE__ */ jsx13("title", { children: `${rows[d]} W${w + 1}: ${Math.round(v * 100)}%` })
             },
             `${d}-${w}`
           );
@@ -1200,31 +1204,33 @@ var COMBO = Array.from({ length: 12 }, (_, i) => ({
   users: Math.round(300 + 90 * Math.sin(i / 2.4 + 1) + i * 18),
   conversion: Math.round((2 + 0.8 * Math.sin(i / 1.6 + 2) + i * 0.09) * 10) / 10
 }));
-var comboConfig = {
-  revenue: { label: "Revenue ($k)", color: "var(--chart-1)" },
-  users: { label: "Active users", color: "var(--chart-2)" },
-  conversion: { label: "Conversion (%)", color: "var(--chart-3)" }
-};
+var COMBO_SERIES = [
+  { key: "revenue", label: "Revenue ($k)", color: "var(--chart-1)", type: "bar", axis: "left" },
+  { key: "users", label: "Active users", color: "var(--chart-2)", type: "line", axis: "right" },
+  { key: "conversion", label: "Conversion (%)", color: "var(--chart-3)", type: "line", axis: "right", dashed: true }
+];
 function ChartDualAxis({
+  data = COMBO,
+  xKey = "month",
+  series = COMBO_SERIES,
   title = "Dual axis",
-  description = "Revenue as bars on the left scale; users and conversion as lines on the right."
+  description = "Bars on the left scale; lines on the right \u2014 mix mark types and axes per series."
 }) {
-  const [on, setOn] = React4.useState({ revenue: true, users: false, conversion: true });
-  return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: COMBO, children: [
-    /* @__PURE__ */ jsx13(ChartControls, { children: /* @__PURE__ */ jsxs7("span", { className: "flex items-center gap-1.5", children: [
-      /* @__PURE__ */ jsx13(FilterPill, { label: "Revenue", color: TOKEN[0], active: on.revenue, onClick: () => setOn((s) => ({ ...s, revenue: !s.revenue })) }),
-      /* @__PURE__ */ jsx13(FilterPill, { label: "Users", color: TOKEN[1], active: on.users, onClick: () => setOn((s) => ({ ...s, users: !s.users })) }),
-      /* @__PURE__ */ jsx13(FilterPill, { label: "Conversion", color: TOKEN[2], active: on.conversion, onClick: () => setOn((s) => ({ ...s, conversion: !s.conversion })) })
-    ] }) }),
-    /* @__PURE__ */ jsx13(ChartContainer, { config: comboConfig, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(ComposedChart, { data: COMBO, margin: { left: 0, right: 0 }, children: [
+  const { on, toggle } = useSeriesToggle(series.map((s) => s.key));
+  const cfg = configFromSeries(series);
+  return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: data, children: [
+    /* @__PURE__ */ jsx13(ChartControls, { children: /* @__PURE__ */ jsx13("span", { className: "flex items-center gap-1.5", children: series.map((s, i) => /* @__PURE__ */ jsx13(FilterPill, { label: s.label ?? s.key, color: colorAt(s, i), active: on[s.key], onClick: () => toggle(s.key) }, s.key)) }) }),
+    /* @__PURE__ */ jsx13(ChartContainer, { config: cfg, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(ComposedChart, { data, margin: { left: 0, right: 0 }, children: [
       /* @__PURE__ */ jsx13(CartesianGrid, { vertical: false }),
-      /* @__PURE__ */ jsx13(XAxis, { dataKey: "month", tickLine: false, axisLine: false, tickMargin: 8 }),
+      /* @__PURE__ */ jsx13(XAxis, { dataKey: xKey, tickLine: false, axisLine: false, tickMargin: 8 }),
       /* @__PURE__ */ jsx13(YAxis, { yAxisId: "left", tickLine: false, axisLine: false, width: 32 }),
       /* @__PURE__ */ jsx13(YAxis, { yAxisId: "right", orientation: "right", tickLine: false, axisLine: false, width: 38 }),
       /* @__PURE__ */ jsx13(ChartTooltip, { content: /* @__PURE__ */ jsx13(ChartTooltipContent, {}) }),
-      on.revenue && /* @__PURE__ */ jsx13(Bar, { yAxisId: "left", dataKey: "revenue", fill: "var(--chart-1)", radius: 4 }),
-      on.users && /* @__PURE__ */ jsx13(Line, { yAxisId: "right", dataKey: "users", type: "monotone", stroke: "var(--chart-2)", strokeWidth: 2, dot: false }),
-      on.conversion && /* @__PURE__ */ jsx13(Line, { yAxisId: "right", dataKey: "conversion", type: "monotone", stroke: "var(--chart-3)", strokeWidth: 2, strokeDasharray: "4 3", dot: false })
+      series.map((s, i) => {
+        if (!on[s.key]) return null;
+        const axis = s.axis ?? "left";
+        return s.type === "bar" ? /* @__PURE__ */ jsx13(Bar, { yAxisId: axis, dataKey: s.key, fill: colorAt(s, i), radius: 4 }, s.key) : /* @__PURE__ */ jsx13(Line, { yAxisId: axis, dataKey: s.key, type: "monotone", stroke: colorAt(s, i), strokeWidth: 2, strokeDasharray: s.dashed ? "4 3" : void 0, dot: false }, s.key);
+      })
     ] }) })
   ] });
 }
