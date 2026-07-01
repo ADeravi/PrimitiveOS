@@ -2188,6 +2188,9 @@ var EDGES = [
   ["d2", "h1"],
   ["a3", "b3"]
 ];
+function toEdgeTuples(edges) {
+  return edges.map((e) => Array.isArray(e) ? [e[0], e[1]] : [e.source, e.target]);
+}
 var LAYOUTS = ["force", "hierarchy", "circle", "concentric", "grid"];
 var EDGE_STYLES = ["straight", "curved"];
 function oklchToRgb(str) {
@@ -2270,9 +2273,12 @@ function readTokens(el) {
   };
 }
 function ChartNetwork({
+  nodes = NODES,
+  edges = EDGES,
   title = "Network graph",
   description = "Switch layouts, tune the force physics, size nodes by degree, and click a node to isolate its neighbourhood."
 }) {
+  const edgeTuples = React8.useMemo(() => toEdgeTuples(edges), [edges]);
   const hostRef = React8.useRef(null);
   const cyRef = React8.useRef(null);
   const [layout, setLayout] = React8.useState("force");
@@ -2375,7 +2381,7 @@ function ChartNetwork({
     const host = hostRef.current;
     if (!host) return;
     const deg = /* @__PURE__ */ new Map();
-    EDGES.forEach(([s, t]) => {
+    edgeTuples.forEach(([s, t]) => {
       deg.set(s, (deg.get(s) ?? 0) + 1);
       deg.set(t, (deg.get(t) ?? 0) + 1);
     });
@@ -2383,8 +2389,8 @@ function ChartNetwork({
     const cy = cytoscape({
       container: host,
       elements: [
-        ...NODES.map((n) => ({ data: { ...n, deg: deg.get(n.id) ?? 1, color: t0.c[n.group % t0.c.length] } })),
-        ...EDGES.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } }))
+        ...nodes.map((n) => ({ data: { id: n.id, label: n.label ?? n.id, group: n.group ?? 0, deg: deg.get(n.id) ?? 1, color: t0.c[(n.group ?? 0) % t0.c.length] } })),
+        ...edgeTuples.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } }))
       ],
       style: buildStyle(t0),
       layout: layoutOpts(),
@@ -2444,7 +2450,7 @@ function ChartNetwork({
       cy.destroy();
       cyRef.current = null;
     };
-  }, []);
+  }, [nodes, edgeTuples]);
   React8.useEffect(() => {
     const cy = cyRef.current;
     const el = hostRef.current;
@@ -2477,7 +2483,7 @@ function ChartNetwork({
     {
       title,
       description,
-      exportData: NODES.map((n) => ({ id: n.id, label: n.label, group: n.group })),
+      exportData: nodes.map((n) => ({ id: n.id, label: n.label ?? n.id, group: n.group ?? 0 })),
       children: [
         /* @__PURE__ */ jsxs11(ChartControls, { children: [
           /* @__PURE__ */ jsx17(SegmentedControl, { options: LAYOUTS, value: layout, onChange: setLayout, ariaLabel: "Layout" }),

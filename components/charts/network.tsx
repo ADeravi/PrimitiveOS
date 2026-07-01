@@ -39,13 +39,24 @@ export const NODES = [
   { id: "d1", label: "Sleep", group: 1 },
   { id: "d2", label: "Reward", group: 2 },
 ];
-export const EDGES = [
+export const EDGES: [string, string][] = [
   ["h1", "h2"], ["h1", "h3"], ["h2", "h3"],
   ["h1", "a1"], ["h1", "a2"], ["h1", "a3"], ["a1", "a2"], ["a2", "a3"],
   ["h2", "b1"], ["h2", "b2"], ["h2", "b3"], ["b1", "b2"], ["b2", "b3"],
   ["h3", "c1"], ["h3", "c2"], ["h3", "c3"], ["c1", "c2"], ["c2", "c3"],
   ["b2", "d1"], ["d1", "a2"], ["c1", "d2"], ["d2", "h1"], ["a3", "b3"],
 ];
+
+// A consumer may pass its own graph; both default to the sample above, so
+// existing prop-less usage is unchanged. Node.group is a colour-band index;
+// edges accept [source,target] tuples OR {source,target} objects.
+export type NetNode = { id: string; label?: string; group?: number };
+export type NetEdge = [string, string] | { source: string; target: string };
+
+/** Normalise edges (tuple OR {source,target}) to [source, target] tuples. */
+export function toEdgeTuples(edges: NetEdge[]): [string, string][] {
+  return edges.map((e) => (Array.isArray(e) ? [e[0], e[1]] : [e.source, e.target]) as [string, string]);
+}
 
 const LAYOUTS = ["force", "hierarchy", "circle", "concentric", "grid"] as const;
 type LayoutKey = (typeof LAYOUTS)[number];
@@ -155,12 +166,17 @@ export function readTokens(el: HTMLElement) {
 }
 
 export function ChartNetwork({
+  nodes = NODES,
+  edges = EDGES,
   title = "Network graph",
   description = "Switch layouts, tune the force physics, size nodes by degree, and click a node to isolate its neighbourhood.",
 }: {
+  nodes?: NetNode[];
+  edges?: NetEdge[];
   title?: string;
   description?: string;
 }) {
+  const edgeTuples = React.useMemo(() => toEdgeTuples(edges), [edges]);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
 
@@ -271,7 +287,7 @@ export function ChartNetwork({
     const host = hostRef.current;
     if (!host) return;
     const deg = new Map<string, number>();
-    EDGES.forEach(([s, t]) => {
+    edgeTuples.forEach(([s, t]) => {
       deg.set(s, (deg.get(s) ?? 0) + 1);
       deg.set(t, (deg.get(t) ?? 0) + 1);
     });
@@ -279,8 +295,8 @@ export function ChartNetwork({
     const cy = cytoscape({
       container: host,
       elements: [
-        ...NODES.map((n) => ({ data: { ...n, deg: deg.get(n.id) ?? 1, color: t0.c[n.group % t0.c.length] } })),
-        ...EDGES.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } })),
+        ...nodes.map((n) => ({ data: { id: n.id, label: n.label ?? n.id, group: n.group ?? 0, deg: deg.get(n.id) ?? 1, color: t0.c[(n.group ?? 0) % t0.c.length] } })),
+        ...edgeTuples.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } })),
       ],
       style: buildStyle(t0),
       layout: layoutOpts(),
@@ -348,7 +364,7 @@ export function ChartNetwork({
       cyRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [nodes, edgeTuples]);
 
   // Restyle when styling controls change (label/node size, edges, …). Re-apply
   // the stylesheet AND force a re-raster so font-size visibly changes the glyph
@@ -390,7 +406,7 @@ export function ChartNetwork({
     <ChartCard
       title={title}
       description={description}
-      exportData={NODES.map((n) => ({ id: n.id, label: n.label, group: n.group }))}
+      exportData={nodes.map((n) => ({ id: n.id, label: n.label ?? n.id, group: n.group ?? 0 }))}
     >
       <ChartControls>
         <SegmentedControl options={LAYOUTS} value={layout} onChange={setLayout} ariaLabel="Layout" />
