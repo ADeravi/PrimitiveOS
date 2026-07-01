@@ -947,19 +947,22 @@ var REGION_DATA = [
   { region: "LATAM", current: 140, previous: 110 },
   { region: "MEA", current: 90, previous: 95 }
 ];
-var regionConfig = {
-  current: { label: "FY26", color: "var(--chart-1)" },
-  previous: { label: "FY25", color: "var(--chart-3)" }
-};
+var REGION_SERIES = [
+  { key: "previous", label: "FY25", color: "var(--chart-3)" },
+  { key: "current", label: "FY26", color: "var(--chart-1)" }
+];
 function ChartBar({
   data = REGION_DATA,
+  xKey = "region",
+  series = REGION_SERIES,
   title = "Bar",
   description = "Grouped vs stacked, sorted vs source order, vertical vs horizontal."
 }) {
   const [mode, setMode] = React4.useState("grouped");
   const [sorted, setSorted] = React4.useState(false);
   const [horizontal, setHorizontal] = React4.useState(false);
-  const rows = sorted ? [...data].sort((a, b) => b.current - a.current) : data;
+  const sortKey = series[series.length - 1]?.key;
+  const rows = sorted && sortKey ? [...data].sort((a, b) => Number(b[sortKey]) - Number(a[sortKey])) : data;
   return /* @__PURE__ */ jsxs7(ChartCard, { title, description, exportData: rows, children: [
     /* @__PURE__ */ jsxs7(ChartControls, { children: [
       /* @__PURE__ */ jsx13(SegmentedControl, { options: ["grouped", "stacked"], value: mode, onChange: setMode, ariaLabel: "Mode" }),
@@ -972,18 +975,17 @@ function ChartBar({
         /* @__PURE__ */ jsx13(Label, { htmlFor: "bar-horiz", className: "text-xs text-muted-foreground", children: "Horizontal" })
       ] })
     ] }),
-    /* @__PURE__ */ jsx13(ChartContainer, { config: regionConfig, className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(BarChart, { data: rows, layout: horizontal ? "vertical" : "horizontal", margin: { left: 0, right: 12 }, children: [
+    /* @__PURE__ */ jsx13(ChartContainer, { config: configFromSeries(series), className: "h-64 w-full", children: /* @__PURE__ */ jsxs7(BarChart, { data: rows, layout: horizontal ? "vertical" : "horizontal", margin: { left: 0, right: 12 }, children: [
       /* @__PURE__ */ jsx13(CartesianGrid, { vertical: horizontal, horizontal: !horizontal }),
       horizontal ? /* @__PURE__ */ jsxs7(Fragment2, { children: [
-        /* @__PURE__ */ jsx13(YAxis, { dataKey: "region", type: "category", tickLine: false, axisLine: false, width: 56 }),
+        /* @__PURE__ */ jsx13(YAxis, { dataKey: xKey, type: "category", tickLine: false, axisLine: false, width: 56 }),
         /* @__PURE__ */ jsx13(XAxis, { type: "number", tickLine: false, axisLine: false })
       ] }) : /* @__PURE__ */ jsxs7(Fragment2, { children: [
-        /* @__PURE__ */ jsx13(XAxis, { dataKey: "region", tickLine: false, axisLine: false, tickMargin: 8 }),
+        /* @__PURE__ */ jsx13(XAxis, { dataKey: xKey, tickLine: false, axisLine: false, tickMargin: 8 }),
         /* @__PURE__ */ jsx13(YAxis, { tickLine: false, axisLine: false, width: 36 })
       ] }),
       /* @__PURE__ */ jsx13(ChartTooltip, { content: /* @__PURE__ */ jsx13(ChartTooltipContent, {}) }),
-      /* @__PURE__ */ jsx13(Bar, { dataKey: "previous", stackId: mode === "stacked" ? "s" : void 0, fill: "var(--chart-3)", radius: 3 }),
-      /* @__PURE__ */ jsx13(Bar, { dataKey: "current", stackId: mode === "stacked" ? "s" : void 0, fill: "var(--chart-1)", radius: 3 })
+      series.map((s, i) => /* @__PURE__ */ jsx13(Bar, { dataKey: s.key, stackId: mode === "stacked" ? "s" : void 0, fill: colorAt(s, i), radius: 3 }, s.key))
     ] }) })
   ] });
 }

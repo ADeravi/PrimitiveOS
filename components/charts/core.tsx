@@ -208,24 +208,25 @@ const REGION_DATA: RegionDatum[] = [
   { region: "MEA", current: 90, previous: 95 },
 ];
 
-const regionConfig = {
-  current: { label: "FY26", color: "var(--chart-1)" },
-  previous: { label: "FY25", color: "var(--chart-3)" },
-} satisfies ChartConfig;
+const REGION_SERIES: SeriesSpec[] = [
+  { key: "previous", label: "FY25", color: "var(--chart-3)" },
+  { key: "current", label: "FY26", color: "var(--chart-1)" },
+];
 
 export function ChartBar({
   data = REGION_DATA,
+  xKey = "region",
+  series = REGION_SERIES,
   title = "Bar",
   description = "Grouped vs stacked, sorted vs source order, vertical vs horizontal.",
-}: {
-  data?: RegionDatum[];
-  title?: string;
-  description?: string;
-}) {
+}: SeriesChartProps) {
   const [mode, setMode] = React.useState<"grouped" | "stacked">("grouped");
   const [sorted, setSorted] = React.useState(false);
   const [horizontal, setHorizontal] = React.useState(false);
-  const rows = sorted ? [...data].sort((a, b) => b.current - a.current) : data;
+  const sortKey = series[series.length - 1]?.key;
+  const rows = sorted && sortKey
+    ? [...data].sort((a, b) => Number(b[sortKey]) - Number(a[sortKey]))
+    : data;
   return (
     <ChartCard title={title} description={description} exportData={rows}>
       <ChartControls>
@@ -239,23 +240,24 @@ export function ChartBar({
           <Label htmlFor="bar-horiz" className="text-xs text-muted-foreground">Horizontal</Label>
         </span>
       </ChartControls>
-      <ChartContainer config={regionConfig} className="h-64 w-full">
+      <ChartContainer config={configFromSeries(series)} className="h-64 w-full">
         <BarChart data={rows} layout={horizontal ? "vertical" : "horizontal"} margin={{ left: 0, right: 12 }}>
           <CartesianGrid vertical={horizontal} horizontal={!horizontal} />
           {horizontal ? (
             <>
-              <YAxis dataKey="region" type="category" tickLine={false} axisLine={false} width={56} />
+              <YAxis dataKey={xKey} type="category" tickLine={false} axisLine={false} width={56} />
               <XAxis type="number" tickLine={false} axisLine={false} />
             </>
           ) : (
             <>
-              <XAxis dataKey="region" tickLine={false} axisLine={false} tickMargin={8} />
+              <XAxis dataKey={xKey} tickLine={false} axisLine={false} tickMargin={8} />
               <YAxis tickLine={false} axisLine={false} width={36} />
             </>
           )}
           <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar dataKey="previous" stackId={mode === "stacked" ? "s" : undefined} fill="var(--chart-3)" radius={3} />
-          <Bar dataKey="current" stackId={mode === "stacked" ? "s" : undefined} fill="var(--chart-1)" radius={3} />
+          {series.map((s, i) => (
+            <Bar key={s.key} dataKey={s.key} stackId={mode === "stacked" ? "s" : undefined} fill={colorAt(s, i)} radius={3} />
+          ))}
         </BarChart>
       </ChartContainer>
     </ChartCard>
