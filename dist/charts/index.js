@@ -1877,7 +1877,6 @@ var SAMPLES = {
   Beta: sample(80, 2, 58, 11),
   Gamma: sample(80, 3, 42, 19)
 };
-var GROUP_NAMES = Object.keys(SAMPLES);
 var quantile = (sorted, p) => {
   const idx = (sorted.length - 1) * p;
   const lo = Math.floor(idx);
@@ -1885,24 +1884,26 @@ var quantile = (sorted, p) => {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
 };
 var kde = (values, bw) => (x) => values.reduce((acc, v) => acc + Math.exp(-0.5 * ((x - v) / bw) ** 2), 0) / (values.length * bw * Math.sqrt(2 * Math.PI));
-var sampleCsv = (g) => SAMPLES[g].map((v, i) => ({ index: i, group: g, value: v.toFixed(2) }));
+var sampleCsv = (samples, g) => samples[g].map((v, i) => ({ index: i, group: g, value: v.toFixed(2) }));
 function ChartHistogram({
+  samples = SAMPLES,
   title = "Histogram",
   description = "Slide the bin count to see how binning changes the story."
 }) {
+  const groupNames = Object.keys(samples);
   const [bins, setBins] = React7.useState(14);
-  const [group, setGroup] = React7.useState("Alpha");
-  const data = SAMPLES[group];
+  const [group, setGroup] = React7.useState(groupNames[0]);
+  const data = samples[group] ?? [];
   const W = 560, H = 200;
   const min = Math.min(...data), max = Math.max(...data);
   const counts = Array(bins).fill(0);
   data.forEach((v) => counts[Math.min(bins - 1, Math.floor((v - min) / (max - min) * bins))]++);
   const peak = Math.max(...counts);
   const bw = W / bins;
-  const gi = GROUP_NAMES.indexOf(group);
-  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: sampleCsv(group), children: [
+  const gi = groupNames.indexOf(group);
+  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: sampleCsv(samples, group), children: [
     /* @__PURE__ */ jsxs10(ChartControls, { children: [
-      /* @__PURE__ */ jsx16(SegmentedControl, { options: GROUP_NAMES, value: group, onChange: setGroup, ariaLabel: "Sample" }),
+      /* @__PURE__ */ jsx16(SegmentedControl, { options: groupNames, value: group, onChange: setGroup, ariaLabel: "Sample" }),
       /* @__PURE__ */ jsxs10("span", { className: "flex w-52 items-center gap-2", children: [
         /* @__PURE__ */ jsxs10(Label, { className: "text-xs text-muted-foreground whitespace-nowrap", children: [
           bins,
@@ -1915,7 +1916,7 @@ function ChartHistogram({
       /* @__PURE__ */ jsx16("line", { x1: 0, x2: W, y1: H - 14, y2: H - 14, stroke: "var(--border)" }),
       counts.map((c, i) => {
         const h = c / peak * (H - 26);
-        return /* @__PURE__ */ jsx16("rect", { x: i * bw + 1.5, y: H - 14 - h, width: Math.max(1, bw - 3), height: h, rx: 2.5, fill: TOKEN4[gi], opacity: 0.85, children: /* @__PURE__ */ jsx16("title", { children: `${c} values` }) }, i);
+        return /* @__PURE__ */ jsx16("rect", { x: i * bw + 1.5, y: H - 14 - h, width: Math.max(1, bw - 3), height: h, rx: 2.5, fill: TOKEN4[gi % 5], opacity: 0.85, children: /* @__PURE__ */ jsx16("title", { children: `${c} values` }) }, i);
       }),
       /* @__PURE__ */ jsx16("text", { x: 2, y: H - 2, fontSize: 8, fontFamily: "monospace", fill: "var(--muted-foreground)", children: Math.round(min) }),
       /* @__PURE__ */ jsx16("text", { x: W - 2, y: H - 2, textAnchor: "end", fontSize: 8, fontFamily: "monospace", fill: "var(--muted-foreground)", children: Math.round(max) })
@@ -1923,28 +1924,30 @@ function ChartHistogram({
   ] });
 }
 function ChartBoxPlot({
+  samples = SAMPLES,
   title = "Box Plot",
   description = "Toggle groups; show or hide points beyond the 1.5\xB7IQR whiskers."
 }) {
-  const [on, setOn] = React7.useState({ Alpha: true, Beta: true, Gamma: true });
+  const groupNames = Object.keys(samples);
+  const [on, setOn] = React7.useState(() => Object.fromEntries(groupNames.map((g) => [g, true])));
   const [outliers, setOutliers] = React7.useState(true);
-  const groups = GROUP_NAMES.filter((g) => on[g]);
-  const all = groups.flatMap((g) => SAMPLES[g]);
+  const groups = groupNames.filter((g) => on[g]);
+  const all = groups.flatMap((g) => samples[g]);
   const W = 560, H = 230;
   const lo = Math.min(...all.length ? all : [0]), hi = Math.max(...all.length ? all : [100]);
   const y = (v) => H - 26 - (v - lo) / (hi - lo || 1) * (H - 44);
   const slot = W / (groups.length + 1);
-  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: groups.flatMap(sampleCsv), children: [
+  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: groups.flatMap((g) => sampleCsv(samples, g)), children: [
     /* @__PURE__ */ jsxs10(ChartControls, { children: [
-      /* @__PURE__ */ jsx16("span", { className: "flex items-center gap-1.5", children: GROUP_NAMES.map((g, i) => /* @__PURE__ */ jsx16(FilterPill, { label: g, color: TOKEN4[i], active: on[g], onClick: () => setOn((s) => ({ ...s, [g]: !s[g] })) }, g)) }),
+      /* @__PURE__ */ jsx16("span", { className: "flex items-center gap-1.5", children: groupNames.map((g, i) => /* @__PURE__ */ jsx16(FilterPill, { label: g, color: TOKEN4[i % 5], active: on[g], onClick: () => setOn((s) => ({ ...s, [g]: !s[g] })) }, g)) }),
       /* @__PURE__ */ jsxs10("span", { className: "flex items-center gap-2", children: [
         /* @__PURE__ */ jsx16(Switch, { id: "bp-out", checked: outliers, onCheckedChange: setOutliers }),
         /* @__PURE__ */ jsx16(Label, { htmlFor: "bp-out", className: "text-xs text-muted-foreground", children: "Outliers" })
       ] })
     ] }),
     /* @__PURE__ */ jsx16("svg", { viewBox: `0 0 ${W} ${H}`, className: "w-full", children: groups.map((g, i) => {
-      const gi = GROUP_NAMES.indexOf(g);
-      const s = [...SAMPLES[g]].sort((a, b) => a - b);
+      const gi = groupNames.indexOf(g);
+      const s = [...samples[g]].sort((a, b) => a - b);
       const q1 = quantile(s, 0.25), q2 = quantile(s, 0.5), q3 = quantile(s, 0.75);
       const iqr = q3 - q1;
       const loW = q1 - 1.5 * iqr, hiW = q3 + 1.5 * iqr;
@@ -1965,16 +1968,18 @@ function ChartBoxPlot({
   ] });
 }
 function ChartViolin({
+  samples = SAMPLES,
   title = "Violin",
   description = "The kernel bandwidth trades smoothness against detail."
 }) {
+  const groupNames = Object.keys(samples);
   const [bw, setBw] = React7.useState(6);
   const W = 560, H = 230;
-  const all = GROUP_NAMES.flatMap((g) => SAMPLES[g]);
+  const all = groupNames.flatMap((g) => samples[g]);
   const lo = Math.min(...all) - 6, hi = Math.max(...all) + 6;
   const y = (v) => H - 26 - (v - lo) / (hi - lo) * (H - 44);
-  const slot = W / (GROUP_NAMES.length + 1);
-  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: GROUP_NAMES.flatMap(sampleCsv), children: [
+  const slot = W / (groupNames.length + 1);
+  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: groupNames.flatMap((g) => sampleCsv(samples, g)), children: [
     /* @__PURE__ */ jsx16(ChartControls, { children: /* @__PURE__ */ jsxs10("span", { className: "flex w-56 items-center gap-2", children: [
       /* @__PURE__ */ jsxs10(Label, { className: "text-xs text-muted-foreground whitespace-nowrap", children: [
         "Bandwidth ",
@@ -1982,8 +1987,8 @@ function ChartViolin({
       ] }),
       /* @__PURE__ */ jsx16(Slider, { value: [bw], onValueChange: ([v]) => setBw(v), min: 2, max: 16, step: 1 })
     ] }) }),
-    /* @__PURE__ */ jsx16("svg", { viewBox: `0 0 ${W} ${H}`, className: "w-full", children: GROUP_NAMES.map((g, i) => {
-      const f = kde(SAMPLES[g], bw);
+    /* @__PURE__ */ jsx16("svg", { viewBox: `0 0 ${W} ${H}`, className: "w-full", children: groupNames.map((g, i) => {
+      const f = kde(samples[g], bw);
       const steps = Array.from({ length: 50 }, (_, k) => lo + (hi - lo) * k / 49);
       const peak = Math.max(...steps.map(f));
       const cx = slot * (i + 1);
@@ -1991,21 +1996,23 @@ function ChartViolin({
       const right = steps.map((v) => `${cx + half(v)},${y(v)}`).join(" L");
       const left = [...steps].reverse().map((v) => `${cx - half(v)},${y(v)}`).join(" L");
       return /* @__PURE__ */ jsxs10("g", { children: [
-        /* @__PURE__ */ jsx16("title", { children: `${g} \u2014 n=${SAMPLES[g].length}` }),
-        /* @__PURE__ */ jsx16("path", { d: `M${right} L${left} Z`, fill: TOKEN4[i], opacity: 0.5, stroke: TOKEN4[i], strokeWidth: 1.2 }),
+        /* @__PURE__ */ jsx16("title", { children: `${g} \u2014 n=${samples[g].length}` }),
+        /* @__PURE__ */ jsx16("path", { d: `M${right} L${left} Z`, fill: TOKEN4[i % 5], opacity: 0.5, stroke: TOKEN4[i % 5], strokeWidth: 1.2 }),
         /* @__PURE__ */ jsx16("text", { x: cx, y: H - 8, textAnchor: "middle", fontSize: 10, fill: "var(--muted-foreground)", children: g })
       ] }, g);
     }) })
   ] });
 }
 function ChartBeeswarm({
+  samples = SAMPLES,
   title = "Beeswarm",
   description = "Every point shown; the radius controls packing density."
 }) {
-  const [group, setGroup] = React7.useState("Alpha");
+  const groupNames = Object.keys(samples);
+  const [group, setGroup] = React7.useState(groupNames[0]);
   const [radius, setRadius] = React7.useState(4);
-  const data = SAMPLES[group];
-  const gi = GROUP_NAMES.indexOf(group);
+  const data = samples[group] ?? [];
+  const gi = groupNames.indexOf(group);
   const W = 560, H = 190;
   const lo = Math.min(...data), hi = Math.max(...data);
   const x = (v) => 12 + (v - lo) / (hi - lo) * (W - 24);
@@ -2022,9 +2029,9 @@ function ChartBeeswarm({
     placed.push({ x: px, y: yy });
     return { x: px, y: yy, v };
   });
-  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: sampleCsv(group), children: [
+  return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: sampleCsv(samples, group), children: [
     /* @__PURE__ */ jsxs10(ChartControls, { children: [
-      /* @__PURE__ */ jsx16(SegmentedControl, { options: GROUP_NAMES, value: group, onChange: setGroup, ariaLabel: "Sample" }),
+      /* @__PURE__ */ jsx16(SegmentedControl, { options: groupNames, value: group, onChange: setGroup, ariaLabel: "Sample" }),
       /* @__PURE__ */ jsxs10("span", { className: "flex w-48 items-center gap-2", children: [
         /* @__PURE__ */ jsxs10(Label, { className: "text-xs text-muted-foreground whitespace-nowrap", children: [
           "r = ",
@@ -2035,27 +2042,29 @@ function ChartBeeswarm({
     ] }),
     /* @__PURE__ */ jsxs10("svg", { viewBox: `0 0 ${W} ${H}`, className: "w-full", children: [
       /* @__PURE__ */ jsx16("line", { x1: 8, x2: W - 8, y1: H / 2, y2: H / 2, stroke: "var(--border)", strokeDasharray: "3 3" }),
-      pts.map((p, i) => /* @__PURE__ */ jsx16("circle", { cx: p.x, cy: p.y, r: radius, fill: TOKEN4[gi], opacity: 0.8, children: /* @__PURE__ */ jsx16("title", { children: p.v.toFixed(1) }) }, i))
+      pts.map((p, i) => /* @__PURE__ */ jsx16("circle", { cx: p.x, cy: p.y, r: radius, fill: TOKEN4[gi % 5], opacity: 0.8, children: /* @__PURE__ */ jsx16("title", { children: p.v.toFixed(1) }) }, i))
     ] })
   ] });
 }
 function ChartWaffle({
+  parts: partsProp,
   title = "Waffle",
-  description = "Two sliders, one honest part-to-whole \u2014 referral takes the remainder."
+  description = "An honest part-to-whole in 100 cells."
 }) {
   const [organic, setOrganic] = React7.useState(46);
   const [paid, setPaid] = React7.useState(32);
   const referral = Math.max(0, 100 - organic - paid);
   const clampedPaid = Math.min(paid, 100 - organic);
-  const parts = [
+  const custom = partsProp != null;
+  const parts = custom ? partsProp.map((p, i) => ({ name: p.name, n: p.value, color: p.color ?? TOKEN4[i % 5] })) : [
     { name: "Organic", n: organic, color: TOKEN4[0] },
     { name: "Paid", n: clampedPaid, color: TOKEN4[2] },
     { name: "Referral", n: referral, color: TOKEN4[1] }
   ];
-  const cells = parts.flatMap((p) => Array(p.n).fill(p));
+  const cells = parts.flatMap((p) => Array(Math.round(p.n)).fill(p));
   const size = 15;
   return /* @__PURE__ */ jsxs10(ChartCard, { title, description, exportData: parts.map(({ name, n }) => ({ name, percent: n })), children: [
-    /* @__PURE__ */ jsxs10(ChartControls, { children: [
+    !custom && /* @__PURE__ */ jsxs10(ChartControls, { children: [
       /* @__PURE__ */ jsxs10("span", { className: "flex w-52 items-center gap-2", children: [
         /* @__PURE__ */ jsxs10(Label, { className: "text-xs text-muted-foreground whitespace-nowrap", children: [
           "Organic ",

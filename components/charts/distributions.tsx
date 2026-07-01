@@ -21,13 +21,14 @@ const normalish = (i: number, s: number) =>
 const sample = (n: number, seed: number, mu: number, sd: number) =>
   Array.from({ length: n }, (_, i) => mu + normalish(i, seed) * sd);
 
-const SAMPLES = {
+const SAMPLES: Record<string, number[]> = {
   Alpha: sample(80, 1, 50, 16),
   Beta: sample(80, 2, 58, 11),
   Gamma: sample(80, 3, 42, 19),
 };
-type GroupName = keyof typeof SAMPLES;
-const GROUP_NAMES = Object.keys(SAMPLES) as GroupName[];
+
+// Named numeric samples — a consumer can pass their own; defaults to the demo.
+export interface SamplesChartProps { samples?: Record<string, number[]>; title?: string; description?: string }
 
 const quantile = (sorted: number[], p: number) => {
   const idx = (sorted.length - 1) * p;
@@ -40,32 +41,31 @@ const kde = (values: number[], bw: number) => (x: number) =>
   values.reduce((acc, v) => acc + Math.exp(-0.5 * ((x - v) / bw) ** 2), 0) /
   (values.length * bw * Math.sqrt(2 * Math.PI));
 
-const sampleCsv = (g: GroupName) => SAMPLES[g].map((v, i) => ({ index: i, group: g, value: v.toFixed(2) }));
+const sampleCsv = (samples: Record<string, number[]>, g: string) => samples[g].map((v, i) => ({ index: i, group: g, value: v.toFixed(2) }));
 
 // ---------------------------------------------------------------------------
 // Histogram — bin count slider + sample switcher
 // ---------------------------------------------------------------------------
 export function ChartHistogram({
+  samples = SAMPLES,
   title = "Histogram",
   description = "Slide the bin count to see how binning changes the story.",
-}: {
-  title?: string;
-  description?: string;
-}) {
+}: SamplesChartProps) {
+  const groupNames = Object.keys(samples);
   const [bins, setBins] = React.useState(14);
-  const [group, setGroup] = React.useState<GroupName>("Alpha");
-  const data = SAMPLES[group];
+  const [group, setGroup] = React.useState<string>(groupNames[0]);
+  const data = samples[group] ?? [];
   const W = 560, H = 200;
   const min = Math.min(...data), max = Math.max(...data);
   const counts = Array(bins).fill(0) as number[];
   data.forEach((v) => counts[Math.min(bins - 1, Math.floor(((v - min) / (max - min)) * bins))]++);
   const peak = Math.max(...counts);
   const bw = W / bins;
-  const gi = GROUP_NAMES.indexOf(group);
+  const gi = groupNames.indexOf(group);
   return (
-    <ChartCard title={title} description={description} exportData={sampleCsv(group)}>
+    <ChartCard title={title} description={description} exportData={sampleCsv(samples, group)}>
       <ChartControls>
-        <SegmentedControl options={GROUP_NAMES} value={group} onChange={setGroup} ariaLabel="Sample" />
+        <SegmentedControl options={groupNames} value={group} onChange={setGroup} ariaLabel="Sample" />
         <span className="flex w-52 items-center gap-2">
           <Label className="text-xs text-muted-foreground whitespace-nowrap">{bins} bins</Label>
           <Slider value={[bins]} onValueChange={([v]) => setBins(v)} min={4} max={32} step={1} />
@@ -76,7 +76,7 @@ export function ChartHistogram({
         {counts.map((c, i) => {
           const h = (c / peak) * (H - 26);
           return (
-            <rect key={i} x={i * bw + 1.5} y={H - 14 - h} width={Math.max(1, bw - 3)} height={h} rx={2.5} fill={TOKEN[gi]} opacity={0.85}>
+            <rect key={i} x={i * bw + 1.5} y={H - 14 - h} width={Math.max(1, bw - 3)} height={h} rx={2.5} fill={TOKEN[gi % 5]} opacity={0.85}>
               <title>{`${c} values`}</title>
             </rect>
           );
@@ -92,26 +92,25 @@ export function ChartHistogram({
 // Box plot — toggleable groups + outlier display
 // ---------------------------------------------------------------------------
 export function ChartBoxPlot({
+  samples = SAMPLES,
   title = "Box Plot",
   description = "Toggle groups; show or hide points beyond the 1.5·IQR whiskers.",
-}: {
-  title?: string;
-  description?: string;
-}) {
-  const [on, setOn] = React.useState<Record<GroupName, boolean>>({ Alpha: true, Beta: true, Gamma: true });
+}: SamplesChartProps) {
+  const groupNames = Object.keys(samples);
+  const [on, setOn] = React.useState<Record<string, boolean>>(() => Object.fromEntries(groupNames.map((g) => [g, true])));
   const [outliers, setOutliers] = React.useState(true);
-  const groups = GROUP_NAMES.filter((g) => on[g]);
-  const all = groups.flatMap((g) => SAMPLES[g]);
+  const groups = groupNames.filter((g) => on[g]);
+  const all = groups.flatMap((g) => samples[g]);
   const W = 560, H = 230;
   const lo = Math.min(...(all.length ? all : [0])), hi = Math.max(...(all.length ? all : [100]));
   const y = (v: number) => H - 26 - ((v - lo) / (hi - lo || 1)) * (H - 44);
   const slot = W / (groups.length + 1);
   return (
-    <ChartCard title={title} description={description} exportData={groups.flatMap(sampleCsv)}>
+    <ChartCard title={title} description={description} exportData={groups.flatMap((g) => sampleCsv(samples, g))}>
       <ChartControls>
         <span className="flex items-center gap-1.5">
-          {GROUP_NAMES.map((g, i) => (
-            <FilterPill key={g} label={g} color={TOKEN[i]} active={on[g]} onClick={() => setOn((s) => ({ ...s, [g]: !s[g] }))} />
+          {groupNames.map((g, i) => (
+            <FilterPill key={g} label={g} color={TOKEN[i % 5]} active={on[g]} onClick={() => setOn((s) => ({ ...s, [g]: !s[g] }))} />
           ))}
         </span>
         <span className="flex items-center gap-2">
@@ -121,8 +120,8 @@ export function ChartBoxPlot({
       </ChartControls>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
         {groups.map((g, i) => {
-          const gi = GROUP_NAMES.indexOf(g);
-          const s = [...SAMPLES[g]].sort((a, b) => a - b);
+          const gi = groupNames.indexOf(g);
+          const s = [...samples[g]].sort((a, b) => a - b);
           const q1 = quantile(s, 0.25), q2 = quantile(s, 0.5), q3 = quantile(s, 0.75);
           const iqr = q3 - q1;
           const loW = q1 - 1.5 * iqr, hiW = q3 + 1.5 * iqr;
@@ -154,20 +153,19 @@ export function ChartBoxPlot({
 // Violin — bandwidth slider
 // ---------------------------------------------------------------------------
 export function ChartViolin({
+  samples = SAMPLES,
   title = "Violin",
   description = "The kernel bandwidth trades smoothness against detail.",
-}: {
-  title?: string;
-  description?: string;
-}) {
+}: SamplesChartProps) {
+  const groupNames = Object.keys(samples);
   const [bw, setBw] = React.useState(6);
   const W = 560, H = 230;
-  const all = GROUP_NAMES.flatMap((g) => SAMPLES[g]);
+  const all = groupNames.flatMap((g) => samples[g]);
   const lo = Math.min(...all) - 6, hi = Math.max(...all) + 6;
   const y = (v: number) => H - 26 - ((v - lo) / (hi - lo)) * (H - 44);
-  const slot = W / (GROUP_NAMES.length + 1);
+  const slot = W / (groupNames.length + 1);
   return (
-    <ChartCard title={title} description={description} exportData={GROUP_NAMES.flatMap(sampleCsv)}>
+    <ChartCard title={title} description={description} exportData={groupNames.flatMap((g) => sampleCsv(samples, g))}>
       <ChartControls>
         <span className="flex w-56 items-center gap-2">
           <Label className="text-xs text-muted-foreground whitespace-nowrap">Bandwidth {bw}</Label>
@@ -175,8 +173,8 @@ export function ChartViolin({
         </span>
       </ChartControls>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-        {GROUP_NAMES.map((g, i) => {
-          const f = kde(SAMPLES[g], bw);
+        {groupNames.map((g, i) => {
+          const f = kde(samples[g], bw);
           const steps = Array.from({ length: 50 }, (_, k) => lo + ((hi - lo) * k) / 49);
           const peak = Math.max(...steps.map(f));
           const cx = slot * (i + 1);
@@ -185,8 +183,8 @@ export function ChartViolin({
           const left = [...steps].reverse().map((v) => `${cx - half(v)},${y(v)}`).join(" L");
           return (
             <g key={g}>
-              <title>{`${g} — n=${SAMPLES[g].length}`}</title>
-              <path d={`M${right} L${left} Z`} fill={TOKEN[i]} opacity={0.5} stroke={TOKEN[i]} strokeWidth={1.2} />
+              <title>{`${g} — n=${samples[g].length}`}</title>
+              <path d={`M${right} L${left} Z`} fill={TOKEN[i % 5]} opacity={0.5} stroke={TOKEN[i % 5]} strokeWidth={1.2} />
               <text x={cx} y={H - 8} textAnchor="middle" fontSize={10} fill="var(--muted-foreground)">{g}</text>
             </g>
           );
@@ -200,16 +198,15 @@ export function ChartViolin({
 // Beeswarm — point radius + sample switcher
 // ---------------------------------------------------------------------------
 export function ChartBeeswarm({
+  samples = SAMPLES,
   title = "Beeswarm",
   description = "Every point shown; the radius controls packing density.",
-}: {
-  title?: string;
-  description?: string;
-}) {
-  const [group, setGroup] = React.useState<GroupName>("Alpha");
+}: SamplesChartProps) {
+  const groupNames = Object.keys(samples);
+  const [group, setGroup] = React.useState<string>(groupNames[0]);
   const [radius, setRadius] = React.useState(4);
-  const data = SAMPLES[group];
-  const gi = GROUP_NAMES.indexOf(group);
+  const data = samples[group] ?? [];
+  const gi = groupNames.indexOf(group);
   const W = 560, H = 190;
   const lo = Math.min(...data), hi = Math.max(...data);
   const x = (v: number) => 12 + ((v - lo) / (hi - lo)) * (W - 24);
@@ -230,9 +227,9 @@ export function ChartBeeswarm({
       return { x: px, y: yy, v };
     });
   return (
-    <ChartCard title={title} description={description} exportData={sampleCsv(group)}>
+    <ChartCard title={title} description={description} exportData={sampleCsv(samples, group)}>
       <ChartControls>
-        <SegmentedControl options={GROUP_NAMES} value={group} onChange={setGroup} ariaLabel="Sample" />
+        <SegmentedControl options={groupNames} value={group} onChange={setGroup} ariaLabel="Sample" />
         <span className="flex w-48 items-center gap-2">
           <Label className="text-xs text-muted-foreground whitespace-nowrap">r = {radius}</Label>
           <Slider value={[radius]} onValueChange={([v]) => setRadius(v)} min={2} max={8} step={1} />
@@ -241,7 +238,7 @@ export function ChartBeeswarm({
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
         <line x1={8} x2={W - 8} y1={H / 2} y2={H / 2} stroke="var(--border)" strokeDasharray="3 3" />
         {pts.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={radius} fill={TOKEN[gi]} opacity={0.8}>
+          <circle key={i} cx={p.x} cy={p.y} r={radius} fill={TOKEN[gi % 5]} opacity={0.8}>
             <title>{p.v.toFixed(1)}</title>
           </circle>
         ))}
@@ -253,10 +250,14 @@ export function ChartBeeswarm({
 // ---------------------------------------------------------------------------
 // Waffle — adjustable split
 // ---------------------------------------------------------------------------
+export interface WafflePart { name: string; value: number; color?: string }
+
 export function ChartWaffle({
+  parts: partsProp,
   title = "Waffle",
-  description = "Two sliders, one honest part-to-whole — referral takes the remainder.",
+  description = "An honest part-to-whole in 100 cells.",
 }: {
+  parts?: WafflePart[];
   title?: string;
   description?: string;
 }) {
@@ -264,25 +265,30 @@ export function ChartWaffle({
   const [paid, setPaid] = React.useState(32);
   const referral = Math.max(0, 100 - organic - paid);
   const clampedPaid = Math.min(paid, 100 - organic);
-  const parts = [
-    { name: "Organic", n: organic, color: TOKEN[0] },
-    { name: "Paid", n: clampedPaid, color: TOKEN[2] },
-    { name: "Referral", n: referral, color: TOKEN[1] },
-  ];
-  const cells = parts.flatMap((p) => Array(p.n).fill(p) as typeof parts);
+  const custom = partsProp != null;
+  const parts = custom
+    ? partsProp.map((p, i) => ({ name: p.name, n: p.value, color: p.color ?? TOKEN[i % 5] }))
+    : [
+        { name: "Organic", n: organic, color: TOKEN[0] },
+        { name: "Paid", n: clampedPaid, color: TOKEN[2] },
+        { name: "Referral", n: referral, color: TOKEN[1] },
+      ];
+  const cells = parts.flatMap((p) => Array(Math.round(p.n)).fill(p) as typeof parts);
   const size = 15;
   return (
     <ChartCard title={title} description={description} exportData={parts.map(({ name, n }) => ({ name, percent: n }))}>
-      <ChartControls>
-        <span className="flex w-52 items-center gap-2">
-          <Label className="text-xs text-muted-foreground whitespace-nowrap">Organic {organic}%</Label>
-          <Slider value={[organic]} onValueChange={([v]) => setOrganic(v)} min={0} max={100} step={1} />
-        </span>
-        <span className="flex w-52 items-center gap-2">
-          <Label className="text-xs text-muted-foreground whitespace-nowrap">Paid {clampedPaid}%</Label>
-          <Slider value={[paid]} onValueChange={([v]) => setPaid(v)} min={0} max={100} step={1} />
-        </span>
-      </ChartControls>
+      {!custom && (
+        <ChartControls>
+          <span className="flex w-52 items-center gap-2">
+            <Label className="text-xs text-muted-foreground whitespace-nowrap">Organic {organic}%</Label>
+            <Slider value={[organic]} onValueChange={([v]) => setOrganic(v)} min={0} max={100} step={1} />
+          </span>
+          <span className="flex w-52 items-center gap-2">
+            <Label className="text-xs text-muted-foreground whitespace-nowrap">Paid {clampedPaid}%</Label>
+            <Slider value={[paid]} onValueChange={([v]) => setPaid(v)} min={0} max={100} step={1} />
+          </span>
+        </ChartControls>
+      )}
       <div className="flex items-center justify-center gap-8">
         <svg viewBox={`0 0 ${10 * size} ${10 * size}`} className="h-48">
           {cells.slice(0, 100).map((p, i) => (
