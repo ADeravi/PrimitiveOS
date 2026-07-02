@@ -58,8 +58,6 @@ function NetworkGraph({
   const edgeTuples = React.useMemo(() => toEdgeTuples(edges), [edges]);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
-  const layoutRef = React.useRef(layout);
-  layoutRef.current = layout;
 
   const [labelSize, setLabelSize] = React.useState(12);
   const [nodeSize, setNodeSize] = React.useState(26);
@@ -135,7 +133,7 @@ function NetworkGraph({
         ...edgeTuples.map(([s, t], i) => ({ data: { id: `e${i}`, source: s, target: t } })),
       ],
       style: buildStyle(t0),
-      layout: layoutRef.current,
+      layout,
       minZoom: 0.3,
       maxZoom: 2.5,
       wheelSensitivity: 0.2,
