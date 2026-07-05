@@ -42,7 +42,7 @@ export function Dropzone({
         aria-label="Upload files"
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors",
-          over ? "border-ring bg-accent" : "hover:bg-[var(--semantic-muted-hover)]"
+          over ? "border-ring bg-accent" : "hover:bg-muted/50"
         )}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && inputRef.current?.click()}
