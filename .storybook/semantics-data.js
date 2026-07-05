@@ -5,6 +5,9 @@ export const SEMANTICS = {
  "sidebar": {
   "name": "Sidebar",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.regional"
   ],
@@ -59,168 +62,224 @@ export const SEMANTICS = {
     "part": "surface",
     "role": "sidebar",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "foreground",
     "role": "sidebar-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "inner-border",
     "role": "sidebar-border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "inner-radius",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "inner-shadow",
     "role": "elevation-shadow-sm",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "inset-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "inset-radius",
     "role": "radius-xl",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "inset-shadow",
     "role": "elevation-shadow-sm",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "input-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "input-shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "separator",
     "role": "sidebar-border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-label-fg",
     "role": "sidebar-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "group-label-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-action-fg",
     "role": "sidebar-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "group-action-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-item-fg",
     "role": "sidebar-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "menu-item-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-item-shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-action-fg",
     "role": "sidebar-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "menu-action-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-badge-bg",
     "role": "sidebar-primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-badge-fg",
     "role": "sidebar-primary-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "menu-badge-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-skeleton-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-sub-border",
     "role": "sidebar-border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-sub-button-fg",
     "role": "sidebar-foreground",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "menu-sub-button-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "sidebar-ring",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -228,6 +287,9 @@ export const SEMANTICS = {
  "breadcrumb": {
   "name": "Breadcrumb",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.wayfinding"
   ],
@@ -253,24 +315,32 @@ export const SEMANTICS = {
     "part": "link-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "separator",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "current-page-label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -278,6 +348,9 @@ export const SEMANTICS = {
  "pagination": {
   "name": "Pagination",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.wayfinding"
   ],
@@ -303,24 +376,32 @@ export const SEMANTICS = {
     "part": "item-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "active-item-border",
     "role": "border",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "ellipsis",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -328,6 +409,9 @@ export const SEMANTICS = {
  "calendar": {
   "name": "Calendar",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.date"
   ],
@@ -345,36 +429,48 @@ export const SEMANTICS = {
     "part": "nav-label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "day-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "selected-day-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "selected-day-fg",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "today-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -382,6 +478,9 @@ export const SEMANTICS = {
  "date-range-picker": {
   "name": "Date range picker",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.date"
   ],
@@ -399,30 +498,40 @@ export const SEMANTICS = {
     "part": "trigger-placeholder",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "trigger-icon",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "range-highlight",
     "role": "accent-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "range-endpoint-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "range-endpoint-fg",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    }
   ]
@@ -430,6 +539,9 @@ export const SEMANTICS = {
  "slider": {
   "name": "Slider",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.range"
   ],
@@ -440,42 +552,56 @@ export const SEMANTICS = {
     "part": "track",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "track-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "range",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "thumb-border",
     "role": "primary",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "thumb-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "thumb-shadow",
     "role": "elevation-shadow-sm",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -483,6 +609,9 @@ export const SEMANTICS = {
  "rating": {
   "name": "Rating",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.range"
   ],
@@ -493,24 +622,32 @@ export const SEMANTICS = {
     "part": "star-filled",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "star-empty",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "star-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -518,6 +655,9 @@ export const SEMANTICS = {
  "skeleton": {
   "name": "Skeleton",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.placeholder"
   ],
@@ -528,12 +668,16 @@ export const SEMANTICS = {
     "part": "bg",
     "role": "accent-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -541,6 +685,9 @@ export const SEMANTICS = {
  "empty-state": {
   "name": "Empty state",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.placeholder"
   ],
@@ -551,42 +698,56 @@ export const SEMANTICS = {
     "part": "container-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "container-radius",
     "role": "radius-xl",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "icon-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "title-fg",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "description-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    }
   ]
@@ -594,6 +755,9 @@ export const SEMANTICS = {
  "timeline": {
   "name": "Timeline",
   "tier": "Nest",
+  "purpose": "legibility",
+  "whenToUse": "Present information for reading and scanning.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-display"
   ],
@@ -612,60 +776,80 @@ export const SEMANTICS = {
     "part": "connector",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "dot-default",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "dot-ring",
     "role": "surface",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "dot-primary",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "dot-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "dot-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "dot-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "dot-info",
     "role": "info",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "title-fg",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "meta-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    }
   ]
@@ -673,6 +857,9 @@ export const SEMANTICS = {
  "tree-view": {
   "name": "Tree view",
   "tier": "Nest",
+  "purpose": "legibility",
+  "whenToUse": "Present information for reading and scanning.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-display"
   ],
@@ -690,18 +877,24 @@ export const SEMANTICS = {
     "part": "row-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "label-fg",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "chevron",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    }
   ]
@@ -709,6 +902,9 @@ export const SEMANTICS = {
  "password-input": {
   "name": "Password input",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.text"
   ],
@@ -726,30 +922,40 @@ export const SEMANTICS = {
     "part": "field-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "field-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "reveal-icon",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "strength-track",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -757,6 +963,9 @@ export const SEMANTICS = {
  "segmented-control": {
   "name": "Segmented control",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.single-choice"
   ],
@@ -767,48 +976,64 @@ export const SEMANTICS = {
     "part": "track-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "track-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "track-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "segment-active-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "segment-active-fg",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "segment-inactive-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "segment-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -816,6 +1041,9 @@ export const SEMANTICS = {
  "chart": {
   "name": "Chart",
   "tier": "Nest",
+  "purpose": "legibility",
+  "whenToUse": "Present information for reading and scanning.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-display"
   ],
@@ -837,42 +1065,56 @@ export const SEMANTICS = {
     "part": "axis-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "grid-line",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "legend-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "tooltip-bg",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "tooltip-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "tooltip-radius",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "tooltip-shadow",
     "role": "elevation-shadow-xl",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -880,6 +1122,9 @@ export const SEMANTICS = {
  "input-otp": {
   "name": "OTP input",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.text"
   ],
@@ -899,30 +1144,40 @@ export const SEMANTICS = {
     "part": "slot-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "slot-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "slot-shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "caret",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -930,6 +1185,9 @@ export const SEMANTICS = {
  "toggle": {
   "name": "Toggle",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.toggle"
   ],
@@ -940,24 +1198,32 @@ export const SEMANTICS = {
     "part": "label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -965,6 +1231,9 @@ export const SEMANTICS = {
  "toggle-group": {
   "name": "Toggle group",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.single-choice"
   ],
@@ -980,24 +1249,32 @@ export const SEMANTICS = {
     "part": "group-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -1005,6 +1282,9 @@ export const SEMANTICS = {
  "dropdown-menu": {
   "name": "Dropdown menu",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.menu"
   ],
@@ -1039,78 +1319,104 @@ export const SEMANTICS = {
     "part": "content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-shadow",
     "role": "elevation-shadow-md",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-destructive-fg",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "label-fg",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "separator",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "shortcut-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "sub-content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "sub-content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "sub-content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "sub-content-shadow",
     "role": "elevation-shadow-lg",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -1118,6 +1424,9 @@ export const SEMANTICS = {
  "context-menu": {
   "name": "Context menu",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.menu"
   ],
@@ -1152,78 +1461,104 @@ export const SEMANTICS = {
     "part": "content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-shadow",
     "role": "elevation-shadow-md",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-destructive-fg",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "label-fg",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "separator",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "shortcut-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "sub-content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "sub-content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "sub-content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "sub-content-shadow",
     "role": "elevation-shadow-lg",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -1231,6 +1566,9 @@ export const SEMANTICS = {
  "command": {
   "name": "Command palette",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.menu"
   ],
@@ -1259,54 +1597,72 @@ export const SEMANTICS = {
     "part": "root-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "root-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "root-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "input-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "input-placeholder",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "group-label-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "separator",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "shortcut-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    }
   ]
@@ -1314,6 +1670,9 @@ export const SEMANTICS = {
  "popover": {
   "name": "Popover",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.transient"
   ],
@@ -1336,36 +1695,48 @@ export const SEMANTICS = {
     "part": "content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-shadow",
     "role": "elevation-shadow-md",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "description-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -1373,6 +1744,9 @@ export const SEMANTICS = {
  "hover-card": {
   "name": "Hover card",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.transient"
   ],
@@ -1390,24 +1764,32 @@ export const SEMANTICS = {
     "part": "content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-shadow",
     "role": "elevation-shadow-md",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -1415,6 +1797,9 @@ export const SEMANTICS = {
  "menubar": {
   "name": "Menubar",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.regional"
   ],
@@ -1451,96 +1836,128 @@ export const SEMANTICS = {
     "part": "bar-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "bar-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "bar-shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-shadow",
     "role": "elevation-shadow-md",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "item-destructive-fg",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "separator",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "shortcut-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "sub-content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "sub-content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "sub-content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "sub-content-shadow",
     "role": "elevation-shadow-lg",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -1548,6 +1965,9 @@ export const SEMANTICS = {
  "navigation-menu": {
   "name": "Navigation menu",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.regional"
   ],
@@ -1575,66 +1995,88 @@ export const SEMANTICS = {
     "part": "item-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-fg",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "content-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "content-shadow",
     "role": "elevation-shadow-sm",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "viewport-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "viewport-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "viewport-shadow",
     "role": "elevation-shadow-sm",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "link-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "indicator",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -1642,6 +2084,9 @@ export const SEMANTICS = {
  "separator": {
   "name": "Separator",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.structure"
   ],
@@ -1652,6 +2097,8 @@ export const SEMANTICS = {
     "part": "rule",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -1659,6 +2106,9 @@ export const SEMANTICS = {
  "scroll-area": {
   "name": "Scroll area",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.structure"
   ],
@@ -1676,18 +2126,24 @@ export const SEMANTICS = {
     "part": "thumb",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "thumb-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -1695,6 +2151,9 @@ export const SEMANTICS = {
  "resizable": {
   "name": "Resizable panels",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.structure"
   ],
@@ -1714,18 +2173,24 @@ export const SEMANTICS = {
     "part": "handle",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "handle-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -1733,6 +2198,9 @@ export const SEMANTICS = {
  "avatar": {
   "name": "Avatar",
   "tier": "Nest",
+  "purpose": "identity",
+  "whenToUse": "Present imagery/brand or avatar content.",
+  "whenNotToUse": "",
   "capabilities": [
    "media"
   ],
@@ -1756,54 +2224,72 @@ export const SEMANTICS = {
     "part": "root-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "fallback-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "fallback-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "badge-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "badge-fg",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "badge-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-ring",
     "role": "surface",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "group-count-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-count-fg",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    }
   ]
@@ -1811,6 +2297,9 @@ export const SEMANTICS = {
  "carousel": {
   "name": "Carousel",
   "tier": "Nest",
+  "purpose": "identity",
+  "whenToUse": "Present imagery/brand or avatar content.",
+  "whenNotToUse": "",
   "capabilities": [
    "media"
   ],
@@ -1832,18 +2321,24 @@ export const SEMANTICS = {
     "part": "previous-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "next-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -1851,6 +2346,9 @@ export const SEMANTICS = {
  "tabs": {
   "name": "Tabs",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.tabs"
   ],
@@ -1870,60 +2368,80 @@ export const SEMANTICS = {
     "part": "list-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "list-border-radius",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-inactive-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "trigger-active-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-active-label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "trigger-active-shadow",
     "role": "elevation-shadow-sm",
     "type": "elevation",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "content-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "transition-duration",
     "role": "motion-duration-fast",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -1931,6 +2449,9 @@ export const SEMANTICS = {
  "table": {
   "name": "Table",
   "tier": "Nest",
+  "purpose": "legibility",
+  "whenToUse": "Present information for reading and scanning.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-display"
   ],
@@ -1957,66 +2478,88 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "head-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "head-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "cell-label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "row-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "row-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "caption-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "footer-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "footer-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "cell-padding-horizontal",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "cell-padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2024,6 +2567,9 @@ export const SEMANTICS = {
  "switch": {
   "name": "Switch",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.toggle"
   ],
@@ -2034,60 +2580,80 @@ export const SEMANTICS = {
     "part": "track-unchecked-bg",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "track-checked-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "thumb-unchecked",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "thumb-checked",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "track-border-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "thumb-border-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "track-shadow",
     "role": "elevation-shadow-xs",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "transition-duration",
     "role": "motion-duration-fast",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "transition-easing",
     "role": "motion-ease-standard",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2095,6 +2661,9 @@ export const SEMANTICS = {
  "checkbox": {
   "name": "Checkbox",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.toggle"
   ],
@@ -2105,54 +2674,72 @@ export const SEMANTICS = {
     "part": "box-unchecked-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "box-unchecked-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "box-checked-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "box-checked-border",
     "role": "primary",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "checkmark",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "indeterminate-mark",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2160,6 +2747,9 @@ export const SEMANTICS = {
  "metric": {
   "name": "Metric",
   "tier": "Component",
+  "purpose": "legibility",
+  "whenToUse": "Present information for reading and scanning.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-display"
   ],
@@ -2170,78 +2760,104 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The metric cell is a subtly raised tile in a KPI strip."
    },
    {
     "part": "value",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The dominant number — full-strength, large (size in acceptable_ranges)."
    },
    {
     "part": "label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The metric name/caption, de-emphasised."
    },
    {
     "part": "delta-positive-bg",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Delta is a BADGE (L3 RULED, ADR-080): a semantically-positive change → success fill. Polarity is semantic good/bad, not literal direction."
    },
    {
     "part": "delta-positive-label",
     "role": "on-success",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The ▲ + value ON the success fill — on-success is AA by construction. (Coloured delta TEXT on the cell was ruled out: error text is only 3.64:1 on the dark surface — fails AA 1.4.3.)"
    },
    {
     "part": "delta-negative-bg",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "A semantically-negative change → error fill."
    },
    {
     "part": "delta-negative-label",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The ▼ + value ON the error fill — on-error is AA by construction."
    },
    {
     "part": "delta-neutral-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "No/flat change → neutral muted fill."
    },
    {
     "part": "delta-neutral-label",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Value on the neutral delta badge."
    },
    {
     "part": "border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The raised tile border, when present."
    },
    {
     "part": "radius",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "KPI tiles use a card-sized radius."
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "gap-value-to-label",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Tight gap between the big value and its caption."
    }
   ]
@@ -2249,6 +2865,9 @@ export const SEMANTICS = {
  "description-list": {
   "name": "Description List",
   "tier": "Nest",
+  "purpose": "legibility",
+  "whenToUse": "Present information for reading and scanning.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-display"
   ],
@@ -2259,48 +2878,64 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Sits on the page/panel surface; no fill of its own."
    },
    {
     "part": "term",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The label (<dt>) — de-emphasised."
    },
    {
     "part": "description",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The value (<dd>) — full-strength text."
    },
    {
     "part": "divider",
     "role": "border-subtle",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Optional row separators (bordered variant)."
    },
    {
     "part": "gap-term-to-description",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Tight gap in stacked layout."
    },
    {
     "part": "gap-row-to-row",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Gap between pairs."
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Container padding for the bordered variant."
    },
    {
     "part": "radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Corner radius for the bordered variant."
    }
   ]
@@ -2308,6 +2943,9 @@ export const SEMANTICS = {
  "stepper": {
   "name": "Stepper",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.progress"
   ],
@@ -2318,120 +2956,160 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The stepper sits on the page surface; no fill of its own (transparent-equivalent)."
    },
    {
     "part": "step-current-indicator",
     "role": "primary",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Active step marker fill — brand/accent (Ant/MUI/Carbon primary)."
    },
    {
     "part": "step-current-number",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Numeral on the active filled marker."
    },
    {
     "part": "step-current-label",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Active step label, full-strength."
    },
    {
     "part": "step-complete-indicator",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Completed marker fill. L3 RULED (ADR-079, 2026-07-01): primary (brand), matching Ant/MUI/Material/Atlassian — a single-hue traversed path; the check glyph carries \"done\" (WCAG 1.4.1), so a second hue (success) is redundant."
    },
    {
     "part": "step-complete-icon",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Check glyph on the completed (primary) marker."
    },
    {
     "part": "step-complete-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "step-incomplete-indicator",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Pending marker fill (neutral). L3 RULED (ADR-079): filled muted (Ant/MUI norm)."
    },
    {
     "part": "step-incomplete-number",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "step-incomplete-label",
     "role": "fg-subtle",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "connector-complete",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Line behind a completed step — tracks the complete colour (primary; the traversed path is single-hue)."
    },
    {
     "part": "connector-incomplete",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Remaining path — neutral."
    },
    {
     "part": "step-error-indicator",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "A step that failed validation (MUI/Ant error state)."
    },
    {
     "part": "step-error-icon",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Keyboard focus on a clickable (revisitable) step."
    },
    {
     "part": "indicator-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Step markers are circular across the corpus."
    },
    {
     "part": "gap-indicator-to-label",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "gap-step-to-step",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Minimum gap between adjacent steps; the connector spans it."
    },
    {
     "part": "transition-duration",
     "role": "motion-duration-fast",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "transition-easing",
     "role": "motion-ease-standard",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2439,6 +3117,9 @@ export const SEMANTICS = {
  "progress-bar": {
   "name": "Progress Bar",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.progress"
   ],
@@ -2449,42 +3130,56 @@ export const SEMANTICS = {
     "part": "track",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "The unfilled rail — a low-emphasis neutral."
    },
    {
     "part": "indicator",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "The filled portion — brand/accent. Universal norm."
    },
    {
     "part": "label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Caption beside/above the bar."
    },
    {
     "part": "value-text",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Numeric readout (e.g. 60%)."
    },
    {
     "part": "track-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Rounded/pill track ends."
    },
    {
     "part": "transition-duration",
     "role": "motion-duration-normal",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "The fill animates as the value changes."
    },
    {
     "part": "transition-easing",
     "role": "motion-ease-standard",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2492,6 +3187,9 @@ export const SEMANTICS = {
  "button": {
   "name": "Button",
   "tier": "Component",
+  "purpose": "emphasis",
+  "whenToUse": "Signal the priority of an action and let the user trigger it.",
+  "whenNotToUse": "",
   "capabilities": [
    "action.primary",
    "action.destructive"
@@ -2503,168 +3201,224 @@ export const SEMANTICS = {
     "part": "root-primary",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Filled/primary variant background"
    },
    {
     "part": "root-secondary",
     "role": "secondary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Secondary (neutral filled) variant background — a low-emphasis fill, NOT the primary brand colour. Post-review split (2026-06-26): secondary is now neutral; the primary-text outline is the separate `outline` variant."
    },
    {
     "part": "root-ghost",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Ghost variant; transparent border, no elevation, inherits page background"
    },
    {
     "part": "root-destructive",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Destructive variant background"
    },
    {
     "part": "root-outline",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outline variant — no own fill (transparent); the surface shows through (same convention as ghost). The distinguishing part is border-outline. Added in the post-review secondary/outline split (2026-06-26)."
    },
    {
     "part": "label-primary",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-secondary",
     "role": "on-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Neutral foreground on the secondary fill (post-review split: was `primary`)."
    },
    {
     "part": "label-ghost",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-destructive",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-outline",
     "role": "primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Outline variant label — the primary brand colour as text (MUI `outlined` / Carbon `tertiary` pattern). Added in the post-review split 2026-06-26."
    },
    {
     "part": "icon-primary",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Icon colour mirrors the active variant's label (post-review F3 fix: replaced the single, variant-incomplete `icon` part). icon-primary = the filled/primary variant."
    },
    {
     "part": "icon-secondary",
     "role": "on-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "icon-ghost",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "icon-destructive",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "icon-outline",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-outline",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outline variant border — the distinguishing part of the outline variant. Renamed from border-default in the post-review split: secondary is now a neutral fill with no border; only outline carries a border."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "root-hover",
     "role": "primary-hover",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Hover state overlay for primary variant"
    },
    {
     "part": "root-disabled",
     "role": "disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-disabled",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "16px equivalent; reduce to space-3 for compact size, increase to space-5 for large"
    },
    {
     "part": "padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8px equivalent; increase to space-3 for large size"
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "transition-duration",
     "role": "motion-duration-fast",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "transition-easing",
     "role": "motion-ease-standard",
     "type": "motion",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "label-typography",
     "role": "typography-label",
     "type": "typography",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Label text style for medium size (font-size, font-weight, line-height bundle). Scales to typography-label-sm (compact) and typography-label-lg (large)."
    },
    {
     "part": "gap",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Gap between icon and label — 8px at medium; tracks padding-vertical. Increase to space-3 for large."
    },
    {
     "part": "icon-size",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Icon container dimension — 16px (space-4) for compact/medium; space-5 (20px) for large. Optical: icon-size ≈ font-size × 1.1–1.3."
    }
   ]
@@ -2672,6 +3426,9 @@ export const SEMANTICS = {
  "input": {
   "name": "Text Input",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.text"
   ],
@@ -2682,162 +3439,216 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-focus",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Border colour when the input has keyboard focus; all 6 corpus systems change the border (or add a bottom highlight) on focus"
    },
    {
     "part": "border-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Warning state border — source: Carbon, Ant Design. Warning = value may cause issues but is not strictly invalid"
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-required-indicator",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "The asterisk (*) that marks a required field; source: Polaris, Primer, Carbon"
    },
    {
     "part": "input-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "placeholder-text",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Intentionally lower contrast than on-surface; placeholder is supplementary hint only, never a label substitute"
    },
    {
     "part": "hint-text",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Caption / helper text below the field; visible in non-error state; Primer calls this 'caption', Polaris 'helpText', Material 3 'supporting text'; may coexist with validation message"
    },
    {
     "part": "error-text",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Error message below the field; one of three error indicators (border, icon, text) — never rely on colour alone (WCAG 1.4.1)"
    },
    {
     "part": "warning-text",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Warning message below the field; source: Carbon, Ant Design. Uses aria-describedby, NOT aria-invalid"
    },
    {
     "part": "validation-icon",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Error/warning icon inside or beside the field; second of the three required error indicators — source: Carbon (requires all 3 indicators)"
    },
    {
     "part": "leading-icon",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Icon or short text prefix before the input value (e.g. '$', search icon); Primer: 'leading visual'"
    },
    {
     "part": "trailing-icon",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Decorative icon after the input value; for interactive trailing elements use trailing-action instead; Primer: 'trailing visual'"
    },
    {
     "part": "trailing-action",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Interactive element inside the field trailing edge — most commonly a clear (×) button; styled as an action (not decorative); Primer: 'trailing action', Polaris: allowClear, Ant Design: allowClear"
    },
    {
     "part": "container-disabled",
     "role": "muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "text-disabled",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "border-disabled",
     "role": "border",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": "Border is retained in disabled state to preserve field affordance; reduced opacity via muted background"
    },
    {
     "part": "container-readonly",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Read-only is NOT disabled — value is meaningful and copyable; container remains normal; source: Carbon, Primer, Polaris, HTML spec"
    },
    {
     "part": "text-readonly",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Read-only text has same colour as enabled text — it is readable and selectable; field remains in tab order and participates in form submission"
    },
    {
     "part": "padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "gap-label-to-input",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "gap-input-to-hint",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2845,6 +3656,9 @@ export const SEMANTICS = {
  "radio-group": {
   "name": "Radio Group",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.single-choice"
   ],
@@ -2855,102 +3669,136 @@ export const SEMANTICS = {
     "part": "group-container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Renders as HTML <fieldset>; border on fieldset must be reset (none). Transparent in most contexts — only needs explicit surface colour inside elevated containers (cards, modals)"
    },
    {
     "part": "group-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Renders as HTML <legend>; this is the only semantically correct way to label a radio group for all screen readers — source: Primer, Polaris, Carbon"
    },
    {
     "part": "group-caption",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Optional helper text below the group label; Primer: RadioGroup.Caption; Polaris: helpText; Spectrum: help-text slot; Carbon: group helper text"
    },
    {
     "part": "group-validation-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Error message at the bottom of the group; Primer: RadioGroup.Validation variant='error'; Carbon: group-level error"
    },
    {
     "part": "group-validation-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Warning message at the bottom of the group; source: Carbon (warning state documented); TokenOS adopts for parity with input component"
    },
    {
     "part": "group-validation-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Success message; source: Primer (RadioGroup.Validation variant='success') — the only corpus system to document success state on a radio group"
    },
    {
     "part": "option-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Text label to the right of the radio input (LTR); wraps beneath the radio circle (top-aligned, not centre-aligned) for long labels — source: Carbon"
    },
    {
     "part": "option-label-disabled",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "indicator-ring-unselected",
     "role": "border",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Circle outline in unselected state; all 6 systems use the neutral border colour"
    },
    {
     "part": "indicator-fill-unselected",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Circle interior background in unselected state (transparent or surface)"
    },
    {
     "part": "indicator-ring-selected",
     "role": "primary",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Circle outline in selected state; Spectrum Emphasized style uses accent"
    },
    {
     "part": "indicator-dot-selected",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Inner dot in selected state — either primary (dot on white bg) or on-primary (dot on primary-filled bg, depending on implementation)"
    },
    {
     "part": "indicator-fill-selected",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Circle background behind the inner dot; kept as surface in most systems; some systems fill the entire circle with primary colour"
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Focus ring around the radio circle; 2px offset, 2px width; appears on Tab and arrow-key navigation"
    },
    {
     "part": "disabled-indicator",
     "role": "disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-spacing",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-spacing",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -2958,6 +3806,9 @@ export const SEMANTICS = {
  "checkbox-group": {
   "name": "Checkbox Group",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.multiple-choice"
   ],
@@ -2968,144 +3819,192 @@ export const SEMANTICS = {
     "part": "group-container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Renders as <fieldset> with border reset; transparent in most contexts — source: Primer, Carbon"
    },
    {
     "part": "group-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Renders as <legend>; best practice even though individual checkboxes have their own <label> elements"
    },
    {
     "part": "group-caption",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Helper text below the group label; Primer: CheckboxGroup.Caption; Carbon/Polaris: group-level helpText; Spectrum: help-text slot"
    },
    {
     "part": "group-validation-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Group-level error message; Primer: CheckboxGroup.Validation variant='error'; Carbon: group error state"
    },
    {
     "part": "group-validation-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Group-level warning; source: Carbon (warning state at group level)"
    },
    {
     "part": "group-validation-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Group-level success; source: Primer (CheckboxGroup.Validation variant='success')"
    },
    {
     "part": "option-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Label to the right of the checkbox; wraps beneath the box top-aligned, not centre-aligned — source: Carbon"
    },
    {
     "part": "option-label-disabled",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "checkbox-unchecked-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Square outline in unselected state; all 6 systems"
    },
    {
     "part": "checkbox-unchecked-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Square interior background in unselected state"
    },
    {
     "part": "checkbox-checked-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Square fill when checked; all 6 systems use primary/accent colour"
    },
    {
     "part": "checkbox-checked-border",
     "role": "primary",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Square outline when checked — matches fill to create a solid filled appearance"
    },
    {
     "part": "checkbox-checkmark",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Checkmark icon colour on primary fill"
    },
    {
     "part": "checkbox-indeterminate-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Square fill in indeterminate state; same as checked bg — source: all 6 systems"
    },
    {
     "part": "checkbox-indeterminate-mark",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Dash/minus icon colour in indeterminate state; IMPORTANT: indeterminate is set via JS (element.indeterminate=true), not an HTML attribute"
    },
    {
     "part": "checkbox-error-border",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Border colour on individual checkbox in error state; Material 3 documents per-checkbox error states"
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Focus ring around the checkbox square; appears on Tab navigation (each checkbox is a separate tab stop, unlike radio groups)"
    },
    {
     "part": "disabled-label",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "disabled-checkbox-bg",
     "role": "disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "disabled-checkbox-border",
     "role": "disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-spacing",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "group-spacing",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "checkbox-size",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The checkbox itself is space-4 square (16px equivalent)"
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Checkbox corner radius; typically 2–4px"
    }
   ]
@@ -3113,6 +4012,9 @@ export const SEMANTICS = {
  "card": {
   "name": "Card",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.container"
   ],
@@ -3123,132 +4025,176 @@ export const SEMANTICS = {
     "part": "root",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The card's main surface, elevated above the page background. Maps to M3 surfaceContainerLow (elevated), surfaceContainerHighest (filled), surface (outlined). Polaris: --p-color-bg-surface."
    },
    {
     "part": "border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outlined variant only (M3 outlined, Ant Design outlined/default). Absent in elevated/filled/quiet variants — shadow provides separation instead."
    },
    {
     "part": "shadow",
     "role": "elevation-1",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Elevated cards and interactive cards. Polaris: --p-shadow-300 by default. Absent on outlined/filled/flat variants."
    },
    {
     "part": "hover-shadow",
     "role": "elevation-2",
     "type": "elevation",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Hover state of interactive cards — shadow lifts to communicate affordance. Ant Design hoverable=true. M3 interactive elevated card."
    },
    {
     "part": "heading",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Primary entity identifier. Should use h2–h6 in correct document hierarchy. ≤5–7 words; ≤3 words if heading doubles as a link — source: Spectrum."
    },
    {
     "part": "subheading",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Secondary title — category, type, or file extension. Spectrum: subheading slot. Ant Design: Card.Meta.title."
    },
    {
     "part": "description",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Body text rendered as <p>. Primer: Card.Description. Ant Design: Card.Meta.description."
    },
    {
     "part": "metadata",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Supporting metadata — date, count, status, file size. Primer: Card.Metadata. Ant Design: Card.Meta."
    },
    {
     "part": "icon",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Decorative or informational icon in the card header. Primer: Card.Icon. Treated as decorative (aria-hidden) by default unless aria-label is provided."
    },
    {
     "part": "media-image",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Cover/preview image area background (visible while image loads). Spectrum: cover-photo or preview slot. Ant Design: cover prop. Primer: Card.Image. Full-bleed, edge-to-edge in header."
    },
    {
     "part": "corner-action",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Top-right interactive control slot. Primer: Card.Action. Ant Design: extra prop. MUST include entity name in accessible label — source: Primer Card.Action guidance."
    },
    {
     "part": "actions-bar",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Bottom action bar containing CTA buttons or links. Ant Design: actions prop (array). Spectrum: actions slot. Background matches root."
    },
    {
     "part": "divider",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Between card sections (Carbon inner card sections, Ant Design Card.Grid cells). Thin 1px rule."
    },
    {
     "part": "selection-indicator",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Checkbox or radio indicator when card is in selectable mode. Carbon selectable tile, Spectrum toggles attribute."
    },
    {
     "part": "selected-bg",
     "role": "accent-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Light tint on selected card. Only present in selectable card variant."
    },
    {
     "part": "inner-card-root",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Background of a nested inner card (Ant Design type='inner'). Slightly recessed vs the parent card surface."
    },
    {
     "part": "skeleton-fill",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Shimmer/skeleton fill during loading state. Ant Design: loading=true. Other systems use a separate Skeleton component."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Focus ring on the card when the card itself is the interactive element (clickable/navigational). Only present when card has href or is a button."
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Internal padding. Polaris: space-400 (16px) default. Primer: normal=16px, condensed=8px, none=0. Use space-6 (24px) for spacious layouts."
    },
    {
     "part": "gap-heading-to-description",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8px gap between heading and description text — source: Primer, Ant Design"
    },
    {
     "part": "gap-description-to-metadata",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "12px gap between description and metadata/actions row"
    },
    {
     "part": "border-radius",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Card corner radius. Polaris: 8px. Material 3: 12px medium, 16px large. Primer: large=12px, medium=8px. Spectrum: varies by variant."
    }
   ]
@@ -3256,6 +4202,9 @@ export const SEMANTICS = {
  "badge": {
   "name": "Badge",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.status"
   ],
@@ -3266,150 +4215,200 @@ export const SEMANTICS = {
     "part": "root",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Base container; background overridden per variant. Pill shape (border-radius: radius-full). Non-interactive — renders as <span> or <div role='status'> for live updates"
    },
    {
     "part": "root-neutral",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Default/neutral variant (archived, paused, draft, ended) — Spectrum 'neutral'; Polaris 'neutral'; Primer 'default'"
    },
    {
     "part": "root-informative",
     "role": "accent-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Active/live/published state — Spectrum 'informative'; Primer 'accent'"
    },
    {
     "part": "root-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Positive/complete/approved — Spectrum 'positive'; Polaris 'success'; Primer 'success'; Carbon green tag"
    },
    {
     "part": "root-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Advisory/needs attention — Spectrum 'notice'; Polaris 'warning'/'attention'; Primer 'attention'/'severe'"
    },
    {
     "part": "root-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Error/rejected/failed — Spectrum 'negative'; Polaris 'critical'; Primer 'danger'"
    },
    {
     "part": "root-accent",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Highlighted/featured/primary category — Spectrum 'accent'; Primer 'primary'"
    },
    {
     "part": "root-outline",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outline variant — no own fill (transparent); the surface shows through. Distinguished by border-outline. Added in the Level-2 pass (B1, 2026-06-26) to round-trip shadcn/MUI `outlined` badges."
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Base text colour; overridden per variant. REQUIRED — text label is the primary information carrier; colour alone is never sufficient (WCAG 1.4.1)"
    },
    {
     "part": "label-neutral",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-informative",
     "role": "on-accent-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-success",
     "role": "on-success",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-warning",
     "role": "on-warning",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-error",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-accent",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-outline",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Outline variant label — neutral foreground on the transparent fill (`on-surface` = the `foreground` role). Added in the Level-2 pass (B1)."
    },
    {
     "part": "border-outline",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outline variant border — the distinguishing part of the outline badge. Added in the Level-2 pass (B1)."
    },
    {
     "part": "icon",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional decorative icon; left of label; inherits same colour as label for variant. REQUIRED: if icon-only (no visible label), icon MUST have aria-label — source: Spectrum"
    },
    {
     "part": "gap-icon-to-label",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "4px horizontal gap between icon and label text — Spectrum uses --spectrum-spacing-75"
    },
    {
     "part": "border-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Pill shape for standard badge. Use radius-sm for square badge variant (e.g., Carbon operational tag with border). Spectrum 'fixed' attribute squares one edge for edge-attached positioning"
    },
    {
     "part": "padding-horizontal",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8px left + right. Spectrum: --spectrum-spacing-200 (S size); Carbon: 8px; Polaris: --p-space-200; Primer: 8px"
    },
    {
     "part": "padding-vertical",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "4px top + bottom. Spectrum S: 2px; M: 4px. Material 3 badge: 4px."
    },
    {
     "part": "border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Optional 1px border for selectable/operational Carbon Tag variants; not present on standard read-only badges. Use for outline/ghost badge variant if needed"
    },
    {
     "part": "dot-indicator",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Polaris progress-incomplete state dot; Ant Design dot variant; M3 small badge. NOT part of standard status-label badge — documented here for completeness"
    },
    {
     "part": "skeleton-fill",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Loading skeleton placeholder; same width as expected label content"
    }
   ]
@@ -3417,6 +4416,9 @@ export const SEMANTICS = {
  "alert": {
   "name": "Alert",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.validation"
   ],
@@ -3427,114 +4429,152 @@ export const SEMANTICS = {
     "part": "root-info",
     "role": "info-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Tinted info background (gap #28). Re-mapped from the interim neutral `muted` to the hue-faithful info-muted, matching Polaris bg-fill-info-secondary / Carbon notification-info-background."
    },
    {
     "part": "root-success",
     "role": "success-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Tinted success background (gap #28). Re-mapped from the full `success` fill to success-muted — the corpus uses a low-chroma wash, not the saturated status colour."
    },
    {
     "part": "root-warning",
     "role": "warning-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Tinted warning background (gap #28). Re-mapped from the full `warning` fill to warning-muted."
    },
    {
     "part": "root-error",
     "role": "error-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "error-muted = tinted error background, distinct from the full error fill used on buttons. (The fourth severity in the muted set — was already correct.)"
    },
    {
     "part": "accent-border-info",
     "role": "info",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Left-side severity accent, info variant → `info` (status-pure, reviewer ruling 2026-06-26). Per-variant fix: the single accent-border→error was wrong for non-error severities (a red accent on a success alert); now status-pure info/success/w"
    },
    {
     "part": "accent-border-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "accent-border-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "accent-border-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-info",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "icon-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "body-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "close-button",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "link-in-body",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "gap-icon-to-content",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "radius-sm (6px) — corpus max ~8px (Carbon 0 · Spectrum 4 · Polaris/Ant/Primer 8). Reviewer ruling 2026-06-25: was radius-md (10px), above the corpus bracket."
    }
   ]
@@ -3542,6 +4582,9 @@ export const SEMANTICS = {
  "modal": {
   "name": "Modal / Dialog",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.modal"
   ],
@@ -3552,72 +4595,96 @@ export const SEMANTICS = {
     "part": "backdrop",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Semi-transparent scrim behind the modal; surface-overlay at 50–70% opacity via CSS"
    },
    {
     "part": "container",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "shadow",
     "role": "elevation-3",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Highest elevation — modal floats above all page content"
    },
    {
     "part": "title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "close-button",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "body-bg",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "body-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "footer-bg",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "divider",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Header-body and body-footer dividers; use when content is scrollable"
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding",
     "role": "space-6",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "24px equivalent; reduce to space-4 for compact/mobile variants"
    },
    {
     "part": "border-radius",
     "role": "radius-xl",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Larger than card; typically 12–16px. Bottom corners may be 0 on mobile full-screen modals."
    }
   ]
@@ -3625,6 +4692,9 @@ export const SEMANTICS = {
  "dropdown-single": {
   "name": "Dropdown / Select",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.single-choice"
   ],
@@ -3635,156 +4705,208 @@ export const SEMANTICS = {
     "part": "trigger-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "trigger-placeholder",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "trigger-chevron",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "The dropdown arrow/chevron icon"
    },
    {
     "part": "trigger-border-focus",
     "role": "primary",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "trigger-border-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "trigger-disabled-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "trigger-disabled-text",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "hint-text",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "error-text",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-shadow",
     "role": "elevation-2",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-default-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-hover-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-hover-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-selected-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-selected-text",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-focused-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "menu-divider",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "menu-border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "radius-sm (6px) — corpus menu radius 4-8px (Carbon 4 · Polaris/Ant 8 · Spectrum 4). Reviewer ruling 2026-06-26: was radius-md (10px), above the corpus max."
    },
    {
     "part": "padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -3792,6 +4914,9 @@ export const SEMANTICS = {
  "tab-bar": {
   "name": "Tab Bar",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.tabs"
   ],
@@ -3802,114 +4927,152 @@ export const SEMANTICS = {
     "part": "container-bg",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "container-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Bottom border of the tab strip; visually separates tabs from the panel below"
    },
    {
     "part": "tab-default-text",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "tab-default-icon",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "tab-hover-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "tab-hover-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Subtle hover background; keep opacity low to avoid obscuring the tab indicator"
    },
    {
     "part": "tab-active-text",
     "role": "primary",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "`underline` variant: active label is accent text (primary) on the neutral container. The `filled`/`pill` variants use tab-active-text-filled instead (text sits on a fill — see TB1)."
    },
    {
     "part": "tab-active-icon",
     "role": "primary",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "`underline` variant active icon (accent on neutral). filled/pill use tab-active-icon-filled."
    },
    {
     "part": "tab-active-bg",
     "role": "secondary",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "`filled`/`pill` variants: the active tab's selected fill (neutral `secondary`, à la Material secondaryContainer). The `underline` variant has no active fill. Added TB1 2026-06-26."
    },
    {
     "part": "tab-active-text-filled",
     "role": "on-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "`filled`/`pill` active label — text-on-fill, so it binds `on-secondary` (not `primary`, which would be illegible on the secondary fill). The TB1 fix."
    },
    {
     "part": "tab-active-icon-filled",
     "role": "on-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "`filled`/`pill` active icon — mirrors tab-active-text-filled (on the secondary fill)."
    },
    {
     "part": "tab-indicator",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "The underline/marker that marks the active tab. Kept `primary` (the accent indicator) for the `underline` variant; the `filled`/`pill` variants convey selection via tab-active-bg instead."
    },
    {
     "part": "tab-disabled-text",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "notification-badge-bg",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Notification count badge on a tab; uses error token to signal urgency"
    },
    {
     "part": "notification-badge-text",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Per-tab horizontal padding"
    },
    {
     "part": "padding-vertical",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "gap-icon-to-label",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -3917,6 +5080,9 @@ export const SEMANTICS = {
  "tooltip": {
   "name": "Tooltip",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.transient"
   ],
@@ -3927,42 +5093,56 @@ export const SEMANTICS = {
     "part": "container",
     "role": "inverse-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The tooltip bubble background — an inverse surface (dark in light mode, light in dark mode), the convention across Spectrum/Carbon/M3/Ant. Rebound from surface-overlay (the scrim/popover role) per reviewer ruling 2026-06-26. NOTE: still aut"
    },
    {
     "part": "label-text",
     "role": "on-inverse-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Tooltip text on the inverse bubble. Pairs with inverse-surface and is contrast-guaranteed by the inverse-surface / inverse-surface-foreground kernel pair (ADR-017, constraint gate)."
    },
    {
     "part": "arrow",
     "role": "inverse-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Optional caret/pointer aimed at the trigger; same fill as the container (a rotated corner). Carbon omits the arrow entirely."
    },
    {
     "part": "shadow",
     "role": "elevation-2",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Floats above page content; lighter than a modal (elevation-3)."
    },
    {
     "part": "padding-horizontal",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8px — corpus 4-8px."
    },
    {
     "part": "padding-vertical",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "4px — the corpus minimum (ticket: min 4px padding)."
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "6px — small; corpus 4-8px."
    }
   ]
@@ -3970,6 +5150,9 @@ export const SEMANTICS = {
  "combobox": {
   "name": "Combobox",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.single-choice",
    "data-entry.text"
@@ -3981,186 +5164,248 @@ export const SEMANTICS = {
     "part": "input-container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Editable text field zone — mirrors `input.container`."
    },
    {
     "part": "input-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "input-border-focus",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Consistent with input.border-focus / dropdown-single.trigger-border-focus."
    },
    {
     "part": "input-border-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "input-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The typed/selected value text."
    },
    {
     "part": "input-placeholder",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "chevron",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Toggle indicator that opens/closes the listbox (dropdown-single.trigger-chevron)."
    },
    {
     "part": "clear-button",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Trailing affordance to clear the current text/value (combobox-specific; mirrors input.trailing-action)."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "input-disabled-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": "input.container-disabled / dropdown-single.trigger-disabled-bg."
    },
    {
     "part": "input-disabled-text",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-required-indicator",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Mirrors input.label-required-indicator."
    },
    {
     "part": "hint-text",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "error-text",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "listbox-bg",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Filtered option list zone — mirrors dropdown-single.menu-bg."
    },
    {
     "part": "listbox-shadow",
     "role": "elevation-2",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "dropdown-single.menu-shadow."
    },
    {
     "part": "option-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-hover-bg",
     "role": "muted",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "dropdown-single.option-hover-bg."
    },
    {
     "part": "option-hover-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-selected-bg",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Consistent with dropdown-single.option-selected-bg."
    },
    {
     "part": "option-selected-text",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "option-focused-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "option-match-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The substring of an option that matches the typed query. Emphasis is TYPOGRAPHIC (font-weight bold), not a separate colour — kept on-surface to avoid an unsanctioned highlight role (review note)."
    },
    {
     "part": "no-results-text",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Empty state shown when the filter matches no options (combobox-specific)."
    },
    {
     "part": "menu-divider",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "input-border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "listbox-border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Aligned to the input radius and within the 0-8px corpus bracket (consistent with the dropdown-single menu-radius fix)."
    },
    {
     "part": "padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Input padding — input.padding-horizontal / dropdown-single."
    },
    {
     "part": "padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -4168,6 +5413,9 @@ export const SEMANTICS = {
  "form-field": {
   "name": "Form field",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.container"
   ],
@@ -4178,36 +5426,48 @@ export const SEMANTICS = {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The field label, programmatically associated with the wrapped control (label for/id or aria-labelledby)."
    },
    {
     "part": "required-indicator",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Asterisk/marker on required fields. Colour must not be the only signal — pair with aria-required / a 'required' affordance."
    },
    {
     "part": "helper",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional supporting/hint text below the control. on-muted (the secondary text level → muted-foreground) — now resolvable after gap #30 (ADR-018)."
    },
    {
     "part": "error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Validation message shown in place of the helper when invalid; associated via aria-describedby + the control's aria-invalid."
    },
    {
     "part": "label-gap",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Gap between label and control (~4px). Mirrors input.gap-label-to-input."
    },
    {
     "part": "message-gap",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Gap between control and helper/error (~4px)."
    }
   ]
@@ -4215,6 +5475,9 @@ export const SEMANTICS = {
  "chip": {
   "name": "Chip",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Constrained-surface variant; density-first.",
+  "whenNotToUse": "",
   "capabilities": [
    "wearable"
   ],
@@ -4225,96 +5488,128 @@ export const SEMANTICS = {
     "part": "root-filled",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Filled (high-emphasis) chip fill — the brand action colour."
    },
    {
     "part": "root-subtle",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Subtle (tonal) chip fill — a raised tint above the OLED true-black surface (wearios brand overlay)."
    },
    {
     "part": "root-compact",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Compact chip (content-hugging, ~32-40dp) — lower-emphasis utility; uses the subtle fill."
    },
    {
     "part": "root-toggle",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Toggle chip row fill (unselected); the trailing control carries the on/off state — see states.selected."
    },
    {
     "part": "primary-label-filled",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Action label on a filled chip."
    },
    {
     "part": "primary-label-subtle",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Action label on a subtle/compact/toggle chip."
    },
    {
     "part": "secondary-label-filled",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional second line on a filled chip — the SAME foreground role as the primary label (on-primary) at reduced opacity. The dim/secondary quality is opacity (~70%), not a separate colour role — see the secondary-label-dim composition_rule (r"
    },
    {
     "part": "secondary-label-subtle",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional second line on a subtle/compact/toggle chip — on-surface at reduced opacity (secondary-label-dim rule)."
    },
    {
     "part": "leading-icon-filled",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional leading icon on a filled chip."
    },
    {
     "part": "leading-icon-subtle",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional leading icon on a subtle/compact/toggle chip."
    },
    {
     "part": "toggle-control-track",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Trailing switch/checkbox/radio track, OFF/unselected. Flips to primary when selected (states.selected)."
    },
    {
     "part": "container-disabled",
     "role": "disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": "Disabled fill — token swap, not opacity-only."
    },
    {
     "part": "label-disabled",
     "role": "on-disabled",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "1.4.3",
     "notes": "Disabled label/icon; must stay legible."
    },
    {
     "part": "corner-radius",
     "role": "radius-full",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Fully-rounded pill — the wearable action shape. Sharp corners read as a card, not an action."
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "16dp content inset."
    },
    {
     "part": "gap-icon-to-label",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8dp between the leading icon and the label stack."
    }
   ]
@@ -4322,6 +5617,9 @@ export const SEMANTICS = {
  "complication": {
   "name": "Complication",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Constrained-surface variant; density-first.",
+  "whenNotToUse": "",
   "capabilities": [
    "wearable"
   ],
@@ -4332,36 +5630,48 @@ export const SEMANTICS = {
     "part": "background",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "graphic-rectangular only — a subtle (often translucent) tinted panel above the face. The circular/corner/modular families are typically backgroundless on the face."
    },
    {
     "part": "gauge-track",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Unfilled portion of a gauge ring/arc (graphic-circular, graphic-corner; optional in graphic-rectangular / modular-small)."
    },
    {
     "part": "gauge-fill",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Filled portion of the gauge — the complication's accent/emphasis."
    },
    {
     "part": "text-primary",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The single most important datum/text. Favoured over text-secondary for Always-On legibility."
    },
    {
     "part": "text-secondary",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Supporting line — graphic-rectangular body row 2, modular-large content line 2."
    },
    {
     "part": "image-tint",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Tint applied to a monochrome glyph/image. A full-colour image (graphic-circular alt content) is rendered untinted."
    }
   ]
@@ -4369,6 +5679,9 @@ export const SEMANTICS = {
  "tile": {
   "name": "Tile",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Constrained-surface variant; density-first.",
+  "whenNotToUse": "",
   "capabilities": [
    "wearable"
   ],
@@ -4379,60 +5692,80 @@ export const SEMANTICS = {
     "part": "tile-background",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Full-screen tile background — true-black on OLED via the wearios brand overlay (semantic.dark.background → oklch(0 0 0))."
    },
    {
     "part": "slot-background",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Optional raised inner card grouping a metric cluster; lifts above the true-black tile background."
    },
    {
     "part": "title-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "One short header line naming the tile/app."
    },
    {
     "part": "primary-value",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The single dominant datum — largest, highest emphasis. Favoured over secondary for legibility."
    },
    {
     "part": "secondary-label",
     "role": "muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "",
     "notes": "Units, deltas, captions, last-updated — lower-emphasis support. Consistent with dropdown-single.hint-text / tab-bar.tab-default-text."
    },
    {
     "part": "icon",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Small leading/status glyph per row (use muted for a lower-emphasis icon)."
    },
    {
     "part": "accent-fill",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Optional gauge/progress arc or accent figure."
    },
    {
     "part": "gauge-track",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Unfilled portion of an optional gauge."
    },
    {
     "part": "divider",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Row divider — used sparingly; true-black already separates groups."
    },
    {
     "part": "pressed-overlay",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Brief whole-tile press overlay confirming the launch tap (see states.pressed)."
    }
   ]
@@ -4440,6 +5773,9 @@ export const SEMANTICS = {
  "drawer": {
   "name": "Drawer",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.modal"
   ],
@@ -4450,84 +5786,112 @@ export const SEMANTICS = {
     "part": "backdrop",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Semi-transparent scrim behind the drawer. Click closes the drawer. Opacity 0.48 — lower than modal (0.64) to signal that the background is still accessible. Source: M3 side sheet, iOS bottom sheet."
    },
    {
     "part": "surface",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The drawer panel background. Same token as modal surface — consistent surface hierarchy."
    },
    {
     "part": "shadow",
     "role": "elevation-3",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Drawers sit higher than cards (elevation-1) and standard modals (elevation-2). Source: M3 side sheet elevation."
    },
    {
     "part": "header-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Separator between header and content area. Appears when content scrolls under the header."
    },
    {
     "part": "title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "close-button",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Icon button (×) in the header. Must have an accessible label: aria-label='Close'. Focus receives focus-ring treatment."
    },
    {
     "part": "close-button-hover",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "close-button-focus",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "content",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Scrollable content area. Padding = space-4 (16px) sides."
    },
    {
     "part": "footer-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Separator above the footer actions area."
    },
    {
     "part": "drag-handle",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "iOS bottom-sheet drag handle. Web drawers slide on click/tap; native drawers use the drag gesture. Omit on web."
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "16px panel padding — Carbon, M3 consensus."
    },
    {
     "part": "padding-vertical",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius-top",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Bottom-sheet top-edge radius on iOS. 12–16pt. Web side drawers have no top radius on the panel itself."
    }
   ]
@@ -4535,6 +5899,9 @@ export const SEMANTICS = {
  "alert-dialog": {
   "name": "Alert Dialog",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Layer transient content above the page; manage focus.",
+  "whenNotToUse": "",
   "capabilities": [
    "overlay.modal"
   ],
@@ -4545,78 +5912,104 @@ export const SEMANTICS = {
     "part": "backdrop",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Full blocking scrim — same opacity as modal. Background MUST be inert while alert-dialog is open."
    },
    {
     "part": "surface",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Dialog panel background."
    },
    {
     "part": "shadow",
     "role": "elevation-3",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Sits at the highest available elevation tier — above modals (elevation-2). elevation-3 is the ceiling of the current scale."
    },
    {
     "part": "title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The confirmation question. Phrased as a question or action: 'Delete this repository?' NOT 'Warning'. Source: Polaris, Primer."
    },
    {
     "part": "title-icon",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Optional warning/destructive icon before the title. Uses `error` for destructive actions. Source: M3 (alert icon), Spectrum."
    },
    {
     "part": "description",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Brief explanation of the consequence. 1–2 sentences max. Never repeat the title."
    },
    {
     "part": "border-radius",
     "role": "radius-lg",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Larger radius than a normal modal — alert-dialogs are compact and focused."
    },
    {
     "part": "padding",
     "role": "space-6",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "24px all sides. Alert-dialogs are compact; generous padding compensates for the small surface area."
    },
    {
     "part": "primary-action",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "The DESTRUCTIVE action button. Uses error token fill (red/destructive) — visually distinct from the secondary/cancel. Must NOT be the default-focused button (user should not be able to trigger it by pressing Enter immediately). Source: Pola"
    },
    {
     "part": "primary-action-label",
     "role": "on-error",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "secondary-action",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Cancel / dismiss button. This is the default-focused button — keyboard Enter hits Cancel, not the destructive action. Source: ARIA APG alert dialog pattern."
    },
    {
     "part": "secondary-action-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "gap-actions",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8–12px gap between action buttons."
    }
   ]
@@ -4624,6 +6017,9 @@ export const SEMANTICS = {
  "underline-tabs": {
   "name": "Underline Tabs",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.tabs"
   ],
@@ -4634,78 +6030,104 @@ export const SEMANTICS = {
     "part": "tab-list",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The bottom border of the tab list container (the full-width underline that all tabs sit above). Provides the visual baseline for the active indicator."
    },
    {
     "part": "tab-item",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Background of each inactive tab. Typically transparent (inherits the page background) — no fill."
    },
    {
     "part": "tab-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Inactive tab label text. Intentionally secondary — `fg-primary` is reserved for the selected tab."
    },
    {
     "part": "tab-label-selected",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Active/selected tab label. Full `fg-primary` (on-surface) weight — visually dominant."
    },
    {
     "part": "tab-active-indicator",
     "role": "primary",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "The underline bar beneath the selected tab. 2px height consensus across all corpus systems. Uses `primary` — this is the brand signal in the tab pattern."
    },
    {
     "part": "tab-label-hover",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Inactive tab label on hover — steps up to full `on-surface` to signal interactivity."
    },
    {
     "part": "tab-item-hover",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Optional subtle background tint on hover. Used by Spectrum and M3; omitted by Primer (colour-only hover). Include for consistency with pointer-device affordance."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Focus ring on the tab item. Wraps the tab label area."
    },
    {
     "part": "tab-icon",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional icon before the label. Uses the same colour as the label — inactive: fg-secondary; selected: fg-primary."
    },
    {
     "part": "tab-icon-selected",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "tab-count",
     "role": "fg-subtle",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional count badge inline with the label (e.g. 'Issues (42)'). Uses fg-subtle to de-emphasise the metadata."
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "16px tab horizontal padding. Polaris / Carbon / Primer consensus."
    },
    {
     "part": "padding-vertical",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "12px vertical padding. Tab height ≈ space-10 (40px)."
    }
   ]
@@ -4713,6 +6135,9 @@ export const SEMANTICS = {
  "segmented-navigation": {
   "name": "Segmented Navigation",
   "tier": "Nest",
+  "purpose": "structure",
+  "whenToUse": "Move the user between locations or views.",
+  "whenNotToUse": "",
   "capabilities": [
    "navigation.tabs",
    "selection.single-choice"
@@ -4724,78 +6149,104 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The outer pill/rectangle that holds all segments. Surface-raised = slightly elevated background behind the segments. Source: iOS UISegmentedControl, M3 secondary navigation."
    },
    {
     "part": "container-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "1px border around the outer container on web; omit on iOS (no outer border in UISegmentedControl)."
    },
    {
     "part": "container-border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outer radius = radius-md (matches the inner segment radius). Full pill (radius-full) is an alternative for very compact mode-switchers."
    },
    {
     "part": "segment",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Inactive segment background. Inherits the container colour — no distinguishing fill."
    },
    {
     "part": "segment-selected",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Selected segment background. NOTE: opposite of intuition — the selected segment is `surface` (flat/elevated appearance on a `surface-raised` container), creating the appearance that the selected segment 'pops' up. NOT `primary`. Source: iOS"
    },
    {
     "part": "segment-selected-shadow",
     "role": "elevation-1",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Subtle shadow on the selected segment to reinforce the 'lifted' appearance. Source: iOS UISegmentedControl."
    },
    {
     "part": "segment-label",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Inactive segment label. fg-secondary (muted) to distinguish from the selected segment."
    },
    {
     "part": "segment-label-selected",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Selected segment label. Full fg-primary weight."
    },
    {
     "part": "segment-icon",
     "role": "fg-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "segment-icon-selected",
     "role": "fg-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "12px per segment. Compact by design."
    },
    {
     "part": "padding-vertical",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "4px vertical. Segmented control is compact."
    }
   ]
@@ -4803,6 +6254,9 @@ export const SEMANTICS = {
  "inline-error": {
   "name": "Inline Error",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.validation"
   ],
@@ -4813,30 +6267,40 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Background of the inline-error row. Transparent — inherits the form background."
    },
    {
     "part": "icon",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Error indicator icon (⚠ or ✕) preceding the message text. One of the three required error indicators (border, icon, text) per Carbon/WCAG 1.4.1. 16px — matches the text line height."
    },
    {
     "part": "text",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Error message text. Uses `error` token — same as the field border in error state. Typography = typography-label-sm or equivalent (12–13px). 1–2 sentences max."
    },
    {
     "part": "gap",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "4px gap between icon and text. Standard icon-label gap."
    },
    {
     "part": "margin-top",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "4px between the field bottom edge and the inline-error. Close enough to clearly associate; not so close as to feel cramped."
    }
   ]
@@ -4844,6 +6308,9 @@ export const SEMANTICS = {
  "textarea": {
   "name": "Textarea",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Collect input; the field bundle + a11y labelling carry it.",
+  "whenNotToUse": "",
   "capabilities": [
    "data-entry.text"
   ],
@@ -4854,96 +6321,128 @@ export const SEMANTICS = {
     "part": "container",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The multi-line field background — same surface tier as input."
    },
    {
     "part": "border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-focus",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": "Border on keyboard focus — all corpus systems change the border on focus; never rely on the ring alone."
    },
    {
     "part": "border-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "label-required-indicator",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Asterisk marking a required field — source: Polaris, Primer, Carbon."
    },
    {
     "part": "input-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "placeholder-text",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "helper-text",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional supporting text below the field (on-muted, gap #30 payoff)."
    },
    {
     "part": "character-counter",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional live count (e.g. 120/280); muted until near the limit."
    },
    {
     "part": "character-counter-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Counter colour once the limit is exceeded."
    },
    {
     "part": "resize-handle",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Corner grip for manual vertical resize. Web only; native textareas auto-grow or scroll."
    },
    {
     "part": "padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "12px side padding — Carbon/Polaris consensus."
    },
    {
     "part": "padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -4951,6 +6450,9 @@ export const SEMANTICS = {
  "tag": {
   "name": "Tag",
   "tier": "Component",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.status"
   ],
@@ -4961,54 +6463,72 @@ export const SEMANTICS = {
     "part": "root",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Base container (rounded-rect); non-interactive (<span>). Category colour overrides per instance."
    },
    {
     "part": "root-neutral",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Default category with no semantic colour."
    },
    {
     "part": "root-accent",
     "role": "accent-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Highlighted/featured category."
    },
    {
     "part": "label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Category text — the primary signal. REQUIRED (colour alone insufficient, WCAG 1.4.1)."
    },
    {
     "part": "label-accent",
     "role": "on-accent-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "border-outline",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Outline variant border (transparent fill)."
    },
    {
     "part": "padding-horizontal",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "8px — Polaris/Carbon tag padding."
    },
    {
     "part": "padding-vertical",
     "role": "space-1",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Tags use a small radius (rounded-rect), distinct from badge's full pill — Carbon/Polaris tag shape."
    }
   ]
@@ -5016,6 +6536,9 @@ export const SEMANTICS = {
  "panel": {
   "name": "Panel",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.container"
   ],
@@ -5026,48 +6549,64 @@ export const SEMANTICS = {
     "part": "root",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Panel background — base surface tier (a section of the page, not an elevated entity)."
    },
    {
     "part": "border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Panel boundary; many systems use a subtle border instead of elevation."
    },
    {
     "part": "header",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Header band — same surface, separated by a border rather than a fill."
    },
    {
     "part": "header-title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Section heading (h2/h3 in the page hierarchy)."
    },
    {
     "part": "header-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Separator between header and content."
    },
    {
     "part": "content",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "16px — Polaris/Carbon section padding."
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5075,6 +6614,9 @@ export const SEMANTICS = {
  "well": {
   "name": "Well",
   "tier": "Component",
+  "purpose": "structure",
+  "whenToUse": "Arrange and space other components.",
+  "whenNotToUse": "",
   "capabilities": [
    "layout.container"
   ],
@@ -5085,30 +6627,40 @@ export const SEMANTICS = {
     "part": "root",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Inset surface — a recessed/tinted fill (muted) vs the page surface, signalling depth-below rather than elevation-above. iOS grouped background / Bootstrap well."
    },
    {
     "part": "border",
     "role": "border-subtle",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Optional hairline; inset surfaces often rely on fill contrast rather than a strong border."
    },
    {
     "part": "content",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Content text on the inset fill; the muted fill keeps on-surface legible."
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "16px inset padding."
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5116,6 +6668,9 @@ export const SEMANTICS = {
  "icon-button": {
   "name": "Icon Button",
   "tier": "Component",
+  "purpose": "emphasis",
+  "whenToUse": "Signal the priority of an action and let the user trigger it.",
+  "whenNotToUse": "",
   "capabilities": [
    "action.primary"
   ],
@@ -5126,48 +6681,64 @@ export const SEMANTICS = {
     "part": "root",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Default (ghost) icon-button: transparent/surface background, borderless until hover."
    },
    {
     "part": "root-primary",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Filled variant for a prominent single icon action."
    },
    {
     "part": "icon",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The glyph — the sole visible content. REQUIRES an accessible name (aria-label)."
    },
    {
     "part": "icon-primary",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Glyph on the filled variant."
    },
    {
     "part": "root-hover",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Hover tint for the ghost variant."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Square padding around the glyph; the hit target (not the glyph) must meet the touch floor."
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5175,6 +6746,9 @@ export const SEMANTICS = {
  "link-button": {
   "name": "Link Button",
   "tier": "Component",
+  "purpose": "emphasis",
+  "whenToUse": "Signal the priority of an action and let the user trigger it.",
+  "whenNotToUse": "",
   "capabilities": [
    "action.primary"
   ],
@@ -5185,60 +6759,80 @@ export const SEMANTICS = {
     "part": "root",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Filled, button-level prominence — but the element is <a href>. Mirrors button's primary fill."
    },
    {
     "part": "label",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "root-secondary",
     "role": "secondary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Lower-emphasis (neutral fill) variant."
    },
    {
     "part": "label-secondary",
     "role": "on-secondary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "icon",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional leading/trailing icon (e.g. external-link)."
    },
    {
     "part": "root-hover",
     "role": "primary-hover",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding-vertical",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5246,6 +6840,9 @@ export const SEMANTICS = {
  "danger-link": {
   "name": "Danger Link",
   "tier": "Component",
+  "purpose": "emphasis",
+  "whenToUse": "Signal the priority of an action and let the user trigger it.",
+  "whenNotToUse": "",
   "capabilities": [
    "action.destructive"
   ],
@@ -5256,24 +6853,32 @@ export const SEMANTICS = {
     "part": "label",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Link text in the destructive/error role — signals danger while remaining a link (Carbon danger link / Polaris critical plain action)."
    },
    {
     "part": "icon",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Optional leading icon (trash/warning) in the same error role."
    },
    {
     "part": "label-hover",
     "role": "error",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": "Underline appears/strengthens on hover; colour stays error (darken tint deferred)."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    }
   ]
@@ -5281,6 +6886,9 @@ export const SEMANTICS = {
  "banner": {
   "name": "Banner",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.validation"
   ],
@@ -5291,90 +6899,120 @@ export const SEMANTICS = {
     "part": "root",
     "role": "info-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Full-width banner background; tinted *-muted per severity (gap #28). Default informational."
    },
    {
     "part": "root-info",
     "role": "info-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "root-success",
     "role": "success-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "root-warning",
     "role": "warning-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "root-error",
     "role": "error-muted",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon",
     "role": "info",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": "Severity icon (info default); per-variant colour matches severity. Non-colour indicator (WCAG 1.4.1)."
    },
    {
     "part": "icon-success",
     "role": "success",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-warning",
     "role": "warning",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "icon-error",
     "role": "error",
     "type": "colour",
+    "purpose": "status",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Banner heading on the muted tint."
    },
    {
     "part": "body-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "action",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Optional inline action link (e.g. 'Upgrade', 'Learn more')."
    },
    {
     "part": "close-button",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Dismiss control (needs aria-label); only for dismissible banners."
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding-vertical",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5382,6 +7020,9 @@ export const SEMANTICS = {
  "toast": {
   "name": "Toast",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Communicate system state or the result of an action.",
+  "whenNotToUse": "",
   "capabilities": [
    "feedback.validation"
   ],
@@ -5392,54 +7033,72 @@ export const SEMANTICS = {
     "part": "root",
     "role": "inverse-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Toast bubble — an inverse (high-contrast) surface so it reads over any content. Mirrors tooltip's inverse-surface (ADR-017)."
    },
    {
     "part": "message",
     "role": "on-inverse-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Toast text on the inverse surface (contrast-guaranteed pair, ADR-017)."
    },
    {
     "part": "action",
     "role": "on-inverse-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional Undo/action, emphasised on the inverse surface."
    },
    {
     "part": "icon",
     "role": "on-inverse-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional status icon; the inverse bubble is the base surface."
    },
    {
     "part": "close-button",
     "role": "on-inverse-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional manual dismiss; needs aria-label."
    },
    {
     "part": "shadow",
     "role": "elevation-2",
     "type": "elevation",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Toast floats above content."
    },
    {
     "part": "padding-horizontal",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "padding-vertical",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5447,6 +7106,9 @@ export const SEMANTICS = {
  "selection-cards": {
   "name": "Selection Cards",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.single-choice"
   ],
@@ -5457,72 +7119,96 @@ export const SEMANTICS = {
     "part": "card",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Unselected option card; built on the card model — the whole card is the radio target."
    },
    {
     "part": "card-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "card-selected",
     "role": "accent-surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Selected option fill — accent-surface tint (mirrors card.selected). NOT a primary fill."
    },
    {
     "part": "card-selected-border",
     "role": "border-strong",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Selected border steps border→border-strong (Spectrum/Carbon selectable card)."
    },
    {
     "part": "indicator",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Radio dot/check affordance; unselected ring uses border."
    },
    {
     "part": "indicator-selected",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Selected indicator fills primary (the single brand signal); the card fill stays accent-surface."
    },
    {
     "part": "title",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "description",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Supporting description (on-muted, gap #30)."
    },
    {
     "part": "icon",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Optional option icon/illustration slot."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding",
     "role": "space-4",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-md",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5530,6 +7216,9 @@ export const SEMANTICS = {
  "multi-select": {
   "name": "Multi-select",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.multiple-choice"
   ],
@@ -5540,96 +7229,128 @@ export const SEMANTICS = {
     "part": "trigger",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Closed control showing the selected summary (count or tokens). Mirrors dropdown-single trigger."
    },
    {
     "part": "trigger-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "trigger-border-focus",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "selected-token",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Optional in-trigger chips for selected values."
    },
    {
     "part": "selected-token-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "placeholder-text",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "listbox",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "The popup option list (overlay surface)."
    },
    {
     "part": "option",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-hover",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-checkbox",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Per-option checkbox indicator (unchecked ring = border)."
    },
    {
     "part": "option-checkbox-selected",
     "role": "primary",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "Checked option indicator fills primary."
    },
    {
     "part": "option-check",
     "role": "on-primary",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Checkmark on the filled indicator."
    },
    {
     "part": "option-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding-horizontal",
     "role": "space-3",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
@@ -5637,6 +7358,9 @@ export const SEMANTICS = {
  "tag-input": {
   "name": "Tag Input",
   "tier": "Nest",
+  "purpose": "status",
+  "whenToUse": "Let the user pick among options; selected state must read clearly.",
+  "whenNotToUse": "",
   "capabilities": [
    "selection.multiple-choice"
   ],
@@ -5647,96 +7371,128 @@ export const SEMANTICS = {
     "part": "field",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Input field that also holds entered tokens (text entry + token row)."
    },
    {
     "part": "field-border",
     "role": "border",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "field-border-focus",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "token",
     "role": "muted",
     "type": "colour",
+    "purpose": "emphasis",
+    "wcag": "",
     "notes": "A committed value rendered as a removable chip inside the field."
    },
    {
     "part": "token-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "token-remove",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Per-token remove (×); needs an accessible label e.g. 'Remove {value}'."
    },
    {
     "part": "input-text",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "Live text being typed before it commits to a token."
    },
    {
     "part": "placeholder-text",
     "role": "placeholder",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "listbox",
     "role": "surface-overlay",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": "Suggestion popup of existing values matching the typed text."
    },
    {
     "part": "option",
     "role": "surface",
     "type": "colour",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-hover",
     "role": "surface-raised",
     "type": "colour",
+    "purpose": "feedback",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "option-label",
     "role": "on-surface",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": ""
    },
    {
     "part": "create-hint",
     "role": "on-muted",
     "type": "colour",
+    "purpose": "legibility",
+    "wcag": "1.4.3",
     "notes": "The 'Create …' affordance when typed text matches no existing option."
    },
    {
     "part": "focus-ring",
     "role": "focus",
     "type": "colour",
+    "purpose": "accessibility",
+    "wcag": "2.4.7",
     "notes": ""
    },
    {
     "part": "padding-horizontal",
     "role": "space-2",
     "type": "space",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    },
    {
     "part": "border-radius",
     "role": "radius-sm",
     "type": "radius",
+    "purpose": "structure",
+    "wcag": "",
     "notes": ""
    }
   ]
