@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/chart";
 
 const meta: Meta = {
-  title: "Charts/Flow & Hierarchy",
+  title: "Nests/Charts/Flow & Hierarchy",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1800 },

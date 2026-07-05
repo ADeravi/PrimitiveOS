@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 const meta: Meta<typeof Textarea> = {
-  title: "UI/Textarea",
+  title: "Components/Data entry/Textarea",
   component: Textarea,
   tags: ["autodocs"],
   args: { onChange: fn() },

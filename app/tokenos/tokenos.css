@@ -1,0 +1,53 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+ * TokenOS token layer for a ScnTw clone (ADR-090).
+ *
+ * This replaces ScnTw's Radix / design-layer token source with the TokenOS engine.
+ * Copy these two generated files from TokenOS `platform-outputs/web/` next to this file
+ * (or import them from the published package), then `@import "./tokenos.css";` from the
+ * clone's `app/globals.css` — AFTER `@import "tailwindcss";` and INSTEAD OF the Radix
+ * `@import "@radix-ui/colors/*"` lines and the hand-written shadcn `:root { --primary: … }`
+ * block.
+ *
+ *   1. tokens-referential.css — every tier (primitive / semantic / functional / radius /
+ *      motion / elevation / space), light `:root` + `.dark`, with colours emitted as
+ *      `var(--primitive-*)` refs so editing a primitive cascades live.
+ *   2. shadcn-theme.css — the adapter: the 57 shadcn vars (`--primary`, `--muted`, `--ring`,
+ *      `--radius-*`, `--duration-*`, `--shadow-*`, `--chart-*`, `--sidebar-*`) bound to the
+ *      TokenOS vars above. Dark mode flips automatically (it points at `--semantic-*`).
+ * ───────────────────────────────────────────────────────────────────────────── */
+@import "./tokens-referential.css";
+@import "./shadcn-theme.css";
+
+/* Spacing seam (ADR-106). Tailwind v4 sizes every h-/w-/p-/m-/gap-/size- utility as
+   calc(var(--spacing) * n); ScnTw uses that default scale, so spacing was the one identity tier
+   NOT flowing through the engine. TokenOS's space scale is linear (--space-1 = 0.25rem = Tailwind's
+   own default), so pointing --spacing at it makes every spacing utility engine-driven — pixel-identical
+   today, and a density/brand overlay that moves the space base now rescales the whole UI. */
+:root { --spacing: var(--space-1); }
+
+/* Motion seam (ADR-107). Tailwind v4's bare `transition*` utilities fall back to
+   --default-transition-{duration,timing-function}; ScnTw's components use them, so component motion was
+   not engine-driven. --duration-fast is 150ms (= Tailwind's default duration → identical), and pointing
+   the timing function at --ease-standard hands the engine the curve. A brand's motion overlay
+   (its --duration-* and --ease-* tokens) now flows into every bare transition. (Explicit duration-N and ease-* utilities and
+   tw-animate-css keyframe `animate-*` still bypass this — a separate follow-on.) */
+:root {
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-standard);
+}
+
+/* Keyframe-animation seam (ADR-109). tw-animate-css's `animate-*` (dialog/dropdown/popover/accordion
+   enter+exit) resolve as `<name> var(--tw-animation-duration, var(--tw-duration, <literal>))
+   var(--tw-ease, <literal>) …` — the timing is a literal fallback (.15s/.2s/ease), the last gap. Redefine
+   the theme `--animate-*` shorthands (imported from tw-animate-css above) so those fallbacks read the
+   engine's motion tokens instead: enter/exit → --duration-fast, content-expand → --duration-normal, both
+   → --ease-standard. A brand's motion overlay now drives keyframe animations too. Explicit per-element
+   duration-* and ease-* still win via --tw-duration and --tw-ease. */
+:root {
+  --animate-in: enter var(--tw-animation-duration, var(--tw-duration, var(--duration-fast))) var(--tw-ease, var(--ease-standard)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-out: exit var(--tw-animation-duration, var(--tw-duration, var(--duration-fast))) var(--tw-ease, var(--ease-standard)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-accordion-down: accordion-down var(--tw-animation-duration, var(--tw-duration, var(--duration-normal))) var(--tw-ease, var(--ease-standard)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-accordion-up: accordion-up var(--tw-animation-duration, var(--tw-duration, var(--duration-normal))) var(--tw-ease, var(--ease-standard)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-collapsible-down: collapsible-down var(--tw-animation-duration, var(--tw-duration, var(--duration-normal))) var(--tw-ease, var(--ease-standard)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-collapsible-up: collapsible-up var(--tw-animation-duration, var(--tw-duration, var(--duration-normal))) var(--tw-ease, var(--ease-standard)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+}

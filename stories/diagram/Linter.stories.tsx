@@ -65,7 +65,7 @@ function Report({ intent = "explore", nodes = CLEAN_N, edges = CLEAN_E }: { inte
 }
 
 const meta: Meta<typeof Report> = {
-  title: "Diagram/Linter",
+  title: "Nests/Diagrams/Linter",
   component: Report,
   parameters: {
     layout: "centered",

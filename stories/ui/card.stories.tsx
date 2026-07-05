@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 const meta: Meta<typeof Card> = {
-  title: "UI/Card",
+  title: "Nests/Layout/Card",
   component: Card,
   tags: ["autodocs"],
   parameters: {

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 
-const meta: Meta = { title: "UI/Drawer", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Overlays/Drawer", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

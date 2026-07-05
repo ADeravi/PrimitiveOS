@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 
-const meta: Meta = { title: "UI/NavigationMenu", tags: ["autodocs"], parameters: { layout: "padded" } };
+const meta: Meta = { title: "Nests/Navigation/NavigationMenu", tags: ["autodocs"], parameters: { layout: "padded" } };
 export default meta;
 type Story = StoryObj;
 

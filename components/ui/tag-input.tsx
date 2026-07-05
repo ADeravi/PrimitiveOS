@@ -44,7 +44,7 @@ export function TagInput({
   return (
     <div
       className={cn(
-        "flex min-h-9 w-72 flex-wrap items-center gap-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
+        "flex min-h-9 w-72 flex-wrap items-center gap-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[length:var(--state-focus-ring-width,3px)] focus-within:ring-ring/50",
         disabled && "pointer-events-none opacity-50",
         className
       )}

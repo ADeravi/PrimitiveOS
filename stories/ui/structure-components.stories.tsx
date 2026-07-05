@@ -12,7 +12,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
 
 const meta: Meta = {
-  title: "UI/Structure",
+  title: "Nests/Layout/Structure",
   parameters: {
     docs: {
       description: {

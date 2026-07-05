@@ -25,7 +25,7 @@ const MESSAGES: SEdge[] = [
 ];
 
 const meta: Meta<typeof SequenceDiagram> = {
-  title: "Diagram/Sequence",
+  title: "Nests/Diagrams/Sequence",
   component: SequenceDiagram,
   parameters: {
     layout: "centered",

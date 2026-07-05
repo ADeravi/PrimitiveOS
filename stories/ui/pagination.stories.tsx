@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
-const meta: Meta = { title: "UI/Pagination", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Navigation/Pagination", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

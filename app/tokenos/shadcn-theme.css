@@ -1,0 +1,64 @@
+/* TokenOS → shadcn adapter (ADR-090) — generated. Do not edit by hand.
+   Layer this over the TokenOS token CSS (tokens + utilities + referential); ScnTw's
+   shadcn components then render on the TokenOS engine. Dark mode flips automatically. */
+:root {
+  --primary: var(--semantic-primary);
+  --primary-foreground: var(--semantic-primary-foreground);
+  --secondary: var(--semantic-secondary);
+  --secondary-foreground: var(--semantic-secondary-foreground);
+  --accent: var(--semantic-accent);
+  --accent-foreground: var(--semantic-accent-foreground);
+  --background: var(--semantic-background);
+  --foreground: var(--semantic-foreground);
+  --card: var(--semantic-card);
+  --card-foreground: var(--semantic-foreground);
+  --popover: var(--semantic-card);
+  --popover-foreground: var(--semantic-foreground);
+  --muted: var(--semantic-muted);
+  --muted-foreground: var(--semantic-muted-foreground);
+  --border: var(--semantic-border);
+  --input: var(--semantic-border);
+  --ring: var(--semantic-ring);
+  --destructive: var(--semantic-destructive);
+  --destructive-foreground: var(--semantic-on-error);
+  --success: var(--functional-success);
+  --success-foreground: var(--functional-success-foreground);
+  --warning: var(--functional-warning);
+  --warning-foreground: var(--functional-warning-foreground);
+  --info: var(--functional-info);
+  --info-foreground: var(--functional-info-foreground);
+  --rose: var(--functional-rose);
+  --chart-1: var(--semantic-chart-1);
+  --chart-2: var(--semantic-chart-2);
+  --chart-3: var(--semantic-chart-3);
+  --chart-4: var(--semantic-chart-4);
+  --chart-5: var(--semantic-chart-5);
+  --sidebar: var(--semantic-sidebar);
+  --sidebar-foreground: var(--semantic-sidebar-foreground);
+  --sidebar-primary: var(--semantic-sidebar-primary);
+  --sidebar-primary-foreground: var(--semantic-sidebar-primary-foreground);
+  --sidebar-accent: var(--semantic-sidebar-accent);
+  --sidebar-accent-foreground: var(--semantic-sidebar-accent-foreground);
+  --sidebar-border: var(--semantic-sidebar-border);
+  --sidebar-ring: var(--semantic-sidebar-ring);
+  --radius: var(--radius-md);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --duration-instant: var(--motion-duration-instant);
+  --duration-fast: var(--motion-duration-fast);
+  --duration-normal: var(--motion-duration-normal);
+  --duration-slow: var(--motion-duration-slow);
+  --ease-standard: var(--motion-ease-standard);
+  --ease-enter: var(--motion-ease-enter);
+  --ease-exit: var(--motion-ease-exit);
+  --ease-spring: var(--motion-ease-spring);
+  --shadow-2xs: var(--elevation-shadow-2xs);
+  --shadow-xs: var(--elevation-shadow-xs);
+  --shadow-sm: var(--elevation-shadow-sm);
+  --shadow-md: var(--elevation-shadow-md);
+  --shadow-lg: var(--elevation-shadow-lg);
+  --shadow-xl: var(--elevation-shadow-xl);
+  --shadow-2xl: var(--elevation-shadow-xl);
+}

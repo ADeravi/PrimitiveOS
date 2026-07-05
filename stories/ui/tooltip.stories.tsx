@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
-const meta: Meta = { title: "UI/Tooltip", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Overlays/Tooltip", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

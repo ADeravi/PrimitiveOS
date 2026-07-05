@@ -10,7 +10,7 @@ import {
 } from "@/components/charts";
 
 const meta: Meta = {
-  title: "Charts/Interactive/Flow & Hierarchy",
+  title: "Nests/Charts/Interactive/Flow & Hierarchy",
   parameters: {
     layout: "centered",
     chromatic: { delay: 1800 },

@@ -18,7 +18,7 @@ const SCATTER = Array.from({ length: 30 }, (_, i) => ({ price: 10 + i + (i % 5) 
 const MANY = Array.from({ length: 14 }, (_, i) => ({ team: "Team " + (i + 1), n: 100 - i * 6 }));
 
 const meta: Meta<typeof Chart> = {
-  title: "Charts/Guardrail",
+  title: "Nests/Charts/Guardrail",
   component: Chart,
   parameters: {
     layout: "centered",

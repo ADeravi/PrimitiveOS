@@ -84,7 +84,7 @@ const LANE_E: SEdge[] = [
 ];
 
 const meta: Meta<typeof Diagram> = {
-  title: "Diagram/Overview",
+  title: "Nests/Diagrams/Overview",
   component: Diagram,
   parameters: {
     layout: "centered",

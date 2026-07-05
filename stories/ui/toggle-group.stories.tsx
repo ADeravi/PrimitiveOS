@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
-const meta: Meta = { title: "UI/ToggleGroup", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Selection/ToggleGroup", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

@@ -3,7 +3,7 @@ import { expect, userEvent, within } from "storybook/test";
 import { ChartNetwork } from "@/components/charts";
 
 const meta: Meta = {
-  title: "Charts/Interactive/Network",
+  title: "Nests/Charts/Interactive/Network",
   parameters: {
     layout: "centered",
     chromatic: { delay: 2000 },

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 
 const meta: Meta = {
-  title: "Charts/Graph Idioms",
+  title: "Nests/Charts/Graph Idioms",
   parameters: {
     layout: "fullscreen",
     docs: {

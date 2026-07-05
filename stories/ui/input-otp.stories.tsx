@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 
-const meta: Meta = { title: "UI/InputOTP", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Data entry/InputOTP", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

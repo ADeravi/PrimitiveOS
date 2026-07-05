@@ -30,7 +30,7 @@ import {
 import { FilterPill } from "@/components/ui/filter-pill";
 
 const meta: Meta = {
-  title: "Charts/Interactive/Linked Dashboard",
+  title: "Nests/Charts/Interactive/Linked Dashboard",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1800 },

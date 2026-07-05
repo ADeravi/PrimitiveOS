@@ -134,7 +134,7 @@ function Canon() {
 }
 
 const meta: Meta = {
-  title: "Diagram/Policies",
+  title: "Nests/Diagrams/Policies",
   parameters: { layout: "padded" },
 };
 export default meta;

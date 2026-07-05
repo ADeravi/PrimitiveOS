@@ -13,7 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 const meta: Meta<typeof Select> = {
-  title: "UI/Select",
+  title: "Nests/Selection/Select",
   component: Select,
   tags: ["autodocs"],
   parameters: {

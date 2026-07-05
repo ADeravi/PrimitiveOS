@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@/components/ui/context-menu";
 
-const meta: Meta = { title: "UI/ContextMenu", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Overlays/ContextMenu", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Separator } from "@/components/ui/separator";
 
-const meta: Meta = { title: "UI/Separator", tags: ["autodocs"] };
+const meta: Meta = { title: "Components/Layout/Separator", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, userEvent, within } from "storybook/test";
 
 const meta: Meta = {
-  title: "Charts/Index",
+  title: "Nests/Charts/Index",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1200 },

@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Info } from "lucide-react";
 
 const meta: Meta = {
-  title: "Patterns/Settings Page",
+  title: "Nests/Patterns/Settings Page",
   parameters: {
     layout: "fullscreen",
     docs: {

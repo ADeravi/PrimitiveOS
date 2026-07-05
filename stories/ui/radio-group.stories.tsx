@@ -4,7 +4,7 @@ import { userEvent, within, expect } from "storybook/test";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
-const meta: Meta = { title: "UI/RadioGroup", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Selection/RadioGroup", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

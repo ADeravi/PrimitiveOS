@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const meta: Meta<typeof Dialog> = {
-  title: "UI/Dialog",
+  title: "Nests/Overlays/Dialog",
   component: Dialog,
   tags: ["autodocs"],
   parameters: {

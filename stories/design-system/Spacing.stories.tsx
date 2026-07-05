@@ -2,7 +2,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const meta: Meta = {
-  title: "Design System/Spacing",
+  title: "Primitives/Spacing",
   parameters: { layout: "fullscreen" },
   tags: ["autodocs"],
 };

@@ -23,7 +23,7 @@ function GithubIcon() {
 }
 
 const meta: Meta = {
-  title: "Patterns/Login Page",
+  title: "Nests/Patterns/Login Page",
   parameters: {
     layout: "fullscreen",
     docs: {

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const meta: Meta = { title: "UI/Table", tags: ["autodocs"] };
+const meta: Meta = { title: "Nests/Data display/Table", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

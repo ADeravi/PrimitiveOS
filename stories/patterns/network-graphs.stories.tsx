@@ -33,7 +33,7 @@ try {
 }
 
 const meta: Meta = {
-  title: "Charts/Network Graphs",
+  title: "Nests/Charts/Network Graphs",
   parameters: {
     layout: "fullscreen",
     docs: {
