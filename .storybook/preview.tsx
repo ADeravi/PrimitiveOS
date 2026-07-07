@@ -783,9 +783,9 @@ const preview: Preview = {
         order: [
           "Introduction",
           "Foundations",
-          ["Brands", "Live Primitives"],
+          ["Genome", "Brands", "Live Primitives"],
           "Primitives",
-          ["Colour", "Typography", "Spacing", "Radius", "Elevation", "Motion"],
+          ["Colour", "Typography", "Spacing", "Radius", "Elevation", "Motion", "State", "Z-Index"],
           "Fusions",
           "Components",
           ["Actions", "Data entry", "Selection", "Feedback", "Layout", "Media"],
