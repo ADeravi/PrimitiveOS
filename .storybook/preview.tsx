@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "../app/globals.css";
 // Per-layer bespoke component shapes + font personality, keyed on `ds-<layer>`.
 import "./component-themes.css";
+// Executable genome profiles — REAL engine deltas from `tokenos build --profile <name>`
+// (changed CSS vars vs the default, light :root). Applying one = a point in knob-space.
+import profileDeltas from "../app/tokenos/profile-deltas.json";
 
 // Docs pages render with the default light theme; preview-head.html flips
 // them dark via `.dark .sbdocs` CSS so they follow the dark toggle too.
@@ -719,6 +722,26 @@ export const globalTypes = {
     },
     defaultValue: "default",
   },
+
+  // Genome profile — apply a whole executable axis bundle at once (real engine deltas).
+  // Light-mode preview; each profile is a point in the ~29-knob genome space.
+  genomeProfile: {
+    description: "Genome profile — an executable axis bundle (tokenos --profile)",
+    toolbar: {
+      title: "Profile",
+      icon: "beaker",
+      items: [
+        { value: "",         title: "None (shadcn base)" },
+        { value: "material", title: "Material — hover+tonal+surface+motion+radius" },
+        { value: "carbon",   title: "Carbon — sharp radii" },
+        { value: "apple",    title: "Apple — surface+spring+rounded" },
+        { value: "fluent",   title: "Fluent" },
+        { value: "radix",    title: "Radix — warm greys" },
+      ],
+      dynamicTitle: true,
+    },
+    defaultValue: "",
+  },
 };
 
 // Canvas + docs-page surfaces per layer — SB10 ignores appPreviewBg, so the
@@ -805,9 +828,12 @@ const preview: Preview = {
 
   decorators: [
     (Story, context) => {
-      const { designSystem, radius, primaryColor, density, theme } = context.globals as {
-        designSystem: string; radius: string; primaryColor: string; density: string; theme?: string;
+      const { designSystem, radius, primaryColor, density, theme, genomeProfile } = context.globals as {
+        designSystem: string; radius: string; primaryColor: string; density: string; theme?: string; genomeProfile?: string;
       };
+      // The selected profile's real engine deltas (changed --semantic-*/--radius-*/--motion-* vars),
+      // applied over everything so a whole point-in-knob-space lands on the live components.
+      const profileVars = (profileDeltas as Record<string, Record<string, string>>)[genomeProfile ?? ""] ?? {};
       const look = LOOK[designSystem] ?? LOOK.shadcn;
       const dark = theme === "dark";
       // Arm the soft fade BEFORE the new tokens hit the DOM.
@@ -857,6 +883,7 @@ const preview: Preview = {
         ...look.shadows,
         ...look.motion,
         ...preset,
+        ...profileVars,
         ...(radius       ? { "--radius":  radius       } : {}),
         ...(primaryColor ? { "--primary": primaryColor } : {}),
         "--font-sans": look.font,
