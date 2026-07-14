@@ -46,14 +46,22 @@ jobs:
       # Pinned to TokenOS main: when TokenOS ships a token change, this goes red until ScnTw runs
       # `npm run sync:tokenos` — which is the entire point. Pin a tag/SHA instead if you want ScnTw to
       # adopt TokenOS changes deliberately rather than continuously.
+      #
+      # ADeravi/TokenOS is PRIVATE, so the default GITHUB_TOKEN cannot read it — this needs a
+      # TOKENOS_READ_TOKEN secret: a fine-grained PAT, READ-ONLY on Contents, scoped to ADeravi/TokenOS
+      # ONLY (Settings → Secrets and variables → Actions). Without it this job fails at checkout; that is
+      # deliberate — a missing credential should be loud, never a silently skipped gate. The `tokens-json`
+      # job needs no token and keeps guarding the published surface regardless.
+      #
+      # This PAT exists only because ScnTw COPIES files from TokenOS. Publishing @tokenos/tokens-web
+      # (TOKENOS-INTEGRATION-PLAN.md F6) removes this job, the checkout and the credential entirely.
       - name: Check out TokenOS
         uses: actions/checkout@v4
         with:
           repository: ADeravi/TokenOS
           ref: main
           path: .tokenos
-          # If ADeravi/TokenOS is private, add a read-scoped PAT as a secret and uncomment:
-          # token: ${{ secrets.TOKENOS_READ_TOKEN }}
+          token: ${{ secrets.TOKENOS_READ_TOKEN }}
 
       # TokenOS is a pnpm workspace — mirrors its own .github/workflows/build-tokens.yml.
       - uses: pnpm/action-setup@v4
