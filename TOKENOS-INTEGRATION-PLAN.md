@@ -79,10 +79,18 @@ anyone was careless; they rotted because **nothing checked**.
 **Definition of done** — all met
 - ✅ Both checks run on every PR (`on: pull_request`), as separate jobs.
 - ✅ Drift **fails**, verified not assumed: tampering `--semantic-chart-1` in the committed CSS → gate 1 exit 1
-  *and* gate 2 exit 1; restored → both exit 0. *(Verified by running the exact commands the workflow runs — not
-  through the Actions runner, which I can't execute here.)*
+  *and* gate 2 exit 1; restored → both exit 0.
 - ✅ TokenOS acquisition pinned + reproducible: `repository: ADeravi/TokenOS`, `ref: main`, fixed `path`,
   `TOKENOS_ROOT` env.
+- ✅ **Canary** (`scripts/canary-drift.mjs`, run by both jobs): plants known-bad drift and *requires* the gate to
+  fail, restoring the tree afterwards. This upgrades "verified once, locally, by a human" into "re-proven on every
+  CI run" — because a check that always exits 0 is worse than no check, and that silence-as-pass is precisely how
+  the chart palette rotted. Meta-verified: neutering the gate makes the canary FAIL (exit 1), as it must; a tamper
+  pattern that stops matching is also a hard failure, so the canary can't go vacuous either.
+
+**Residual (honest).** The *step wiring* has been proven by running the exact commands the workflow runs, and by
+the canary — but not through the GitHub Actions runner, which can't be executed from here. Trigger the workflow
+once via `workflow_dispatch` (Actions tab) to smoke-test the runner setup; after that the canary carries it.
 
 **Note.** `ref: main` means ScnTw goes red when TokenOS ships a token change, until someone runs
 `npm run sync:tokenos` — that is the intent. Pin a tag/SHA if you'd rather adopt TokenOS changes deliberately.

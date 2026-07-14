@@ -30,6 +30,12 @@ jobs:
       - name: tokens.json up to date
         run: npm run tokens -- --check
 
+      # A green --check only means something if it CAN go red. Plant known-bad drift and require the gate to
+      # fail — otherwise a neutered check would pass for the wrong reason (silence-as-pass, the exact failure
+      # that let the chart palette rot). Restores the tree itself.
+      - name: Canary — prove the gate bites
+        run: node scripts/canary-drift.mjs tokens
+
   # Gate 2 — the committed CSS must equal TokenOS's gated output.
   tokenos-sync:
     name: app/tokenos/ is in sync with TokenOS
@@ -70,3 +76,8 @@ jobs:
         env:
           TOKENOS_ROOT: ${{ github.workspace }}/.tokenos
         run: npm run sync:tokenos -- --check
+
+      - name: Canary — prove the gate bites
+        env:
+          TOKENOS_ROOT: ${{ github.workspace }}/.tokenos
+        run: node scripts/canary-drift.mjs sync
