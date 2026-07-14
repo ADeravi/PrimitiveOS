@@ -1,0 +1,72 @@
+name: Tokens drift
+
+# ScnTw consumes TokenOS by COPYING files (app/tokenos/*.css), and publishes tokens.json from them. Copies rot
+# silently — that is how ScnTw shipped the CVD-broken shadcn chart palette long after TokenOS replaced it with
+# Okabe-Ito and gated it (TokenOS ADR-172). Nothing checked. These two gates are that check.
+# See TOKENOS-INTEGRATION-PLAN.md (F1/F2) and archive/README.md.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # Gate 1 — the PUBLISHED tokens.json must match the committed TokenOS CSS.
+  # Deliberately independent of TokenOS: app/tokenos/*.css is committed here, so this gate keeps working even if
+  # the TokenOS checkout below is unavailable. Catches "synced the CSS but forgot to regenerate tokens.json".
+  tokens-json:
+    name: tokens.json is regenerated from app/tokenos/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install
+
+      - name: tokens.json up to date
+        run: npm run tokens -- --check
+
+  # Gate 2 — the committed CSS must equal TokenOS's gated output.
+  tokenos-sync:
+    name: app/tokenos/ is in sync with TokenOS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to TokenOS main: when TokenOS ships a token change, this goes red until ScnTw runs
+      # `npm run sync:tokenos` — which is the entire point. Pin a tag/SHA instead if you want ScnTw to
+      # adopt TokenOS changes deliberately rather than continuously.
+      - name: Check out TokenOS
+        uses: actions/checkout@v4
+        with:
+          repository: ADeravi/TokenOS
+          ref: main
+          path: .tokenos
+          # If ADeravi/TokenOS is private, add a read-scoped PAT as a secret and uncomment:
+          # token: ${{ secrets.TOKENOS_READ_TOKEN }}
+
+      # TokenOS is a pnpm workspace — mirrors its own .github/workflows/build-tokens.yml.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install
+
+      - name: Build TokenOS web output
+        working-directory: .tokenos
+        run: |
+          pnpm install --frozen-lockfile
+          node packages/core/index.mjs
+
+      - name: app/tokenos/ matches TokenOS
+        env:
+          TOKENOS_ROOT: ${{ github.workspace }}/.tokenos
+        run: npm run sync:tokenos -- --check
