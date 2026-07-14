@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit",
     "test-storybook": "test-storybook",
     "tokens": "node scripts/export-tokens.mjs",
+    "tokens:profiles": "node scripts/gen-profile-deltas.mjs",
     "sync:tokenos": "node scripts/sync-tokenos.mjs",
     "probe:diagram": "npx -y tsx tools/diagram-critique/elk-probe.ts",
     "lint:policies": "npx -y tsx tools/diagram-critique/elk-probe.ts",

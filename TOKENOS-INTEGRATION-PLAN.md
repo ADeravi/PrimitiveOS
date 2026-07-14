@@ -98,7 +98,37 @@ If `ADeravi/TokenOS` is private, `tokenos-sync` needs a read-scoped PAT (a comme
 
 ---
 
-## F3 — `profile-deltas.json` drifts (third vector) · **P1** · M
+## F3 — `profile-deltas.json` drifts (third vector) · **P1** · M · ✅ DONE
+
+> **Measured drift (worse than described below).** 6 profiles while TokenOS had **8** — `atlassian` and
+> `polaris` were simply missing. Stale hover values (`--semantic-primary-hover` 0.41 vs the engine's 0.43,
+> `--semantic-input-hover` 0.862 vs 0.842 — the same lightness-shift drift that rotted
+> `tokens-referential.css`). material's `--semantic-inverse-primary` was neutral `oklch(0.83 0 0)` where the
+> engine derives `oklch(0.83 0.09 300)` from its purple primary. And it was being **hand-edited** — the exact
+> manual process this replaces.
+>
+> **Fixed** by `scripts/gen-profile-deltas.mjs` (`npm run tokens:profiles`): per profile, build TokenOS with
+> `TOKENOS_PROFILE` into a **temp dir** (never TokenOS's own `platform-outputs` — a non-base build left there
+> poisons other checks; that was BL-47), parse the resolved light `:root` of `web/tokens-light.css`, record every
+> var differing from the default build.
+>
+> **DoD — all met.** One command, no hand-editing (8 profiles now) · profile list **read from** TokenOS
+> `tokens/profiles.json` (hardcoding is exactly what let atlassian/polaris go missing) · gated in CI with a
+> **canary** proving it bites (verified; check ~9s) · shape unchanged, `preview.tsx` unmodified, `material` still
+> switches · **zero loss** — every var in the previous hand-edited file is reproduced by the engine with
+> identical values, including the hand-added `--semantic-secondary-foreground` / `--semantic-accent-foreground`.
+> The manual fix was right; it is now derived.
+>
+> **DoD deviation, deliberate.** The plan said "fold into `sync:tokenos` so one command covers all TokenOS-derived
+> artifacts." Rejected on evidence: `sync:tokenos` is a pure ~instant copy, this runs 9 builds — folding them
+> would make a copy command silently expensive. Separate commands, both gated.
+>
+> **NEW FINDING — a second hardcoded profile list (NOT fixed).** `.storybook/preview.tsx`'s genome-profile
+> toolbar has a hardcoded `items` array of **6** profiles, so `atlassian`/`polaris` now exist in the JSON but are
+> **not selectable in Storybook**. Same drift class, one layer up. Left alone because that file has uncommitted
+> work in it. Fix: derive the toolbar from `Object.keys(profileDeltas)` (filtering `$`-keys) with a title lookup.
+
+<details><summary>original F3 entry</summary>
 
 **Problem.** It's TokenOS-derived — its own `$generated` header says *"from `tokenos build --profile <name>`
 … Regenerate when profiles/axes change"* — but TokenOS emits no such file, so it's produced by an ad-hoc
@@ -115,6 +145,8 @@ TokenOS-derived artifacts.
 - Covered by `sync:tokenos -- --check` → drift fails CI (F2).
 - Storybook profile switching still works (spot-check `material`).
 - Shape unchanged (`.storybook/preview.tsx` consumes it unmodified).
+
+</details>
 
 ---
 
@@ -172,13 +204,18 @@ link first, registry later); delete `app/tokenos/*.css` + `sync-tokenos.mjs`.
 - ✅ **F1 + F2** — done together (the published file was wrong *and* nothing guarded it; fixing one without the
   other just resets the clock). `tokens.json` now regenerates from the TokenOS-synced CSS with the contract
   preserved, and both drift gates run in CI.
-- ⬜ **F3** — `profile-deltas.json`, the last silent drift vector. **Next.**
-- ⬜ **F4** — high-contrast layer. Needs a product call before code.
-- ⬜ **F5** — hygiene (`@radix-ui/colors`, empty `platform-outputs/`).
+- ✅ **F3** — `profile-deltas.json` is generated + gated (8 profiles; zero loss vs the hand-edited version).
+- ⬜ **F4** — high-contrast layer. Needs a product call before code. **Next.**
+- ⬜ **F5** — hygiene (`@radix-ui/colors`, empty `platform-outputs/`), plus the `preview.tsx` toolbar list
+  (F3's new finding — `atlassian`/`polaris` aren't selectable).
 - ⬜ **F6** — `@tokenos/tokens-web`; the structural end state.
 
-After F1+F2, the *published* surface is correct and guarded. **F3 is still open**, so the Storybook's profile
-switching can still drift silently — that's the remaining hole.
+**All three drift vectors are now generated + gated** (`tokens-referential.css`/`shadcn-theme.css` via
+`sync:tokenos`, `tokens.json` via `tokens`, `profile-deltas.json` via `tokens:profiles`), each with a canary
+proving the gate bites. Nothing TokenOS-derived is hand-maintained any more.
+
+What remains is **not drift**: F4 is a product decision (ScnTw has no HC layer at all), F5 is hygiene, F6 is the
+structural end state that deletes the copies, the CI checkout and the PAT.
 
 F6 supersedes F1's sync-side and F2's `sync:tokenos` check — but F1's *generator* survives, since
 `tokens.json` is ScnTw's published surface regardless of how tokens arrive.

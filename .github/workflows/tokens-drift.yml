@@ -89,3 +89,16 @@ jobs:
         env:
           TOKENOS_ROOT: ${{ github.workspace }}/.tokenos
         run: node scripts/canary-drift.mjs sync
+
+      # F3 — profile-deltas.json drives Storybook's profile switching and is TokenOS-derived. It went stale
+      # unnoticed (6 profiles while TokenOS had 8; old hover values) because nothing regenerated or checked it.
+      # Rebuilds TokenOS once per profile into temp dirs (~9s total).
+      - name: profile-deltas.json matches TokenOS
+        env:
+          TOKENOS_ROOT: ${{ github.workspace }}/.tokenos
+        run: npm run tokens:profiles -- --check
+
+      - name: Canary — prove the gate bites
+        env:
+          TOKENOS_ROOT: ${{ github.workspace }}/.tokenos
+        run: node scripts/canary-drift.mjs profiles

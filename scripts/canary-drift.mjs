@@ -40,6 +40,13 @@ const CASES = {
     tamper: (s) => `${s}\n/* canary: planted drift */\n`,
     argv: [join(ROOT, "scripts/sync-tokenos.mjs"), "--check"],
   },
+  // Gate 3: profile-deltas.json must equal the engine's real per-profile deltas (F3).
+  profiles: {
+    label: "`npm run tokens:profiles -- --check`",
+    file: join(ROOT, "app/tokenos/profile-deltas.json"),
+    tamper: (s) => s.replace(/"--radius-sm": "[^"]*"/, '"--radius-sm": "9.99rem"'),
+    argv: [join(ROOT, "scripts/gen-profile-deltas.mjs"), "--check"],
+  },
 };
 
 const target = process.argv[2];
