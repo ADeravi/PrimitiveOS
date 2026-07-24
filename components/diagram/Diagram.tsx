@@ -456,7 +456,13 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
-      autoungrabify: false,
+      // ELK-routed idioms (flow/tree/state/er) paint STATIC precomputed routes via
+      // EdgeLayer — the orthogonal path, including which side of each node box it
+      // meets, is fixed at layout time. Leaving nodes grabbable there lets a drag move
+      // the box while its routes stay put, so edges visibly detach. Lock the nodes in
+      // exactly those idioms; force/exploratory kinds (cluster, similarity, sequence,
+      // swimlane) keep live cytoscape routing and stay draggable.
+      autoungrabify: elkRouted,
     });
     cyRef.current = cy;
     setCyState(cy);
