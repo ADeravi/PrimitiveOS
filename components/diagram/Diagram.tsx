@@ -21,7 +21,7 @@ import { GroupLayer } from "./GroupLayer";
 import { EdgeLayer } from "./EdgeLayer";
 import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
-import { wrap, uniformSizes, elkOptions } from "./layout";
+import { wrap, uniformSizes, elkOptions, type ElkTune } from "./layout";
 import { TYPE, OPACITY, RADIUS, STROKE, neutralRoles } from "./primitives";
 import { planEdges, buildElkGraph, extractRoutes, type Side, type RoutedEdge } from "./edgePolicy";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
@@ -123,7 +123,7 @@ function labelFor(n: SNode, role: NodeRole): string {
 }
 
 // ── layout per kind ──────────────────────────────────────────────────────────
-function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
+function layoutFor(kind: DiagramKind, tune?: ElkTune): cytoscape.LayoutOptions {
   if (kind === "cluster") {
     // force layout, but cluster-aware: tight communities, clear gaps between
     // them — so proximity actually encodes relatedness (then hulls confirm it).
@@ -133,17 +133,17 @@ function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
       gravityRange: 3.4, numIter: 2500,
     } as unknown as cytoscape.LayoutOptions;
   }
-  return elkLayout(kind);
+  return elkLayout(kind, tune);
 }
 
 // ── ELK layout per kind ──────────────────────────────────────────────────────
-function elkLayout(kind: DiagramKind): cytoscape.LayoutOptions {
+function elkLayout(kind: DiagramKind, tune?: ElkTune): cytoscape.LayoutOptions {
   return {
     name: "elk",
     fit: true,
     padding: 24,
     nodeDimensionsIncludeLabels: false,
-    elk: elkOptions(kind),
+    elk: elkOptions(kind, tune),
   } as unknown as cytoscape.LayoutOptions;
 }
 
@@ -206,6 +206,14 @@ export interface DiagramProps {
   height?: number;
   /** Dev/QA badge: shows the chosen kind + element count. */
   showGrade?: boolean;
+  /** Flow direction for the layered idioms (flow/tree/state/er, and swimlane bands).
+   *  ELK-native: DOWN | UP | RIGHT | LEFT. Ignored where layout isn't ELK-driven
+   *  (similarity is distance-true; cluster is force). Falls back to the per-kind
+   *  default when omitted. Meaning is unchanged — only the reading axis moves. */
+  direction?: ElkTune["direction"];
+  /** Spacing multiplier for the same idioms: 1 = default, <1 compact, >1 roomy.
+   *  Clamped to [0.5, 2] by the engine, so it can never render unreadable. */
+  spacing?: number;
   /** THE escape hatch — warns; reserved for genuine edge cases. */
   unsafe?: boolean;
 }
@@ -213,7 +221,9 @@ export interface DiagramProps {
 /** A guardrail component: props are meaning only; the result is always a clean
  *  box-and-arrow diagram. There is no prop that can produce an overlapping,
  *  mis-routed, or unreadable result. */
-export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, unsafe = false }: DiagramProps) {
+export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, unsafe = false }: DiagramProps) {
+  // The layout tuning, meaning-only: reading direction + how tightly it packs.
+  const tune: ElkTune = { direction, spacing };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails — use only for known edge cases.");
   }
@@ -446,7 +456,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         ? ({ name: "preset", positions: sim.pos, fit: true, padding: 40 } as unknown as cytoscape.LayoutOptions)
         : elkRouted
           ? ({ name: "preset", fit: true, padding: 30 } as unknown as cytoscape.LayoutOptions)
-          : layoutFor(resolvedKind);
+          : layoutFor(resolvedKind, tune);
 
     const cy = cytoscape({
       container: host,
@@ -473,7 +483,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // node positions AND edge routes, place the nodes, and hand the routes to the
     // EdgeLayer — so the rendered routing is exactly what the policy/probe verify.
     if (elkRouted) {
-      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans);
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans, undefined, tune);
       elkEngine.layout(graph as never).then((res) => {
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => { const n = cy.$id(b.id); if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 }); }));
@@ -584,7 +594,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [built, resolvedKind, buildStyle]);
+  }, [built, resolvedKind, buildStyle, direction, spacing]);
 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.

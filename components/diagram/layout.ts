@@ -78,17 +78,32 @@ export function uniformSizes(
   return out;
 }
 
+// Optional, consumer-supplied layout tuning. Meaning-only stays the rule: these
+// don't change WHAT is drawn, only the reading direction and how tightly it packs.
+// Both are bounded/normalised below, so no value can produce an unreadable result —
+// the guardrail holds.
+export interface ElkTune {
+  /** Flow direction, ELK-native. Overrides the per-kind default. */
+  direction?: "DOWN" | "UP" | "RIGHT" | "LEFT";
+  /** Spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped to [0.5, 2]. */
+  spacing?: number;
+}
+
 // The ELK layered option set. BRANDES_KOEPF + BALANCED straightens the main spine
 // and centres parents over children, so the trunk is one vertical line and
 // decision branches fan symmetrically. Verified headless in the layout probe.
-export function elkOptions(kind: DiagramKind): Record<string, string | number | boolean> {
-  const dir = kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN";
+export function elkOptions(kind: DiagramKind, tune?: ElkTune): Record<string, string | number | boolean> {
+  const dir = tune?.direction || (kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN");
+  // Clamp so a stray value can never collapse nodes onto each other or explode the
+  // canvas — the spacing knob stays inside a readable band.
+  const s = Math.min(2, Math.max(0.5, tune?.spacing && tune.spacing > 0 ? tune.spacing : 1));
+  const scale = (v: number) => Math.round(v * s);
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? sp(9) : sp(10), // 48 / 64
-    "elk.spacing.nodeNode": sp(8),                                                  // 40
-    "elk.layered.spacing.edgeNodeBetweenLayers": sp(6),                             // 24
+    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10)), // 48 / 64 @ s=1
+    "elk.spacing.nodeNode": scale(sp(8)),                                                  // 40 @ s=1
+    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6)),                             // 24 @ s=1
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",

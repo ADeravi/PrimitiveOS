@@ -36,15 +36,15 @@ import { cva } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import { jsx as jsx4 } from "react/jsx-runtime";
 var buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[length:var(--state-focus-ring-width,3px)] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-[var(--state-disabled-opacity)] aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
-        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        default: "bg-primary text-primary-foreground hover:bg-[var(--semantic-primary-hover)]",
+        destructive: "bg-destructive text-white hover:bg-[var(--semantic-destructive-hover)] focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-[var(--semantic-input-hover)]",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-[var(--semantic-secondary-hover)]",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-[var(--semantic-accent-hover)]",
         link: "text-primary underline-offset-4 hover:underline"
       },
       size: {
@@ -853,17 +853,19 @@ function uniformSizes(nodes, roleOf, opts = {}) {
   }
   return out;
 }
-function elkOptions(kind) {
-  const dir = kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN";
+function elkOptions(kind, tune) {
+  const dir = tune?.direction || (kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN");
+  const s = Math.min(2, Math.max(0.5, tune?.spacing && tune.spacing > 0 ? tune.spacing : 1));
+  const scale = (v) => Math.round(v * s);
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? sp(9) : sp(10),
-    // 48 / 64
-    "elk.spacing.nodeNode": sp(8),
-    // 40
-    "elk.layered.spacing.edgeNodeBetweenLayers": sp(6),
-    // 24
+    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10)),
+    // 48 / 64 @ s=1
+    "elk.spacing.nodeNode": scale(sp(8)),
+    // 40 @ s=1
+    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6)),
+    // 24 @ s=1
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
@@ -931,7 +933,7 @@ function planEdges(kind, nodes, edges, roleOf) {
   });
 }
 var portId = (node, side) => `${node}@@${side}`;
-function buildElkGraph(kind, nodeIds, sizeOf, plans, partitionOf) {
+function buildElkGraph(kind, nodeIds, sizeOf, plans, partitionOf, tune) {
   const sides = /* @__PURE__ */ new Map();
   nodeIds.forEach((id) => sides.set(id, /* @__PURE__ */ new Set()));
   plans.forEach((p) => {
@@ -939,7 +941,7 @@ function buildElkGraph(kind, nodeIds, sizeOf, plans, partitionOf) {
     sides.get(p.target)?.add(p.targetSide);
   });
   const layoutOptions = {};
-  for (const [k, v] of Object.entries(elkOptions(kind))) layoutOptions[k] = String(v);
+  for (const [k, v] of Object.entries(elkOptions(kind, tune))) layoutOptions[k] = String(v);
   layoutOptions["elk.edgeRouting"] = "ORTHOGONAL";
   if (partitionOf) layoutOptions["elk.partitioning.activate"] = "true";
   return {
@@ -1079,7 +1081,7 @@ function labelFor(n, role) {
   if (role === "entity" && n.attrs && n.attrs.length) return head + "\n" + n.attrs.map((a) => "\xB7 " + a).join("\n");
   return head;
 }
-function layoutFor(kind) {
+function layoutFor(kind, tune) {
   if (kind === "cluster") {
     return {
       name: "fcose",
@@ -1095,15 +1097,15 @@ function layoutFor(kind) {
       numIter: 2500
     };
   }
-  return elkLayout(kind);
+  return elkLayout(kind, tune);
 }
-function elkLayout(kind) {
+function elkLayout(kind, tune) {
   return {
     name: "elk",
     fit: true,
     padding: 24,
     nodeDimensionsIncludeLabels: false,
-    elk: elkOptions(kind)
+    elk: elkOptions(kind, tune)
   };
 }
 var MAX_NODES = 60;
@@ -1154,7 +1156,8 @@ function defaultRole(kind, n) {
   if (kind === "tree") return "node";
   return "process";
 }
-function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, unsafe = false }) {
+function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, unsafe = false }) {
+  const tune = { direction, spacing };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails \u2014 use only for known edge cases.");
   }
@@ -1366,7 +1369,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         }
       }))
     ];
-    const layout = resolvedKind === "similarity" && sim ? { name: "preset", positions: sim.pos, fit: true, padding: 40 } : elkRouted ? { name: "preset", fit: true, padding: 30 } : layoutFor(resolvedKind);
+    const layout = resolvedKind === "similarity" && sim ? { name: "preset", positions: sim.pos, fit: true, padding: 40 } : elkRouted ? { name: "preset", fit: true, padding: 30 } : layoutFor(resolvedKind, tune);
     const cy = cytoscape2({
       container: host,
       elements,
@@ -1375,14 +1378,20 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
-      autoungrabify: false
+      // ELK-routed idioms (flow/tree/state/er) paint STATIC precomputed routes via
+      // EdgeLayer — the orthogonal path, including which side of each node box it
+      // meets, is fixed at layout time. Leaving nodes grabbable there lets a drag move
+      // the box while its routes stay put, so edges visibly detach. Lock the nodes in
+      // exactly those idioms; force/exploratory kinds (cluster, similarity, sequence,
+      // swimlane) keep live cytoscape routing and stay draggable.
+      autoungrabify: elkRouted
     });
     cyRef.current = cy;
     setCyState(cy);
     setPalette(t0.c);
     setBgColor(t0.bg);
     if (elkRouted) {
-      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id), edgePlans);
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id), edgePlans, void 0, tune);
       elkEngine.layout(graph).then((res) => {
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => {
@@ -1491,7 +1500,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       cyRef.current = null;
       setCyState(null);
     };
-  }, [built, resolvedKind, buildStyle]);
+  }, [built, resolvedKind, buildStyle, direction, spacing]);
   const notes = [
     ...blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout \u2014 showing the distance-true (MDS) embedding instead.`] : [],
     ...built.notes,
