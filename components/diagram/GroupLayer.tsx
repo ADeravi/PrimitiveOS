@@ -96,8 +96,12 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor
             { x: n.x! + hw, y: n.y! + hh }, { x: n.x! - hw, y: n.y! + hh },
           );
         });
-        // Constant clearance now — the extents are already in the hull.
-        const pad = 22;
+        // Clearance = HALF the members' shortest edge. Tying it to node size keeps the
+        // breathing room proportional: big boxes get a generous margin, small ones stay
+        // tight, and the hull reads as one region rather than shrink-wrap. (Constant
+        // padding looked cramped around large nodes and bloated around small ones.)
+        const shortEdge = Math.min(...arr.map((n) => Math.min(n.w || 40, n.h || 24)));
+        const pad = Math.max(12, shortEdge * 0.5);
         const cx = arr.reduce((s, n) => s + n.x!, 0) / arr.length;
         const topY = Math.min(...arr.map((n) => n.y! - (n.h || 24) / 2)) - pad - 10;
         out.push({ key, color: colorFor(key), path: hullPath(corners, pad, 18), labelXY: { x: cx, y: topY } });

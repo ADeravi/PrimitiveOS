@@ -553,7 +553,8 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg })
             { x: n.x - hw, y: n.y + hh }
           );
         });
-        const pad = 22;
+        const shortEdge = Math.min(...arr.map((n) => Math.min(n.w || 40, n.h || 24)));
+        const pad = Math.max(12, shortEdge * 0.5);
         const cx = arr.reduce((s, n) => s + n.x, 0) / arr.length;
         const topY = Math.min(...arr.map((n) => n.y - (n.h || 24) / 2)) - pad - 10;
         out.push({ key, color: colorFor(key), path: hullPath(corners, pad, 18), labelXY: { x: cx, y: topY } });
@@ -643,18 +644,24 @@ function rectsOverlap(a, b, pad = 2) {
 }
 var CHAR_W = 7.4;
 var LBL_H = 20;
-function placeLabel(points, textLen, boxes) {
+function placeLabel(points, textLen, boxes, taken = []) {
   const w = textLen * CHAR_W + 12, h = LBL_H;
   const segs = [];
   for (let i = 0; i < points.length - 1; i++) segs.push([points[i], points[i + 1]]);
   segs.sort((p, q) => Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) - Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y));
+  const ts = [0.5, 0.38, 0.62, 0.26, 0.74];
   for (const [p, q] of segs) {
-    const cx = (p.x + q.x) / 2, cy = (p.y + q.y) / 2;
-    const r = { x: cx - w / 2, y: cy - h / 2, w, h };
-    if (!boxes.some((b) => rectsOverlap(r, b))) return { x: cx, y: cy, clear: true };
+    for (const t of ts) {
+      const cx2 = p.x + (q.x - p.x) * t, cy2 = p.y + (q.y - p.y) * t;
+      const r = { x: cx2 - w / 2, y: cy2 - h / 2, w, h };
+      const hitsNode = boxes.some((b) => rectsOverlap(r, b));
+      const hitsLabel = taken.some((o) => rectsOverlap(r, o));
+      if (!hitsNode && !hitsLabel) return { x: cx2, y: cy2, clear: true, rect: r };
+    }
   }
   const f = segs[0] ?? [points[0], points[points.length - 1]];
-  return { x: (f[0].x + f[1].x) / 2, y: (f[0].y + f[1].y) / 2, clear: false };
+  const cx = (f[0].x + f[1].x) / 2, cy = (f[0].y + f[1].y) / 2;
+  return { x: cx, y: cy, clear: false, rect: { x: cx - w / 2, y: cy - h / 2, w, h } };
 }
 
 // components/diagram/EdgeLayer.tsx
@@ -700,6 +707,7 @@ function EdgeLayer({ cy, routes, plans, labels }) {
     const p = n.position();
     return { id: n.id(), x: p.x - n.width() / 2, y: p.y - n.height() / 2, w: n.width(), h: n.height() };
   }) : [], [cy, tf]);
+  const placedLabels = [];
   return /* @__PURE__ */ jsx11("svg", { style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }, "aria-hidden": true, children: /* @__PURE__ */ jsx11("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: routes.map((r) => {
     if (!r.points || r.points.length < 2) return null;
     const p = planByIdx.get(r.index);
@@ -712,7 +720,8 @@ function EdgeLayer({ cy, routes, plans, labels }) {
     const lbl = labels[r.index];
     let chip = null;
     if (lbl) {
-      const at = placeLabel(r.points, lbl.length, boxes);
+      const at = placeLabel(r.points, lbl.length, boxes, placedLabels);
+      placedLabels.push(at.rect);
       const mx = at.x, my = at.y;
       const fs = 12, w = lbl.length * fs * 0.62 + 12, h = fs + 8;
       chip = /* @__PURE__ */ jsxs6("g", { children: [
@@ -889,6 +898,19 @@ function elkOptions(kind, tune) {
     // 40 @ 1
     "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6), layerGap),
     // 24 @ 1
+    // ── ALIGNMENT / OVERLAP POLICY ──────────────────────────────────────────
+    // Two edges sharing a lane are drawn as ONE line: the reader can't see there
+    // are two, nor where either goes. These three keep them apart at the source,
+    // so the linter's route.overlapsEdge should never have anything to report.
+    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap),
+    // parallel edges get their own lane
+    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap),
+    // and stay apart within one
+    "elk.layered.mergeEdges": false,
+    // never fuse two edges into one trunk
+    // Labels are placed by our own placer (edgeLint.placeLabel), but ELK still
+    // needs to reserve room for them or they land on top of the routes.
+    "elk.spacing.edgeLabel": 8,
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",

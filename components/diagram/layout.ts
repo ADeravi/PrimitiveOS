@@ -118,6 +118,16 @@ export function elkOptions(kind: DiagramKind, tune?: ElkTune): Record<string, st
     "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10), layerGap), // 48 / 64 @ 1
     "elk.spacing.nodeNode": scale(sp(8), inLayerGap),                                                // 40 @ 1
     "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6), layerGap),                             // 24 @ 1
+    // ── ALIGNMENT / OVERLAP POLICY ──────────────────────────────────────────
+    // Two edges sharing a lane are drawn as ONE line: the reader can't see there
+    // are two, nor where either goes. These three keep them apart at the source,
+    // so the linter's route.overlapsEdge should never have anything to report.
+    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap), // parallel edges get their own lane
+    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap),                    // and stay apart within one
+    "elk.layered.mergeEdges": false,                                     // never fuse two edges into one trunk
+    // Labels are placed by our own placer (edgeLint.placeLabel), but ELK still
+    // needs to reserve room for them or they land on top of the routes.
+    "elk.spacing.edgeLabel": 8,
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",

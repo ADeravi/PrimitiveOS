@@ -52,7 +52,8 @@ function crosses(s1: [Pt, Pt], s2: [Pt, Pt]): boolean {
 }
 
 // axis-aligned rect overlap (rects are {x,y,w,h}, top-left origin).
-function rectsOverlap(a: { x: number; y: number; w: number; h: number }, b: NodeBox, pad = 2): boolean {
+type Rect = { x: number; y: number; w: number; h: number };
+function rectsOverlap(a: Rect, b: Rect, pad = 2): boolean {
   return a.x < b.x + b.w - pad && a.x + a.w > b.x + pad && a.y < b.y + b.h - pad && a.y + a.h > b.y + pad;
 }
 const CHAR_W = 7.4, LBL_H = 20;
@@ -61,18 +62,48 @@ const CHAR_W = 7.4, LBL_H = 20;
 // straight segment whose chip is clear of every node; if none is clear, fall
 // back to the longest segment and report it. Shared by the renderer (EdgeLayer)
 // and the linter, so what's drawn is what's verified.
-export function placeLabel(points: Pt[], textLen: number, boxes: NodeBox[]): { x: number; y: number; clear: boolean } {
+export function placeLabel(
+  points: Pt[],
+  textLen: number,
+  boxes: NodeBox[],
+  /** Chips already placed on this diagram — a label must dodge these too. Callers
+   *  that place many labels pass the running list; each returned `rect` is appended.
+   *  Without it every label is placed independently and two can land on the same
+   *  spot, which is unreadable exactly where the diagram is busiest. */
+  taken: { x: number; y: number; w: number; h: number }[] = []
+): { x: number; y: number; clear: boolean; rect: { x: number; y: number; w: number; h: number } } {
   const w = textLen * CHAR_W + 12, h = LBL_H;
   const segs: [Pt, Pt][] = [];
   for (let i = 0; i < points.length - 1; i++) segs.push([points[i], points[i + 1]]);
   segs.sort((p, q) => Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) - Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y));
+  // Midpoint first (a label reads best mid-segment), then slide along the segment
+  // before giving up on it — a near-miss shouldn't cost the whole edge its position.
+  const ts = [0.5, 0.38, 0.62, 0.26, 0.74];
   for (const [p, q] of segs) {
-    const cx = (p.x + q.x) / 2, cy = (p.y + q.y) / 2;
-    const r = { x: cx - w / 2, y: cy - h / 2, w, h };
-    if (!boxes.some((b) => rectsOverlap(r, b))) return { x: cx, y: cy, clear: true };
+    for (const t of ts) {
+      const cx = p.x + (q.x - p.x) * t, cy = p.y + (q.y - p.y) * t;
+      const r = { x: cx - w / 2, y: cy - h / 2, w, h };
+      const hitsNode = boxes.some((b) => rectsOverlap(r, b));
+      const hitsLabel = taken.some((o) => rectsOverlap(r, o));
+      if (!hitsNode && !hitsLabel) return { x: cx, y: cy, clear: true, rect: r };
+    }
   }
   const f = segs[0] ?? [points[0], points[points.length - 1]];
-  return { x: (f[0].x + f[1].x) / 2, y: (f[0].y + f[1].y) / 2, clear: false };
+  const cx = (f[0].x + f[1].x) / 2, cy = (f[0].y + f[1].y) / 2;
+  return { x: cx, y: cy, clear: false, rect: { x: cx - w / 2, y: cy - h / 2, w, h } };
+}
+
+/** Do two axis-aligned segments run along each other (not merely cross)? Collinear
+ *  overlap is the worst edge defect: two relationships drawn as ONE line, so the
+ *  reader cannot see that there are two, nor where either goes. */
+export function segmentsOverlap(a: [Pt, Pt], b: [Pt, Pt], tol = 2): boolean {
+  const horiz = (s: [Pt, Pt]) => Math.abs(s[0].y - s[1].y) <= tol;
+  const vert = (s: [Pt, Pt]) => Math.abs(s[0].x - s[1].x) <= tol;
+  const span = (lo: number, hi: number, lo2: number, hi2: number) =>
+    Math.min(Math.max(lo, hi), Math.max(lo2, hi2)) - Math.max(Math.min(lo, hi), Math.min(lo2, hi2)) > tol;
+  if (horiz(a) && horiz(b) && Math.abs(a[0].y - b[0].y) <= tol) return span(a[0].x, a[1].x, b[0].x, b[1].x);
+  if (vert(a) && vert(b) && Math.abs(a[0].x - b[0].x) <= tol) return span(a[0].y, a[1].y, b[0].y, b[1].y);
+  return false;
 }
 
 export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBox[], labels: string[] = []): EdgeLintResult {
@@ -102,6 +133,24 @@ export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBo
     }
   }
 
+  // ALIGNMENT: two edges running ALONG each other (not merely crossing). This is the
+  // worst readable defect — two relationships drawn as one line, so the reader can't
+  // see there are two, nor where either goes. Error, not warn.
+  let overlaps = 0;
+  for (let i = 0; i < routes.length; i++) {
+    for (let j = i + 1; j < routes.length; j++) {
+      const ri = routes[i], rj = routes[j];
+      const pi = planBy.get(ri.index), pj = planBy.get(rj.index);
+      if (!pi || !pj) continue;
+      let hit = false;
+      for (const a of segments(ri.points)) { for (const b of segments(rj.points)) { if (segmentsOverlap(a, b)) { hit = true; break; } } if (hit) break; }
+      if (hit) {
+        overlaps++; penalty += 0.2;
+        v.push({ rule: "route.overlapsEdge", severity: "error", detail: `${pi.source}→${pi.target} runs along ${pj.source}→${pj.target} — two relationships drawn as one line.` });
+      }
+    }
+  }
+
   // edge-to-edge crossings (informational beyond a small budget)
   const segs = routes.flatMap((r) => segments(r.points).map((s) => ({ idx: r.index, s })));
   for (let i = 0; i < segs.length; i++)
@@ -112,14 +161,19 @@ export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBo
     v.push({ rule: "route.manyCrossings", severity: "warn", detail: `${crossings} edge crossings — consider re-ordering siblings or splitting the view.` });
   }
 
-  // label overlap (yFiles): a label must find a node-clear spot on its edge.
+  // label overlap (yFiles): a label must find a spot clear of nodes AND of every
+  // other label. Placed in the same order the renderer uses, so the lint sees the
+  // same chips the reader does.
+  const placed: { x: number; y: number; w: number; h: number }[] = [];
   for (const r of routes) {
     const p = planBy.get(r.index);
     const lbl = labels[r.index];
     if (!p || !lbl || r.points.length < 2) continue;
-    if (!placeLabel(r.points, lbl.length, boxes).clear) {
+    const at = placeLabel(r.points, lbl.length, boxes, placed);
+    placed.push(at.rect);
+    if (!at.clear) {
       labelHits++; penalty += 0.15;
-      v.push({ rule: "label.overlapsNode", severity: "warn", detail: `${p.source}→${p.target} label "${lbl}" has no node-clear position on its edge.` });
+      v.push({ rule: "label.overlaps", severity: "warn", detail: `${p.source}→${p.target} label "${lbl}" has no spot clear of nodes and other labels.` });
     }
   }
 
