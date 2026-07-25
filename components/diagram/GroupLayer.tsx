@@ -79,14 +79,28 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor
       gnodes.forEach((n) => { const k = n.group!; (groups.get(k) || groups.set(k, []).get(k)!).push(n); });
       const out: Shape[] = [];
       groups.forEach((arr, key) => {
-        const centres = arr.map((n) => ({ x: n.x!, y: n.y! }));
-        const maxHalf = Math.max(20, ...arr.map((n) => Math.max(n.w || 0, n.h || 0) / 2));
-        // clearance = half the biggest node + a generous margin so the hull
-        // never crowds its own members or the connecting edges.
-        const pad = maxHalf + 28;
-        const cx = centres.reduce((s, p) => s + p.x, 0) / centres.length;
-        const topY = Math.min(...centres.map((p) => p.y)) - pad - 4;
-        out.push({ key, color: colorFor(key), path: hullPath(centres, pad, 18), labelXY: { x: cx, y: topY } });
+        // Hull the node BOX CORNERS, not the centres. Two reasons the old centre-hull
+        // cut through its own members:
+        //   1. a centre-hull only clears the nodes if `pad` exceeds every member's
+        //      half-extent — one wide label and the boundary crosses the box;
+        //   2. hullPath smooths with quadratic Béziers whose CONTROL points are the
+        //      hull vertices, and a quadratic never reaches its control point — the
+        //      drawn curve always cuts INSIDE the computed hull.
+        // Feeding corners makes the hull enclose the real extents before any smoothing,
+        // so the inward cut lands in the margin instead of across the nodes.
+        const corners: { x: number; y: number }[] = [];
+        arr.forEach((n) => {
+          const hw = (n.w || 40) / 2, hh = (n.h || 24) / 2;
+          corners.push(
+            { x: n.x! - hw, y: n.y! - hh }, { x: n.x! + hw, y: n.y! - hh },
+            { x: n.x! + hw, y: n.y! + hh }, { x: n.x! - hw, y: n.y! + hh },
+          );
+        });
+        // Constant clearance now — the extents are already in the hull.
+        const pad = 22;
+        const cx = arr.reduce((s, n) => s + n.x!, 0) / arr.length;
+        const topY = Math.min(...arr.map((n) => n.y! - (n.h || 24) / 2)) - pad - 10;
+        out.push({ key, color: colorFor(key), path: hullPath(corners, pad, 18), labelXY: { x: cx, y: topY } });
       });
       setShapes(out);
     };

@@ -534,12 +534,20 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg })
       });
       const out = [];
       groups.forEach((arr, key) => {
-        const centres = arr.map((n) => ({ x: n.x, y: n.y }));
-        const maxHalf = Math.max(20, ...arr.map((n) => Math.max(n.w || 0, n.h || 0) / 2));
-        const pad = maxHalf + 28;
-        const cx = centres.reduce((s, p) => s + p.x, 0) / centres.length;
-        const topY = Math.min(...centres.map((p) => p.y)) - pad - 4;
-        out.push({ key, color: colorFor(key), path: hullPath(centres, pad, 18), labelXY: { x: cx, y: topY } });
+        const corners = [];
+        arr.forEach((n) => {
+          const hw = (n.w || 40) / 2, hh = (n.h || 24) / 2;
+          corners.push(
+            { x: n.x - hw, y: n.y - hh },
+            { x: n.x + hw, y: n.y - hh },
+            { x: n.x + hw, y: n.y + hh },
+            { x: n.x - hw, y: n.y + hh }
+          );
+        });
+        const pad = 22;
+        const cx = arr.reduce((s, n) => s + n.x, 0) / arr.length;
+        const topY = Math.min(...arr.map((n) => n.y - (n.h || 24) / 2)) - pad - 10;
+        out.push({ key, color: colorFor(key), path: hullPath(corners, pad, 18), labelXY: { x: cx, y: topY } });
       });
       setShapes(out);
     };
@@ -1156,7 +1164,7 @@ function defaultRole(kind, n) {
   if (kind === "tree") return "node";
   return "process";
 }
-function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, unsafe = false }) {
+function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }) {
   const tune = { direction, spacing };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails \u2014 use only for known edge cases.");
@@ -1413,6 +1421,39 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         cy.fit(void 0, 58);
       });
     }
+    if (resolvedKind === "cluster" && (nodeSpreadX !== 1 || nodeSpreadY !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
+      const applySpread = () => {
+        const keyOfNode = (id) => grouping ? grouping.keyOf(id) : "";
+        const members = /* @__PURE__ */ new Map();
+        cy.nodes().forEach((n) => {
+          const k = keyOfNode(n.id());
+          const arr = members.get(k) || [];
+          arr.push(n);
+          members.set(k, arr);
+        });
+        const cent = /* @__PURE__ */ new Map();
+        members.forEach((arr, k) => {
+          const s = arr.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
+          cent.set(k, { x: s.x / arr.length, y: s.y / arr.length });
+        });
+        const all = [...cent.values()];
+        if (!all.length) return;
+        const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
+        const gc = { x: g.x / all.length, y: g.y / all.length };
+        cy.batch(() => {
+          members.forEach((arr, k) => {
+            const c = cent.get(k);
+            const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
+            arr.forEach((n) => {
+              const p = n.position();
+              n.position({ x: nc.x + (p.x - c.x) * nodeSpreadX, y: nc.y + (p.y - c.y) * nodeSpreadY });
+            });
+          });
+        });
+        cy.fit(void 0, 40);
+      };
+      cy.one("layoutstop", applySpread);
+    }
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
       const p = e.target.renderedPosition();
@@ -1500,7 +1541,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       cyRef.current = null;
       setCyState(null);
     };
-  }, [built, resolvedKind, buildStyle, direction, spacing]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
   const notes = [
     ...blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout \u2014 showing the distance-true (MDS) embedding instead.`] : [],
     ...built.notes,
@@ -1512,7 +1553,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
   const cap = { textAlign: "left", fontWeight: 700, padding: "0 0 4px", color: "var(--foreground, #222)" };
   return /* @__PURE__ */ jsxs7("figure", { style: { margin: 0, position: "relative", width: 720, maxWidth: "100%" }, children: [
     /* @__PURE__ */ jsxs7("div", { style: { position: "relative", height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", overflow: "hidden", background: "var(--background, #fff)" }, children: [
-      grouping && cyState && /* @__PURE__ */ jsx12(
+      showGroups && grouping && cyState && /* @__PURE__ */ jsx12(
         GroupLayer,
         {
           cy: cyState,

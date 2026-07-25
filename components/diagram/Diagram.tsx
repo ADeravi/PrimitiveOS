@@ -214,6 +214,16 @@ export interface DiagramProps {
   /** Spacing multiplier for the same idioms: 1 = default, <1 compact, >1 roomy.
    *  Clamped to [0.5, 2] by the engine, so it can never render unreadable. */
   spacing?: number;
+  /** Draw the common-region shapes (cluster hulls / swimlane bands). Default true.
+   *  Off = the nodes stay exactly where they are, just without the enclosure. */
+  showGroups?: boolean;
+  /** Cluster idiom only — post-layout spread, applied about each group's own
+   *  centroid so members keep their relative positions:
+   *    node*   = how far members sit from their group's centre (tighten/loosen)
+   *    cluster*= how far the groups sit from each other
+   *  1 = as laid out. Separate X/Y so a wide canvas can spread horizontally only. */
+  nodeSpreadX?: number; nodeSpreadY?: number;
+  clusterSpreadX?: number; clusterSpreadY?: number;
   /** THE escape hatch — warns; reserved for genuine edge cases. */
   unsafe?: boolean;
 }
@@ -221,7 +231,7 @@ export interface DiagramProps {
 /** A guardrail component: props are meaning only; the result is always a clean
  *  box-and-arrow diagram. There is no prop that can produce an overlapping,
  *  mis-routed, or unreadable result. */
-export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, unsafe = false }: DiagramProps) {
+export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }: DiagramProps) {
   // The layout tuning, meaning-only: reading direction + how tightly it packs.
   const tune: ElkTune = { direction, spacing };
   if (unsafe && typeof console !== "undefined") {
@@ -507,6 +517,47 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       });
     }
 
+    // Cluster spread (Tenet: proximity encodes relatedness — so let the reader tune
+    // the two proximities independently). Applied AFTER the force layout settles, as a
+    // pure affine move about centroids: members keep their relative positions inside a
+    // group, groups move relative to the whole. Nothing re-runs the physics, so the
+    // mental map survives.
+    if (resolvedKind === "cluster" && (nodeSpreadX !== 1 || nodeSpreadY !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
+      const applySpread = () => {
+        const keyOfNode = (id: string) => (grouping ? grouping.keyOf(id) : "");
+        const members = new Map<string, cytoscape.NodeSingular[]>();
+        cy.nodes().forEach((n) => {
+          const k = keyOfNode(n.id());
+          const arr = members.get(k) || [];
+          arr.push(n as cytoscape.NodeSingular);
+          members.set(k, arr);
+        });
+        // group centroids + the global centroid of those centroids
+        const cent = new Map<string, { x: number; y: number }>();
+        members.forEach((arr, k) => {
+          const s = arr.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
+          cent.set(k, { x: s.x / arr.length, y: s.y / arr.length });
+        });
+        const all = [...cent.values()];
+        if (!all.length) return;
+        const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
+        const gc = { x: g.x / all.length, y: g.y / all.length };
+        cy.batch(() => {
+          members.forEach((arr, k) => {
+            const c = cent.get(k)!;
+            // where the group's centre moves to
+            const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
+            arr.forEach((n) => {
+              const p = n.position();
+              n.position({ x: nc.x + (p.x - c.x) * nodeSpreadX, y: nc.y + (p.y - c.y) * nodeSpreadY });
+            });
+          });
+        });
+        cy.fit(undefined, 40);
+      };
+      cy.one("layoutstop", applySpread);
+    }
+
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
       const p = e.target.renderedPosition();
@@ -594,7 +645,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [built, resolvedKind, buildStyle, direction, spacing]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.
@@ -613,7 +664,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   return (
     <figure style={{ margin: 0, position: "relative", width: 720, maxWidth: "100%" }}>
       <div style={{ position: "relative", height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", overflow: "hidden", background: "var(--background, #fff)" }}>
-        {grouping && cyState && (
+        {showGroups && grouping && cyState && (
           <GroupLayer
             cy={cyState}
             mode={grouping.mode}
