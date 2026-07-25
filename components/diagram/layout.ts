@@ -85,8 +85,13 @@ export function uniformSizes(
 export interface ElkTune {
   /** Flow direction, ELK-native. Overrides the per-kind default. */
   direction?: "DOWN" | "UP" | "RIGHT" | "LEFT";
-  /** Spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped to [0.5, 2]. */
+  /** Uniform spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped [0.5,2]. */
   spacing?: number;
+  /** Per-axis spacing multipliers (SCREEN axes, not ELK's). Override `spacing`.
+   *  These are mapped onto ELK's layer/in-layer keys according to `direction`, so
+   *  "X" always means horizontal on screen whichever way the flow runs. */
+  spacingX?: number;
+  spacingY?: number;
 }
 
 // The ELK layered option set. BRANDES_KOEPF + BALANCED straightens the main spine
@@ -95,15 +100,24 @@ export interface ElkTune {
 export function elkOptions(kind: DiagramKind, tune?: ElkTune): Record<string, string | number | boolean> {
   const dir = tune?.direction || (kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN");
   // Clamp so a stray value can never collapse nodes onto each other or explode the
-  // canvas — the spacing knob stays inside a readable band.
-  const s = Math.min(2, Math.max(0.5, tune?.spacing && tune.spacing > 0 ? tune.spacing : 1));
-  const scale = (v: number) => Math.round(v * s);
+  // canvas — the spacing knobs stay inside a readable band.
+  const cl = (v: number | undefined, fb: number) => Math.min(2, Math.max(0.5, v && v > 0 ? v : fb));
+  const s = cl(tune?.spacing, 1);
+  const sx = cl(tune?.spacingX, s);
+  const sy = cl(tune?.spacingY, s);
+  // ELK thinks in LAYERS, the user thinks in screen axes. When the flow runs
+  // left→right the layer gap IS the horizontal gap; running top→bottom it's the
+  // vertical one. Map accordingly so "→" always widens the screen-horizontal gap.
+  const horizontalFlow = dir === "RIGHT" || dir === "LEFT";
+  const layerGap = horizontalFlow ? sx : sy;   // gap BETWEEN successive layers
+  const inLayerGap = horizontalFlow ? sy : sx; // gap between siblings WITHIN a layer
+  const scale = (v: number, m: number) => Math.round(v * m);
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10)), // 48 / 64 @ s=1
-    "elk.spacing.nodeNode": scale(sp(8)),                                                  // 40 @ s=1
-    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6)),                             // 24 @ s=1
+    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10), layerGap), // 48 / 64 @ 1
+    "elk.spacing.nodeNode": scale(sp(8), inLayerGap),                                                // 40 @ 1
+    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6), layerGap),                             // 24 @ 1
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",

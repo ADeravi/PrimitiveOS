@@ -863,17 +863,23 @@ function uniformSizes(nodes, roleOf, opts = {}) {
 }
 function elkOptions(kind, tune) {
   const dir = tune?.direction || (kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN");
-  const s = Math.min(2, Math.max(0.5, tune?.spacing && tune.spacing > 0 ? tune.spacing : 1));
-  const scale = (v) => Math.round(v * s);
+  const cl = (v, fb) => Math.min(2, Math.max(0.5, v && v > 0 ? v : fb));
+  const s = cl(tune?.spacing, 1);
+  const sx = cl(tune?.spacingX, s);
+  const sy = cl(tune?.spacingY, s);
+  const horizontalFlow = dir === "RIGHT" || dir === "LEFT";
+  const layerGap = horizontalFlow ? sx : sy;
+  const inLayerGap = horizontalFlow ? sy : sx;
+  const scale = (v, m) => Math.round(v * m);
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10)),
-    // 48 / 64 @ s=1
-    "elk.spacing.nodeNode": scale(sp(8)),
-    // 40 @ s=1
-    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6)),
-    // 24 @ s=1
+    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10), layerGap),
+    // 48 / 64 @ 1
+    "elk.spacing.nodeNode": scale(sp(8), inLayerGap),
+    // 40 @ 1
+    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6), layerGap),
+    // 24 @ 1
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
@@ -1177,8 +1183,8 @@ function defaultRole(kind, n) {
   if (kind === "tree") return "node";
   return "process";
 }
-function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }) {
-  const tune = { direction, spacing };
+function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }) {
+  const tune = { direction, spacing, spacingX, spacingY };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails \u2014 use only for known edge cases.");
   }
@@ -1435,7 +1441,23 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       });
       afterLayout(cy, snapLanes);
     }
-    if (resolvedKind === "cluster" && (nodeSpreadX !== 1 || nodeSpreadY !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
+    const uniform = spacingX != null || spacingY != null ? ((spacingX ?? spacingY ?? 1) + (spacingY ?? spacingX ?? 1)) / 2 : spacing ?? 1;
+    const nsx = nodeSpreadX * (spacingX ?? spacing ?? 1);
+    const nsy = nodeSpreadY * (spacingY ?? spacing ?? 1);
+    if (resolvedKind === "similarity" && uniform !== 1) {
+      afterLayout(cy, once(() => {
+        const ns = cy.nodes();
+        if (!ns.length) return;
+        const c = ns.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
+        const gc = { x: c.x / ns.length, y: c.y / ns.length };
+        cy.batch(() => ns.forEach((n) => {
+          const p = n.position();
+          n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
+        }));
+        cy.fit(void 0, 40);
+      }));
+    }
+    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
       const applySpread = () => {
         const keyOfNode = (id) => grouping ? grouping.keyOf(id) : "";
         const members = /* @__PURE__ */ new Map();
@@ -1460,7 +1482,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
             arr.forEach((n) => {
               const p = n.position();
-              n.position({ x: nc.x + (p.x - c.x) * nodeSpreadX, y: nc.y + (p.y - c.y) * nodeSpreadY });
+              n.position({ x: nc.x + (p.x - c.x) * nsx, y: nc.y + (p.y - c.y) * nsy });
             });
           });
         });
@@ -1555,7 +1577,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       cyRef.current = null;
       setCyState(null);
     };
-  }, [built, resolvedKind, buildStyle, direction, spacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
   const notes = [
     ...blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout \u2014 showing the distance-true (MDS) embedding instead.`] : [],
     ...built.notes,

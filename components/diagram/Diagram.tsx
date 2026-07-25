@@ -234,9 +234,14 @@ export interface DiagramProps {
    *  (similarity is distance-true; cluster is force). Falls back to the per-kind
    *  default when omitted. Meaning is unchanged — only the reading axis moves. */
   direction?: ElkTune["direction"];
-  /** Spacing multiplier for the same idioms: 1 = default, <1 compact, >1 roomy.
-   *  Clamped to [0.5, 2] by the engine, so it can never render unreadable. */
+  /** Spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped [0.5, 2]. */
   spacing?: number;
+  /** Per-SCREEN-AXIS spacing. Override `spacing`. On layered idioms these map onto
+   *  ELK's layer/in-layer gaps according to `direction`; on similarity they scale the
+   *  embedding about its centroid (uniform scale preserves the distance encoding, so
+   *  only equal X/Y is honest there — unequal values are averaged). */
+  spacingX?: number;
+  spacingY?: number;
   /** Draw the common-region shapes (cluster hulls / swimlane bands). Default true.
    *  Off = the nodes stay exactly where they are, just without the enclosure. */
   showGroups?: boolean;
@@ -254,9 +259,9 @@ export interface DiagramProps {
 /** A guardrail component: props are meaning only; the result is always a clean
  *  box-and-arrow diagram. There is no prop that can produce an overlapping,
  *  mis-routed, or unreadable result. */
-export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }: DiagramProps) {
+export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }: DiagramProps) {
   // The layout tuning, meaning-only: reading direction + how tightly it packs.
-  const tune: ElkTune = { direction, spacing };
+  const tune: ElkTune = { direction, spacing, spacingX, spacingY };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails — use only for known edge cases.");
   }
@@ -546,7 +551,33 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // pure affine move about centroids: members keep their relative positions inside a
     // group, groups move relative to the whole. Nothing re-runs the physics, so the
     // mental map survives.
-    if (resolvedKind === "cluster" && (nodeSpreadX !== 1 || nodeSpreadY !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
+    // The force layout (cluster) and the MDS embedding (similarity) don't go through
+    // ELK, so spacingX/Y can't ride the ELK keys there — fold them into the same
+    // post-layout affine instead. For CLUSTER that means the member spread; for
+    // SIMILARITY only a UNIFORM scale is honest (position encodes distance), so the
+    // two axes are averaged into one factor — a uniform scale is just a zoom and
+    // leaves every pairwise distance ratio intact.
+    const uniform = (spacingX != null || spacingY != null)
+      ? ((spacingX ?? spacingY ?? 1) + (spacingY ?? spacingX ?? 1)) / 2
+      : (spacing ?? 1);
+    const nsx = nodeSpreadX * (spacingX ?? spacing ?? 1);
+    const nsy = nodeSpreadY * (spacingY ?? spacing ?? 1);
+
+    if (resolvedKind === "similarity" && uniform !== 1) {
+      afterLayout(cy, once(() => {
+        const ns = cy.nodes();
+        if (!ns.length) return;
+        const c = ns.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
+        const gc = { x: c.x / ns.length, y: c.y / ns.length };
+        cy.batch(() => ns.forEach((n) => {
+          const p = n.position();
+          n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
+        }));
+        cy.fit(undefined, 40);
+      }));
+    }
+
+    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
       const applySpread = () => {
         const keyOfNode = (id: string) => (grouping ? grouping.keyOf(id) : "");
         const members = new Map<string, cytoscape.NodeSingular[]>();
@@ -573,7 +604,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
             arr.forEach((n) => {
               const p = n.position();
-              n.position({ x: nc.x + (p.x - c.x) * nodeSpreadX, y: nc.y + (p.y - c.y) * nodeSpreadY });
+              n.position({ x: nc.x + (p.x - c.x) * nsx, y: nc.y + (p.y - c.y) * nsy });
             });
           });
         });
@@ -669,7 +700,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [built, resolvedKind, buildStyle, direction, spacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.
