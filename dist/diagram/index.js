@@ -499,7 +499,8 @@ function chooseEncoding(input) {
 
 // components/diagram/GroupLayer.tsx
 import { jsx as jsx10, jsxs as jsxs5 } from "react/jsx-runtime";
-function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg }) {
+var LABEL_BAND = 26;
+function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg, onGroupDrag }) {
   const [tf, setTf] = React4.useState({ x: 0, y: 0, z: 1 });
   const [shapes, setShapes] = React4.useState([]);
   React4.useEffect(() => {
@@ -531,7 +532,8 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg })
             key: b.lane,
             color: colorFor(b.lane),
             band: { x: b.x, y: b.y, w: b.w, h: b.h },
-            labelXY: { x: b.x + 10, y: b.y + 16 }
+            labelXY: { x: b.x + 12, y: b.y + LABEL_BAND * 0.66 },
+            members: gnodes.filter((n) => n.lane === b.lane).map((n) => n.id)
           }))
         );
         return;
@@ -543,21 +545,24 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg })
       });
       const out = [];
       groups.forEach((arr, key) => {
-        const corners = [];
-        arr.forEach((n) => {
-          const hw = (n.w || 40) / 2, hh = (n.h || 24) / 2;
-          corners.push(
-            { x: n.x - hw, y: n.y - hh },
-            { x: n.x + hw, y: n.y - hh },
-            { x: n.x + hw, y: n.y + hh },
-            { x: n.x - hw, y: n.y + hh }
-          );
-        });
         const shortEdge = Math.min(...arr.map((n) => Math.min(n.w || 40, n.h || 24)));
         const pad = Math.max(12, shortEdge * 0.5);
+        const padY = pad * 1.25;
+        const padTop = padY + LABEL_BAND;
+        const corners = [];
+        arr.forEach((n) => {
+          const hw = (n.w || 40) / 2 + pad, hhTop = (n.h || 24) / 2 + padTop, hhBot = (n.h || 24) / 2 + padY;
+          corners.push(
+            { x: n.x - hw, y: n.y - hhTop },
+            { x: n.x + hw, y: n.y - hhTop },
+            { x: n.x + hw, y: n.y + hhBot },
+            { x: n.x - hw, y: n.y + hhBot }
+          );
+        });
         const cx = arr.reduce((s, n) => s + n.x, 0) / arr.length;
-        const topY = Math.min(...arr.map((n) => n.y - (n.h || 24) / 2)) - pad - 10;
-        out.push({ key, color: colorFor(key), path: hullPath(corners, pad, 18), labelXY: { x: cx, y: topY } });
+        const hullTop = Math.min(...corners.map((p) => p.y));
+        const topY = hullTop + LABEL_BAND * 0.72;
+        out.push({ key, color: colorFor(key), path: hullPath(corners, 4, 18), labelXY: { x: cx, y: topY }, members: arr.map((n) => n.id) });
       });
       setShapes(out);
     };
@@ -571,16 +576,80 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg })
       if (raf) cancelAnimationFrame(raf);
     };
   }, [cy, mode, keyOf, order, colors, labelOf]);
-  return /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }, "aria-hidden": true, children: /* @__PURE__ */ jsx10("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: shapes.map((s) => {
-    const labelFill = labelColor || ensureContrast(s.color, bg || "#ffffff", 4.5);
-    return s.band ? /* @__PURE__ */ jsxs5("g", { children: [
-      /* @__PURE__ */ jsx10("rect", { x: s.band.x, y: s.band.y, width: s.band.w, height: s.band.h, rx: 8, fill: s.color, fillOpacity: 0.06, stroke: s.color, strokeOpacity: 0.35, strokeWidth: 1 / tf.z }),
-      labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
-    ] }, s.key) : /* @__PURE__ */ jsxs5("g", { children: [
-      /* @__PURE__ */ jsx10("path", { d: s.path, fill: s.color, fillOpacity: 0.08, stroke: s.color, strokeOpacity: 0.4, strokeWidth: 1.5 / tf.z }),
-      labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, textAnchor: "middle", fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
-    ] }, s.key);
-  }) }) });
+  const drag = React4.useRef(null);
+  const onGroupDown = (e, members) => {
+    if (!cy || !members || !members.length) return;
+    e.stopPropagation();
+    e.target.setPointerCapture?.(e.pointerId);
+    drag.current = { x: e.clientX, y: e.clientY, ids: members };
+    onGroupDrag?.();
+  };
+  const onGroupMove = (e) => {
+    const d = drag.current;
+    if (!d || !cy) return;
+    const z = cy.zoom() || 1;
+    const dx = (e.clientX - d.x) / z, dy = (e.clientY - d.y) / z;
+    if (!dx && !dy) return;
+    cy.batch(() => d.ids.forEach((id) => {
+      const n = cy.$id(id);
+      if (n.nonempty()) {
+        const p = n.position();
+        n.position({ x: p.x + dx, y: p.y + dy });
+      }
+    }));
+    drag.current = { ...d, x: e.clientX, y: e.clientY };
+  };
+  const endGroupDrag = () => {
+    drag.current = null;
+  };
+  return /* @__PURE__ */ jsx10(
+    "svg",
+    {
+      style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" },
+      onPointerMove: onGroupMove,
+      onPointerUp: endGroupDrag,
+      onPointerCancel: endGroupDrag,
+      "aria-hidden": true,
+      children: /* @__PURE__ */ jsx10("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: shapes.map((s) => {
+        const labelFill = labelColor || ensureContrast(s.color, bg || "#ffffff", 4.5);
+        return s.band ? /* @__PURE__ */ jsxs5("g", { children: [
+          /* @__PURE__ */ jsx10(
+            "rect",
+            {
+              x: s.band.x,
+              y: s.band.y,
+              width: s.band.w,
+              height: s.band.h,
+              rx: 8,
+              fill: s.color,
+              fillOpacity: 0.06,
+              stroke: s.color,
+              strokeOpacity: 0.35,
+              strokeWidth: 1 / tf.z,
+              style: { pointerEvents: "all", cursor: "grab" },
+              onPointerDown: (e) => onGroupDown(e, s.members)
+            }
+          ),
+          labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
+        ] }, s.key) : /* @__PURE__ */ jsxs5("g", { children: [
+          /* @__PURE__ */ jsx10(
+            "path",
+            {
+              d: s.path,
+              fill: s.color,
+              fillOpacity: 0.08,
+              stroke: s.color,
+              strokeOpacity: 0.4,
+              strokeWidth: 1.5 / tf.z,
+              style: { pointerEvents: "all", cursor: "grab" },
+              onPointerDown: (e) => onGroupDown(e, s.members)
+            }
+          ),
+          labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, textAnchor: "middle", fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
+        ] }, s.key);
+      }) })
+    }
+  );
 }
 
 // components/diagram/EdgeLayer.tsx
@@ -1234,6 +1303,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
   const [cyState, setCyState] = React6.useState(null);
   const [palette, setPalette] = React6.useState([]);
   const [bgColor, setBgColor] = React6.useState("");
+  const [liveRouted, setLiveRouted] = React6.useState(false);
   const built = React6.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
   const grouping = React6.useMemo(() => {
     const laneMap = new Map(built.nodes.map((n) => [n.id, n.lane != null ? String(n.lane) : ""]));
@@ -1265,7 +1335,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
   }, [built, resolvedKind]);
   const elkRouted = ELK_ROUTED.has(resolvedKind);
   const spreadActive = clusterSpreadX !== 1 || clusterSpreadY !== 1;
-  const useStaticRoutes = elkRouted && !spreadActive;
+  const useStaticRoutes = elkRouted && !spreadActive && !liveRouted;
   const edgePlans = React6.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
       const n = built.nodes.find((x) => x.id === id);
@@ -1449,13 +1519,14 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
-      // ELK-routed idioms (flow/tree/state/er) paint STATIC precomputed routes via
-      // EdgeLayer — the orthogonal path, including which side of each node box it
-      // meets, is fixed at layout time. Leaving nodes grabbable there lets a drag move
-      // the box while its routes stay put, so edges visibly detach. Lock the nodes in
-      // exactly those idioms; force/exploratory kinds (cluster, similarity, sequence,
-      // swimlane) keep live cytoscape routing and stay draggable.
-      autoungrabify: elkRouted
+      // Nodes stay grabbable and selectable in EVERY idiom. Locking them was the old
+      // answer to "edges detach when you drag" (the static ELK routes stayed put while
+      // the box moved) — but that traded away direct manipulation to protect a
+      // rendering detail. The right fix is below: the FIRST drag hands routing back to
+      // cytoscape, so edges follow their boxes and you keep the freedom to move things.
+      autoungrabify: false,
+      selectionType: "additive",
+      boxSelectionEnabled: true
     });
     cyRef.current = cy;
     setCyState(cy);
@@ -1552,6 +1623,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         true
       );
     }
+    cy.on("drag", "node", () => setLiveRouted(true));
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
       const p = e.target.renderedPosition();
@@ -1657,6 +1729,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           cy: cyState,
           mode: grouping.mode,
           keyOf: grouping.keyOf,
+          onGroupDrag: () => setLiveRouted(true),
           order: grouping.order,
           colors: palette.length ? palette : ["#888888"],
           labelOf: grouping.named ? (k) => k : void 0,

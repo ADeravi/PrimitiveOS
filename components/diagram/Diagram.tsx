@@ -287,6 +287,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
   const [palette, setPalette] = React.useState<string[]>([]);
   const [bgColor, setBgColor] = React.useState<string>("");
+  // Set once the user drags anything: the precomputed ELK routes no longer match the
+  // positions, so cytoscape takes over and routes from where the nodes actually are.
+  const [liveRouted, setLiveRouted] = React.useState(false);
 
   const built = React.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
 
@@ -332,7 +335,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   // routes (they'd float away from their boxes — the detached-edge bug again). So a
   // spread hands routing back to cytoscape, which recomputes it from live positions.
   const spreadActive = clusterSpreadX !== 1 || clusterSpreadY !== 1;
-  const useStaticRoutes = elkRouted && !spreadActive;
+  const useStaticRoutes = elkRouted && !spreadActive && !liveRouted;
   const edgePlans = React.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
       const n = built.nodes.find((x) => x.id === id);
@@ -523,13 +526,14 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
-      // ELK-routed idioms (flow/tree/state/er) paint STATIC precomputed routes via
-      // EdgeLayer — the orthogonal path, including which side of each node box it
-      // meets, is fixed at layout time. Leaving nodes grabbable there lets a drag move
-      // the box while its routes stay put, so edges visibly detach. Lock the nodes in
-      // exactly those idioms; force/exploratory kinds (cluster, similarity, sequence,
-      // swimlane) keep live cytoscape routing and stay draggable.
-      autoungrabify: elkRouted,
+      // Nodes stay grabbable and selectable in EVERY idiom. Locking them was the old
+      // answer to "edges detach when you drag" (the static ELK routes stayed put while
+      // the box moved) — but that traded away direct manipulation to protect a
+      // rendering detail. The right fix is below: the FIRST drag hands routing back to
+      // cytoscape, so edges follow their boxes and you keep the freedom to move things.
+      autoungrabify: false,
+      selectionType: "additive",
+      boxSelectionEnabled: true,
     });
     cyRef.current = cy;
     setCyState(cy);
@@ -651,6 +655,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       afterLayout(cy, once(() => applyGroupSpread(nsx, nsy)), /* sync */ true);
     }
 
+    // A drag invalidates the static routes — swap to live routing the moment one starts.
+    cy.on("drag", "node", () => setLiveRouted(true));
+
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
       const p = e.target.renderedPosition();
@@ -762,6 +769,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             cy={cyState}
             mode={grouping.mode}
             keyOf={grouping.keyOf}
+            onGroupDrag={() => setLiveRouted(true)}
             order={grouping.order}
             colors={palette.length ? palette : ["#888888"]}
             labelOf={grouping.named ? (k) => k : undefined}
