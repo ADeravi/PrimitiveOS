@@ -87,6 +87,10 @@ export interface ElkTune {
   direction?: "DOWN" | "UP" | "RIGHT" | "LEFT";
   /** Uniform spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped [0.5,2]. */
   spacing?: number;
+  /** How far apart PARALLEL EDGES sit — their own lane separation, independent of
+   *  node spacing. Raising it un-stacks a busy corridor; lowering it tightens a
+   *  sparse one. Clamped like the rest. */
+  edgeSpacing?: number;
   /** Per-axis spacing multipliers (SCREEN axes, not ELK's). Override `spacing`.
    *  These are mapped onto ELK's layer/in-layer keys according to `direction`, so
    *  "X" always means horizontal on screen whichever way the flow runs. */
@@ -105,6 +109,7 @@ export function elkOptions(kind: DiagramKind, tune?: ElkTune): Record<string, st
   const s = cl(tune?.spacing, 1);
   const sx = cl(tune?.spacingX, s);
   const sy = cl(tune?.spacingY, s);
+  const es = cl(tune?.edgeSpacing, 1); // edge-to-edge lane separation
   // ELK thinks in LAYERS, the user thinks in screen axes. When the flow runs
   // left→right the layer gap IS the horizontal gap; running top→bottom it's the
   // vertical one. Map accordingly so "→" always widens the screen-horizontal gap.
@@ -122,8 +127,8 @@ export function elkOptions(kind: DiagramKind, tune?: ElkTune): Record<string, st
     // Two edges sharing a lane are drawn as ONE line: the reader can't see there
     // are two, nor where either goes. These three keep them apart at the source,
     // so the linter's route.overlapsEdge should never have anything to report.
-    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap), // parallel edges get their own lane
-    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap),                    // and stay apart within one
+    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap * es), // parallel edges get their own lane
+    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap * es),                    // and stay apart within one
     "elk.layered.mergeEdges": false,                                     // never fuse two edges into one trunk
     // Labels are placed by our own placer (edgeLint.placeLabel), but ELK still
     // needs to reserve room for them or they land on top of the routes.

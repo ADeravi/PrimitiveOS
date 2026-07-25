@@ -954,6 +954,7 @@ function elkOptions(kind, tune) {
   const s = cl(tune?.spacing, 1);
   const sx = cl(tune?.spacingX, s);
   const sy = cl(tune?.spacingY, s);
+  const es = cl(tune?.edgeSpacing, 1);
   const horizontalFlow = dir === "RIGHT" || dir === "LEFT";
   const layerGap = horizontalFlow ? sx : sy;
   const inLayerGap = horizontalFlow ? sy : sx;
@@ -971,9 +972,9 @@ function elkOptions(kind, tune) {
     // Two edges sharing a lane are drawn as ONE line: the reader can't see there
     // are two, nor where either goes. These three keep them apart at the source,
     // so the linter's route.overlapsEdge should never have anything to report.
-    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap),
+    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap * es),
     // parallel edges get their own lane
-    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap),
+    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap * es),
     // and stay apart within one
     "elk.layered.mergeEdges": false,
     // never fuse two edges into one trunk
@@ -1288,8 +1289,8 @@ function defaultRole(kind, n) {
   if (kind === "tree") return "node";
   return "process";
 }
-function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }) {
-  const tune = { direction, spacing, spacingX, spacingY };
+function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }) {
+  const tune = { direction, spacing, spacingX, spacingY, edgeSpacing };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails \u2014 use only for known edge cases.");
   }
@@ -1711,7 +1712,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       cyRef.current = null;
       setCyState(null);
     };
-  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
   const notes = [
     ...blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout \u2014 showing the distance-true (MDS) embedding instead.`] : [],
     ...built.notes,

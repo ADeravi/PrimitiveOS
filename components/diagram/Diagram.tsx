@@ -250,6 +250,8 @@ export interface DiagramProps {
    *  only equal X/Y is honest there — unequal values are averaged). */
   spacingX?: number;
   spacingY?: number;
+  /** Separation between PARALLEL EDGES (their lanes), independent of node spacing. */
+  edgeSpacing?: number;
   /** Draw the common-region shapes (cluster hulls / swimlane bands). Default true.
    *  Off = the nodes stay exactly where they are, just without the enclosure. */
   showGroups?: boolean;
@@ -267,9 +269,9 @@ export interface DiagramProps {
 /** A guardrail component: props are meaning only; the result is always a clean
  *  box-and-arrow diagram. There is no prop that can produce an overlapping,
  *  mis-routed, or unreadable result. */
-export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }: DiagramProps) {
+export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }: DiagramProps) {
   // The layout tuning, meaning-only: reading direction + how tightly it packs.
-  const tune: ElkTune = { direction, spacing, spacingX, spacingY };
+  const tune: ElkTune = { direction, spacing, spacingX, spacingY, edgeSpacing };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails — use only for known edge cases.");
   }
@@ -745,7 +747,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.
