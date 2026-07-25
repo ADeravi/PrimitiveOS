@@ -751,19 +751,39 @@ function rectsOverlap(a, b, pad = 2) {
 }
 var CHAR_W = 7.4;
 var LBL_H = 20;
-function placeLabel(points, textLen, boxes, taken = []) {
+function rectHitsSeg(r, a, b) {
+  const x0 = r.x, x1 = r.x + r.w, y0 = r.y, y1 = r.y + r.h;
+  if (Math.abs(a.y - b.y) < 0.5) {
+    const y = a.y;
+    if (y <= y0 || y >= y1) return false;
+    return Math.max(a.x, b.x) > x0 && Math.min(a.x, b.x) < x1;
+  }
+  if (Math.abs(a.x - b.x) < 0.5) {
+    const x = a.x;
+    if (x <= x0 || x >= x1) return false;
+    return Math.max(a.y, b.y) > y0 && Math.min(a.y, b.y) < y1;
+  }
+  return false;
+}
+function placeLabel(points, textLen, boxes, taken = [], avoid = []) {
   const w = textLen * CHAR_W + 12, h = LBL_H;
   const segs = [];
   for (let i = 0; i < points.length - 1; i++) segs.push([points[i], points[i + 1]]);
   segs.sort((p, q) => Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) - Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y));
   const ts = [0.5, 0.38, 0.62, 0.26, 0.74];
+  const OFF = h / 2 + 3;
   for (const [p, q] of segs) {
+    const horiz = Math.abs(p.y - q.y) < 0.5;
     for (const t of ts) {
-      const cx2 = p.x + (q.x - p.x) * t, cy2 = p.y + (q.y - p.y) * t;
-      const r = { x: cx2 - w / 2, y: cy2 - h / 2, w, h };
-      const hitsNode = boxes.some((b) => rectsOverlap(r, b));
-      const hitsLabel = taken.some((o) => rectsOverlap(r, o));
-      if (!hitsNode && !hitsLabel) return { x: cx2, y: cy2, clear: true, rect: r };
+      for (const side of [-1, 1]) {
+        const bx = p.x + (q.x - p.x) * t, by = p.y + (q.y - p.y) * t;
+        const cx2 = bx + (horiz ? 0 : side * OFF), cy2 = by + (horiz ? side * OFF : 0);
+        const r = { x: cx2 - w / 2, y: cy2 - h / 2, w, h };
+        const hitsNode = boxes.some((b) => rectsOverlap(r, b));
+        const hitsLabel = taken.some((o) => rectsOverlap(r, o));
+        const hitsEdge = avoid.some(([a2, b2]) => rectHitsSeg(r, a2, b2));
+        if (!hitsNode && !hitsLabel && !hitsEdge) return { x: cx2, y: cy2, clear: true, rect: r };
+      }
     }
   }
   const f = segs[0] ?? [points[0], points[points.length - 1]];
@@ -815,6 +835,11 @@ function EdgeLayer({ cy, routes, plans, labels }) {
     return { id: n.id(), x: p.x - n.width() / 2, y: p.y - n.height() / 2, w: n.width(), h: n.height() };
   }) : [], [cy, tf]);
   const placedLabels = [];
+  const allSegs = routes.map((r) => {
+    const segs = [];
+    for (let i = 0; i < r.points.length - 1; i++) segs.push([r.points[i], r.points[i + 1]]);
+    return { index: r.index, segs };
+  });
   return /* @__PURE__ */ jsx11("svg", { style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }, "aria-hidden": true, children: /* @__PURE__ */ jsx11("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: routes.map((r) => {
     if (!r.points || r.points.length < 2) return null;
     const p = planByIdx.get(r.index);
@@ -827,7 +852,8 @@ function EdgeLayer({ cy, routes, plans, labels }) {
     const lbl = labels[r.index];
     let chip = null;
     if (lbl) {
-      const at = placeLabel(r.points, lbl.length, boxes, placedLabels);
+      const others = allSegs.filter((o) => o.index !== r.index).flatMap((o) => o.segs);
+      const at = placeLabel(r.points, lbl.length, boxes, placedLabels, others);
       placedLabels.push(at.rect);
       const mx = at.x, my = at.y;
       const fs = 12, w = lbl.length * fs * 0.62 + 12, h = fs + 8;

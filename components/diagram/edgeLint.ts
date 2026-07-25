@@ -58,6 +58,22 @@ function rectsOverlap(a: Rect, b: Rect, pad = 2): boolean {
 }
 const CHAR_W = 7.4, LBL_H = 20;
 
+/** Does an axis-aligned segment pass through a rect? Used to keep a label chip OFF
+ *  other edges — a chip sitting on a line breaks it, and the reader can no longer tell
+ *  which edge the label belongs to or follow either one through. */
+function rectHitsSeg(r: Rect, a: Pt, b: Pt): boolean {
+  const x0 = r.x, x1 = r.x + r.w, y0 = r.y, y1 = r.y + r.h;
+  if (Math.abs(a.y - b.y) < 0.5) {
+    const y = a.y; if (y <= y0 || y >= y1) return false;
+    return Math.max(a.x, b.x) > x0 && Math.min(a.x, b.x) < x1;
+  }
+  if (Math.abs(a.x - b.x) < 0.5) {
+    const x = a.x; if (x <= x0 || x >= x1) return false;
+    return Math.max(a.y, b.y) > y0 && Math.min(a.y, b.y) < y1;
+  }
+  return false;
+}
+
 // Node-aware label placement (yFiles' lesson): put the label on the LONGEST
 // straight segment whose chip is clear of every node; if none is clear, fall
 // back to the longest segment and report it. Shared by the renderer (EdgeLayer)
@@ -70,7 +86,9 @@ export function placeLabel(
    *  that place many labels pass the running list; each returned `rect` is appended.
    *  Without it every label is placed independently and two can land on the same
    *  spot, which is unreadable exactly where the diagram is busiest. */
-  taken: { x: number; y: number; w: number; h: number }[] = []
+  taken: { x: number; y: number; w: number; h: number }[] = [],
+  /** every OTHER edge's segments — a chip must not sit on another line. */
+  avoid: [Pt, Pt][] = []
 ): { x: number; y: number; clear: boolean; rect: { x: number; y: number; w: number; h: number } } {
   const w = textLen * CHAR_W + 12, h = LBL_H;
   const segs: [Pt, Pt][] = [];
@@ -79,13 +97,21 @@ export function placeLabel(
   // Midpoint first (a label reads best mid-segment), then slide along the segment
   // before giving up on it — a near-miss shouldn't cost the whole edge its position.
   const ts = [0.5, 0.38, 0.62, 0.26, 0.74];
+  // The chip sits BESIDE its line, not on it: offset perpendicular so the edge stays
+  // one continuous stroke the eye can follow. Try both sides before moving along.
+  const OFF = h / 2 + 3;
   for (const [p, q] of segs) {
+    const horiz = Math.abs(p.y - q.y) < 0.5;
     for (const t of ts) {
-      const cx = p.x + (q.x - p.x) * t, cy = p.y + (q.y - p.y) * t;
-      const r = { x: cx - w / 2, y: cy - h / 2, w, h };
-      const hitsNode = boxes.some((b) => rectsOverlap(r, b));
-      const hitsLabel = taken.some((o) => rectsOverlap(r, o));
-      if (!hitsNode && !hitsLabel) return { x: cx, y: cy, clear: true, rect: r };
+      for (const side of [-1, 1]) {
+        const bx = p.x + (q.x - p.x) * t, by = p.y + (q.y - p.y) * t;
+        const cx = bx + (horiz ? 0 : side * OFF), cy = by + (horiz ? side * OFF : 0);
+        const r = { x: cx - w / 2, y: cy - h / 2, w, h };
+        const hitsNode = boxes.some((b) => rectsOverlap(r, b));
+        const hitsLabel = taken.some((o) => rectsOverlap(r, o));
+        const hitsEdge = avoid.some(([a2, b2]) => rectHitsSeg(r, a2, b2));
+        if (!hitsNode && !hitsLabel && !hitsEdge) return { x: cx, y: cy, clear: true, rect: r };
+      }
     }
   }
   const f = segs[0] ?? [points[0], points[points.length - 1]];
@@ -169,7 +195,8 @@ export function lintEdges(plans: EdgePlan[], routes: RoutedEdge[], boxes: NodeBo
     const p = planBy.get(r.index);
     const lbl = labels[r.index];
     if (!p || !lbl || r.points.length < 2) continue;
-    const at = placeLabel(r.points, lbl.length, boxes, placed);
+    const others = routes.filter((o) => o.index !== r.index).flatMap((o) => segments(o.points));
+    const at = placeLabel(r.points, lbl.length, boxes, placed, others);
     placed.push(at.rect);
     if (!at.clear) {
       labelHits++; penalty += 0.15;
