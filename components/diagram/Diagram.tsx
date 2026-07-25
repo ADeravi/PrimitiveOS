@@ -16,7 +16,7 @@ import cytoscape from "cytoscape";
 import elk from "cytoscape-elk";
 import fcose from "cytoscape-fcose";
 import ELK from "elkjs/lib/elk.bundled.js";
-import { readTokens, readableOn, ensureContrast } from "../charts/network";
+import { readTokens, readableOn } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { EdgeLayer } from "./EdgeLayer";
 import { detectGroups } from "./grouping";
@@ -129,17 +129,16 @@ function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: Col
   // never a mid-grey fill behind text. Polarity from the resolved canvas.
   const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
   const n = neutralRoles(light);
-  let fill = n.surface, border = n.border;
-  if (policy === "minimal") {
-    // terminators read with a slightly stronger (still neutral) outline.
-    if (role === "start" || role === "end") border = n.borderStrong;
-  } else {
-    // rich: keep neutral tiles, but encode role with ONE accent on the border
-    // (contrast-gated), instead of colouring the whole fill — calmer, Carbon-like.
-    const accent = t.c[0], decide = t.c[2] || t.c[0];
-    const a = role === "decision" ? decide : role === "entity" ? (t.c[1] || accent) : role === "io" ? (t.c[3] || accent) : accent;
-    border = ensureContrast(a, n.surface, 3);
-  }
+  const fill = n.surface;
+  // ONE outline for every node, every role, every policy. (`policy` is kept in the
+  // signature because the caller still uses it elsewhere.)
+  const border = n.border;
+  // NOTE: the border is deliberately CONSTANT across roles. It used to carry a
+  // per-role accent (decision → chart-3, entity → chart-2, io → chart-4), which meant
+  // role was encoded TWICE — once in the shape, once in the colour — and the two
+  // read as different systems: boxes that differ in outline colour look categorically
+  // different even when they're the same role. Shape is the standard carrier
+  // (ISO 5807), so colour steps back and every node gets the same neutral outline.
   // text from the dark/light END of the ramp by measured contrast on the fill.
   const text = readableOn(fill, [n.text, n.surfaceAlt]);
   return { fill, border, text };
@@ -489,8 +488,10 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           data: {
             id: n.id, label: showLbl ? (n.unknown ? labelFor(n, role) + "  ?" : labelFor(n, role)) : "", role, shape: shapeFor(role, resolvedKind),
             w, h, fill: rs.fill, border: rs.border, text: rs.text,
-            // importance (rich policy only): hubs get a heavier border.
-            bw: policy === "rich" ? STROKE.regular + Math.min(3, deg * 0.5) : STROKE.regular,
+            // Constant weight. Degree used to thicken the outline ("importance"), which
+            // made otherwise-identical nodes look like different kinds — the reported
+            // "borders are different". Hubs are still discoverable by their edges.
+            bw: STROKE.regular,
             mark: n.initial ? "initial" : n.final ? "final" : "",
             unknown: n.unknown ? "1" : "",
             inferred: n.inferred ? "1" : "",

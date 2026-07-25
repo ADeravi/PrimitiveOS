@@ -1198,14 +1198,8 @@ function colorPolicy(kind, nodeCount, groupCount) {
 function roleStyle(role, t, policy = "rich") {
   const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
   const n = neutralRoles(light);
-  let fill = n.surface, border = n.border;
-  if (policy === "minimal") {
-    if (role === "start" || role === "end") border = n.borderStrong;
-  } else {
-    const accent = t.c[0], decide = t.c[2] || t.c[0];
-    const a = role === "decision" ? decide : role === "entity" ? t.c[1] || accent : role === "io" ? t.c[3] || accent : accent;
-    border = ensureContrast(a, n.surface, 3);
-  }
+  const fill = n.surface;
+  const border = n.border;
   const text = readableOn(fill, [n.text, n.surfaceAlt]);
   return { fill, border, text };
 }
@@ -1488,8 +1482,10 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             fill: rs.fill,
             border: rs.border,
             text: rs.text,
-            // importance (rich policy only): hubs get a heavier border.
-            bw: policy === "rich" ? STROKE.regular + Math.min(3, deg * 0.5) : STROKE.regular,
+            // Constant weight. Degree used to thicken the outline ("importance"), which
+            // made otherwise-identical nodes look like different kinds — the reported
+            // "borders are different". Hubs are still discoverable by their edges.
+            bw: STROKE.regular,
             mark: n.initial ? "initial" : n.final ? "final" : "",
             unknown: n.unknown ? "1" : "",
             inferred: n.inferred ? "1" : ""
