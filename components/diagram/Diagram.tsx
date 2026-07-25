@@ -41,21 +41,27 @@ function once(fn: () => void): () => void {
   return () => { if (done) return; done = true; fn(); };
 }
 
-/** Run post-layout work reliably.
+/** Run post-layout work — the two layout families need OPPOSITE handling.
  *
- *  The trap: the layout is handed to the cytoscape() CONSTRUCTOR, and a layout with
- *  `animate: false` (fcose) runs to completion synchronously inside that call — so
- *  "layoutstop" has already fired by the time any listener registered afterwards
- *  exists, and that listener is simply dead. Async layouts (cytoscape-elk) behave the
- *  opposite way and DO need the listener.
+ *  The layout is handed to the cytoscape() CONSTRUCTOR, so:
  *
- *  So: subscribe for the async case, and schedule a rAF fallback for the sync case.
- *  `once()` keeps whichever fires first the only one that counts — positions are never
- *  transformed twice. */
-function afterLayout(cy: cytoscape.Core, fn: () => void) {
-  cy.one("layoutstop", fn);
-  if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
-  else setTimeout(fn, 0);
+ *  · SYNC (fcose, `animate: false`) runs to completion inside that constructor call.
+ *    "layoutstop" has already fired by the time we could subscribe, so a listener is
+ *    dead on arrival — we must run on the next frame instead.
+ *  · ASYNC (cytoscape-elk) hasn't even started. A next-frame callback would fire
+ *    BEFORE the nodes are placed and operate on garbage positions, which the real
+ *    layout then overwrites — so it MUST be the listener.
+ *
+ *  Getting this wrong is silent: the work runs, just against the wrong positions.
+ *  Hence an explicit `sync` flag rather than "subscribe and also poll, first one
+ *  wins" — that races, and for async layouts the race is always lost. */
+function afterLayout(cy: cytoscape.Core, fn: () => void, sync: boolean) {
+  if (sync) {
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
+    else setTimeout(fn, 0);
+  } else {
+    cy.one("layoutstop", fn);
+  }
 }
 // one shared elkjs instance for direct (route-returning) layout in the browser.
 const elkEngine = new ELK();
@@ -543,7 +549,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         }));
         cy.fit(undefined, 58);
       });
-      afterLayout(cy, snapLanes);
+      afterLayout(cy, snapLanes, /* sync */ false); // cytoscape-elk is async
     }
 
     // Cluster spread (Tenet: proximity encodes relatedness — so let the reader tune
@@ -576,7 +582,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         // center(), NOT fit() — see the note in applySpread: fit re-zooms and cancels
         // the very change the user just asked for.
         cy.center();
-      }));
+      }), /* sync */ true); // preset positions — already placed
     }
 
     if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
@@ -618,7 +624,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         // zoom, so a spread genuinely spreads at constant node size.
         cy.center();
       };
-      afterLayout(cy, once(applySpread));
+      afterLayout(cy, once(applySpread), /* sync */ true); // fcose animate:false
     }
 
     const isExplore = resolvedKind === "cluster";

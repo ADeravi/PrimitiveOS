@@ -999,10 +999,13 @@ function once(fn) {
     fn();
   };
 }
-function afterLayout(cy, fn) {
-  cy.one("layoutstop", fn);
-  if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
-  else setTimeout(fn, 0);
+function afterLayout(cy, fn, sync) {
+  if (sync) {
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
+    else setTimeout(fn, 0);
+  } else {
+    cy.one("layoutstop", fn);
+  }
 }
 var elkEngine = new ELK();
 try {
@@ -1439,23 +1442,33 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         }));
         cy.fit(void 0, 58);
       });
-      afterLayout(cy, snapLanes);
+      afterLayout(
+        cy,
+        snapLanes,
+        /* sync */
+        false
+      );
     }
     const uniform = spacingX != null || spacingY != null ? ((spacingX ?? spacingY ?? 1) + (spacingY ?? spacingX ?? 1)) / 2 : spacing ?? 1;
     const nsx = nodeSpreadX * (spacingX ?? spacing ?? 1);
     const nsy = nodeSpreadY * (spacingY ?? spacing ?? 1);
     if (resolvedKind === "similarity" && uniform !== 1) {
-      afterLayout(cy, once(() => {
-        const ns = cy.nodes();
-        if (!ns.length) return;
-        const c = ns.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
-        const gc = { x: c.x / ns.length, y: c.y / ns.length };
-        cy.batch(() => ns.forEach((n) => {
-          const p = n.position();
-          n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
-        }));
-        cy.center();
-      }));
+      afterLayout(
+        cy,
+        once(() => {
+          const ns = cy.nodes();
+          if (!ns.length) return;
+          const c = ns.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
+          const gc = { x: c.x / ns.length, y: c.y / ns.length };
+          cy.batch(() => ns.forEach((n) => {
+            const p = n.position();
+            n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
+          }));
+          cy.center();
+        }),
+        /* sync */
+        true
+      );
     }
     if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
       const applySpread = () => {
@@ -1488,7 +1501,12 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         });
         cy.center();
       };
-      afterLayout(cy, once(applySpread));
+      afterLayout(
+        cy,
+        once(applySpread),
+        /* sync */
+        true
+      );
     }
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
