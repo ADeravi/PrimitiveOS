@@ -1454,7 +1454,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           const p = n.position();
           n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
         }));
-        cy.fit(void 0, 40);
+        cy.center();
       }));
     }
     if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
@@ -1486,7 +1486,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             });
           });
         });
-        cy.fit(void 0, 40);
+        cy.center();
       };
       afterLayout(cy, once(applySpread));
     }

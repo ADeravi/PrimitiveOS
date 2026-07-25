@@ -573,7 +573,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           const p = n.position();
           n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
         }));
-        cy.fit(undefined, 40);
+        // center(), NOT fit() — see the note in applySpread: fit re-zooms and cancels
+        // the very change the user just asked for.
+        cy.center();
       }));
     }
 
@@ -608,7 +610,13 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             });
           });
         });
-        cy.fit(undefined, 40);
+        // center(), NOT fit(). fit() rescales the viewport to the new bounding box,
+        // which CANCELS the spread: push the clusters twice as far apart and fit zooms
+        // out by half, so on screen the separation is unchanged and only the nodes look
+        // smaller. Compress, and fit zooms IN until the nodes collide — which is why
+        // the control only ever appeared to overlap. center() pans without touching
+        // zoom, so a spread genuinely spreads at constant node size.
+        cy.center();
       };
       afterLayout(cy, once(applySpread));
     }
