@@ -1076,8 +1076,10 @@ function shapeFor(role, kind) {
       return "diamond";
     case "io":
       return "rhomboid";
+    // ISO 5807 predefined-process is a rectangle with struck sides; cut-rectangle is
+    // the closest cytoscape primitive and, crucially, is not another rounded box.
     case "subprocess":
-      return "round-rectangle";
+      return "cut-rectangle";
     case "entity":
       return "rectangle";
     case "state":
@@ -1267,11 +1269,17 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             "line-height": 1.3,
             "border-width": "data(bw)",
             "border-color": "data(border)",
-            "corner-radius": `${RADIUS.md}px`,
+            // ISO 5807: process is a RECTANGLE. md (8px) rounded it enough that a
+            // process and a terminator read as the same "rounded box" — the reported
+            // "all nodes look identical". sm keeps the DS softness without the
+            // silhouette collapsing into the pill.
+            "corner-radius": `${RADIUS.sm}px`,
             "min-zoomed-font-size": 6
           }
         },
-        { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": `${RADIUS.pill}px` } },
+        // ISO 5807 terminator = stadium. A radius larger than any half-height always
+        // fully rounds the ends, so start/end can never be confused with a process box.
+        { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": "999px" } },
         // Initial / final states marked CONSISTENTLY: same accent colour and the
         // same modest weight as each other (not a jarring heavy black) — final adds
         // a double ring, the state-machine convention.
