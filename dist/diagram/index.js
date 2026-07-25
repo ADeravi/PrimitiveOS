@@ -355,13 +355,22 @@ function hullPath(centres, pad = 22, radius = 16) {
     return `M ${a.x + ox} ${a.y + oy} L ${b.x + ox} ${b.y + oy} L ${b.x - ox} ${b.y - oy} L ${a.x - ox} ${a.y - oy} Z`;
   }
   const n = hull.length;
+  const along = (from, to, dist2) => {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const t = Math.min(dist2, len) / len;
+    return { x: from.x + dx * t, y: from.y + dy * t };
+  };
   let d = "";
   for (let i = 0; i < n; i++) {
     const prev = hull[(i - 1 + n) % n], cur = hull[i], next = hull[(i + 1) % n];
-    const m1 = { x: (prev.x + cur.x) / 2, y: (prev.y + cur.y) / 2 };
-    const m2 = { x: (cur.x + next.x) / 2, y: (cur.y + next.y) / 2 };
-    d += i === 0 ? `M ${m1.x} ${m1.y} ` : "";
-    d += `Q ${cur.x} ${cur.y} ${m2.x} ${m2.y} `;
+    const lenPrev = Math.hypot(cur.x - prev.x, cur.y - prev.y);
+    const lenNext = Math.hypot(next.x - cur.x, next.y - cur.y);
+    const r = Math.max(0, Math.min(radius, lenPrev / 2, lenNext / 2));
+    const entry = along(cur, prev, r);
+    const exit = along(cur, next, r);
+    d += i === 0 ? `M ${entry.x} ${entry.y} ` : `L ${entry.x} ${entry.y} `;
+    d += `Q ${cur.x} ${cur.y} ${exit.x} ${exit.y} `;
   }
   return d + "Z";
 }

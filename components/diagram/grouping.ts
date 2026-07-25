@@ -115,15 +115,37 @@ export function hullPath(centres: Pt[], pad = 22, radius = 16): string {
     const ox = Math.cos(ang) * r, oy = Math.sin(ang) * r;
     return `M ${a.x + ox} ${a.y + oy} L ${b.x + ox} ${b.y + oy} L ${b.x - ox} ${b.y - oy} L ${a.x - ox} ${a.y - oy} Z`;
   }
-  // rounded polygon: quadratic corners between successive midpoints.
+  // Rounded polygon — FOLLOW the hull edges, rounding only a small fillet at each
+  // vertex.
+  //
+  // The previous version anchored on edge MIDPOINTS with the vertex as the Bézier
+  // control point. A quadratic only reaches halfway to its control point, so a
+  // box-shaped hull was drawn as the ellipse INSCRIBED in it: the curve touched the
+  // four edge midpoints and cut every corner off completely. Since a group's outer
+  // nodes sit precisely in those corners, the "common region" sliced straight through
+  // its own members — the reported "clusters not covering the nodes", visible as a
+  // lens/almond blob rather than an enclosure.
+  //
+  // Now: walk each edge to within `r` of the vertex, arc across the corner, carry on.
+  // r is clamped to half the shorter adjacent edge so short edges can't overshoot and
+  // invert the corner. The path never leaves the hull by more than the fillet.
   const n = hull.length;
+  const along = (from: Pt, to: Pt, dist: number): Pt => {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const t = Math.min(dist, len) / len;
+    return { x: from.x + dx * t, y: from.y + dy * t };
+  };
   let d = "";
   for (let i = 0; i < n; i++) {
     const prev = hull[(i - 1 + n) % n], cur = hull[i], next = hull[(i + 1) % n];
-    const m1 = { x: (prev.x + cur.x) / 2, y: (prev.y + cur.y) / 2 };
-    const m2 = { x: (cur.x + next.x) / 2, y: (cur.y + next.y) / 2 };
-    d += i === 0 ? `M ${m1.x} ${m1.y} ` : "";
-    d += `Q ${cur.x} ${cur.y} ${m2.x} ${m2.y} `;
+    const lenPrev = Math.hypot(cur.x - prev.x, cur.y - prev.y);
+    const lenNext = Math.hypot(next.x - cur.x, next.y - cur.y);
+    const r = Math.max(0, Math.min(radius, lenPrev / 2, lenNext / 2));
+    const entry = along(cur, prev, r); // r back along the incoming edge
+    const exit = along(cur, next, r);  // r forward along the outgoing edge
+    d += i === 0 ? `M ${entry.x} ${entry.y} ` : `L ${entry.x} ${entry.y} `;
+    d += `Q ${cur.x} ${cur.y} ${exit.x} ${exit.y} `;
   }
   return d + "Z";
 }
