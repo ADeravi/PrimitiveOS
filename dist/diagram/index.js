@@ -985,6 +985,19 @@ function extractRoutes(elkResult) {
 import { jsx as jsx12, jsxs as jsxs7 } from "react/jsx-runtime";
 var SIDE_ENDPOINT = { NORTH: "0% -50%", SOUTH: "0% 50%", EAST: "50% 0%", WEST: "-50% 0%" };
 var ELK_ROUTED = /* @__PURE__ */ new Set(["flow", "tree", "state", "er"]);
+function once(fn) {
+  let done = false;
+  return () => {
+    if (done) return;
+    done = true;
+    fn();
+  };
+}
+function afterLayout(cy, fn) {
+  cy.one("layoutstop", fn);
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
+  else setTimeout(fn, 0);
+}
 var elkEngine = new ELK();
 try {
   cytoscape2.use(elk);
@@ -1413,13 +1426,14 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     }
     if (resolvedKind === "swimlane" && grouping?.order.length) {
       const order = grouping.order, LANE_H = 130;
-      cy.one("layoutstop", () => {
+      const snapLanes = once(() => {
         cy.batch(() => cy.nodes().forEach((node) => {
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
         cy.fit(void 0, 58);
       });
+      afterLayout(cy, snapLanes);
     }
     if (resolvedKind === "cluster" && (nodeSpreadX !== 1 || nodeSpreadY !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
       const applySpread = () => {
@@ -1452,7 +1466,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         });
         cy.fit(void 0, 40);
       };
-      cy.one("layoutstop", applySpread);
+      afterLayout(cy, once(applySpread));
     }
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {

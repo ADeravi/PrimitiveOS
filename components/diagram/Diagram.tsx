@@ -34,6 +34,29 @@ const SIDE_ENDPOINT: Record<Side, string> = { NORTH: "0% -50%", SOUTH: "0% 50%",
 // swimlane is NOT here: ELK can't lane (its partitioning is layer-axis), so it
 // lays out via cytoscape-elk + a lane-row snap + cytoscape's own edge routing.
 const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er"]);
+
+/** Run `fn` at most once, however many paths call it. */
+function once(fn: () => void): () => void {
+  let done = false;
+  return () => { if (done) return; done = true; fn(); };
+}
+
+/** Run post-layout work reliably.
+ *
+ *  The trap: the layout is handed to the cytoscape() CONSTRUCTOR, and a layout with
+ *  `animate: false` (fcose) runs to completion synchronously inside that call — so
+ *  "layoutstop" has already fired by the time any listener registered afterwards
+ *  exists, and that listener is simply dead. Async layouts (cytoscape-elk) behave the
+ *  opposite way and DO need the listener.
+ *
+ *  So: subscribe for the async case, and schedule a rAF fallback for the sync case.
+ *  `once()` keeps whichever fires first the only one that counts — positions are never
+ *  transformed twice. */
+function afterLayout(cy: cytoscape.Core, fn: () => void) {
+  cy.one("layoutstop", fn);
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
+  else setTimeout(fn, 0);
+}
 // one shared elkjs instance for direct (route-returning) layout in the browser.
 const elkEngine = new ELK();
 
@@ -508,13 +531,14 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // its edges from these positions (so swimlane stays on cytoscape, not EdgeLayer).
     if (resolvedKind === "swimlane" && grouping?.order.length) {
       const order = grouping.order, LANE_H = 130;
-      cy.one("layoutstop", () => {
+      const snapLanes = once(() => {
         cy.batch(() => cy.nodes().forEach((node) => {
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
         cy.fit(undefined, 58);
       });
+      afterLayout(cy, snapLanes);
     }
 
     // Cluster spread (Tenet: proximity encodes relatedness — so let the reader tune
@@ -555,7 +579,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         });
         cy.fit(undefined, 40);
       };
-      cy.one("layoutstop", applySpread);
+      afterLayout(cy, once(applySpread));
     }
 
     const isExplore = resolvedKind === "cluster";
