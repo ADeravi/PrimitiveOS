@@ -566,6 +566,10 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         // Moving nodes now would strand the STATIC routes, so when a spread is live
         // we hand routing back to cytoscape (see useStaticRoutes) and then move.
         if (spreadActive) applyGroupSpread(1, 1);
+        // The overlap rule is NOT cluster-only: any kind whose nodes carry groups draws
+        // hulls, and an unearned overlap lies just as much on a flowchart. (Self-guards
+        // on hull mode, so lanes/ungrouped diagrams are untouched.)
+        enforceOverlapRule();
         cy.fit(undefined, 28);
       }).catch(() => { /* preset fallback stays */ });
     }
@@ -617,6 +621,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         // center(), NOT fit() — see the note in applySpread: fit re-zooms and cancels
         // the very change the user just asked for.
         if (spreadActive) applyGroupSpread(1, 1);
+        enforceOverlapRule();
         cy.center();
       }), /* sync */ true); // preset positions — already placed
     }

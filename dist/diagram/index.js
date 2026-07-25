@@ -1610,6 +1610,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         }));
         setEdgeRoutes(routes);
         if (spreadActive) applyGroupSpread(1, 1);
+        enforceOverlapRule();
         cy.fit(void 0, 28);
       }).catch(() => {
       });
@@ -1647,6 +1648,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
           }));
           if (spreadActive) applyGroupSpread(1, 1);
+          enforceOverlapRule();
           cy.center();
         }),
         /* sync */
