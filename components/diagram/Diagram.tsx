@@ -326,6 +326,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   // Edge policy plans (pure) — shared by the layout (ELK ports) and the EdgeLayer
   // overlay. ELK-routed idioms draw edges from the routed sections, not cytoscape.
   const elkRouted = ELK_ROUTED.has(resolvedKind);
+  // A live group spread MOVES nodes after layout, which would strand the static ELK
+  // routes (they'd float away from their boxes — the detached-edge bug again). So a
+  // spread hands routing back to cytoscape, which recomputes it from live positions.
+  const spreadActive = clusterSpreadX !== 1 || clusterSpreadY !== 1;
+  const useStaticRoutes = elkRouted && !spreadActive;
   const edgePlans = React.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
       const n = built.nodes.find((x) => x.id === id);
@@ -383,7 +388,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         style: {
           // ELK-routed idioms draw edges in the SVG EdgeLayer (from ELK's actual
           // routes); hide cytoscape's own edge so they don't double-draw.
-          display: ELK_ROUTED.has(resolvedKind) ? "none" : "element",
+          display: useStaticRoutes ? "none" : "element",
           width: STROKE.regular,
           // structured idioms get crisp, darker connectors (box-and-arrow);
           // force/similarity webs stay light so they don't overpower the nodes.
@@ -438,7 +443,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       { selector: "edge.hl", style: { "line-color": t.primary, "target-arrow-color": t.primary, width: STROKE.heavy, opacity: OPACITY.solid } as cytoscape.Css.Edge },
       ];
     },
-    [resolvedKind]
+    [resolvedKind, useStaticRoutes]
   );
 
   React.useEffect(() => {
@@ -532,6 +537,9 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => { const n = cy.$id(b.id); if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 }); }));
         setEdgeRoutes(routes);
+        // Moving nodes now would strand the STATIC routes, so when a spread is live
+        // we hand routing back to cytoscape (see useStaticRoutes) and then move.
+        if (spreadActive) applyGroupSpread(1, 1);
         cy.fit(undefined, 28);
       }).catch(() => { /* preset fallback stays */ });
     }
@@ -547,6 +555,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
+        if (spreadActive) applyGroupSpread(1, 1);
         cy.fit(undefined, 58);
       });
       afterLayout(cy, snapLanes, /* sync */ false); // cytoscape-elk is async
@@ -581,12 +590,15 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         }));
         // center(), NOT fit() — see the note in applySpread: fit re-zooms and cancels
         // the very change the user just asked for.
+        if (spreadActive) applyGroupSpread(1, 1);
         cy.center();
       }), /* sync */ true); // preset positions — already placed
     }
 
-    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
-      const applySpread = () => {
+    // Group spread works on ANY kind that has groups — a flow grouped by phase, a
+    // swimlane's lanes, a cluster's communities. `intra` is the members' own spread
+    // (only the force layout needs it; layered kinds get node spacing from ELK).
+    const applyGroupSpread = (intraX: number, intraY: number) => {
         const keyOfNode = (id: string) => (grouping ? grouping.keyOf(id) : "");
         const members = new Map<string, cytoscape.NodeSingular[]>();
         cy.nodes().forEach((n) => {
@@ -612,7 +624,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
             arr.forEach((n) => {
               const p = n.position();
-              n.position({ x: nc.x + (p.x - c.x) * nsx, y: nc.y + (p.y - c.y) * nsy });
+              n.position({ x: nc.x + (p.x - c.x) * intraX, y: nc.y + (p.y - c.y) * intraY });
             });
           });
         });
@@ -623,8 +635,12 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         // the control only ever appeared to overlap. center() pans without touching
         // zoom, so a spread genuinely spreads at constant node size.
         cy.center();
-      };
-      afterLayout(cy, once(applySpread), /* sync */ true); // fcose animate:false
+    };
+
+    // cluster: fcose is synchronous, and it's the one kind whose MEMBER spread is
+    // ours to apply (everywhere else node spacing rides ELK).
+    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || spreadActive)) {
+      afterLayout(cy, once(() => applyGroupSpread(nsx, nsy)), /* sync */ true);
     }
 
     const isExplore = resolvedKind === "cluster";
@@ -744,7 +760,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             bg={bgColor || undefined}
           />
         )}
-        {elkRouted && cyState && (
+        {useStaticRoutes && cyState && (
           <EdgeLayer cy={cyState} routes={edgeRoutes} plans={edgePlans} labels={edgeLabels} />
         )}
         <div

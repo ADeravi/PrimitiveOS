@@ -1231,6 +1231,8 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     return new Set(top.map((n) => n.id));
   }, [built, resolvedKind]);
   const elkRouted = ELK_ROUTED.has(resolvedKind);
+  const spreadActive = clusterSpreadX !== 1 || clusterSpreadY !== 1;
+  const useStaticRoutes = elkRouted && !spreadActive;
   const edgePlans = React6.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
       const n = built.nodes.find((x) => x.id === id);
@@ -1285,7 +1287,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           style: {
             // ELK-routed idioms draw edges in the SVG EdgeLayer (from ELK's actual
             // routes); hide cytoscape's own edge so they don't double-draw.
-            display: ELK_ROUTED.has(resolvedKind) ? "none" : "element",
+            display: useStaticRoutes ? "none" : "element",
             width: STROKE.regular,
             // structured idioms get crisp, darker connectors (box-and-arrow);
             // force/similarity webs stay light so they don't overpower the nodes.
@@ -1340,7 +1342,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         { selector: "edge.hl", style: { "line-color": t.primary, "target-arrow-color": t.primary, width: STROKE.heavy, opacity: OPACITY.solid } }
       ];
     },
-    [resolvedKind]
+    [resolvedKind, useStaticRoutes]
   );
   React6.useEffect(() => {
     const host = hostRef.current;
@@ -1429,6 +1431,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
         }));
         setEdgeRoutes(routes);
+        if (spreadActive) applyGroupSpread(1, 1);
         cy.fit(void 0, 28);
       }).catch(() => {
       });
@@ -1440,6 +1443,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
+        if (spreadActive) applyGroupSpread(1, 1);
         cy.fit(void 0, 58);
       });
       afterLayout(
@@ -1464,46 +1468,47 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             const p = n.position();
             n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
           }));
+          if (spreadActive) applyGroupSpread(1, 1);
           cy.center();
         }),
         /* sync */
         true
       );
     }
-    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || clusterSpreadX !== 1 || clusterSpreadY !== 1)) {
-      const applySpread = () => {
-        const keyOfNode = (id) => grouping ? grouping.keyOf(id) : "";
-        const members = /* @__PURE__ */ new Map();
-        cy.nodes().forEach((n) => {
-          const k = keyOfNode(n.id());
-          const arr = members.get(k) || [];
-          arr.push(n);
-          members.set(k, arr);
-        });
-        const cent = /* @__PURE__ */ new Map();
+    const applyGroupSpread = (intraX, intraY) => {
+      const keyOfNode = (id) => grouping ? grouping.keyOf(id) : "";
+      const members = /* @__PURE__ */ new Map();
+      cy.nodes().forEach((n) => {
+        const k = keyOfNode(n.id());
+        const arr = members.get(k) || [];
+        arr.push(n);
+        members.set(k, arr);
+      });
+      const cent = /* @__PURE__ */ new Map();
+      members.forEach((arr, k) => {
+        const s = arr.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
+        cent.set(k, { x: s.x / arr.length, y: s.y / arr.length });
+      });
+      const all = [...cent.values()];
+      if (!all.length) return;
+      const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
+      const gc = { x: g.x / all.length, y: g.y / all.length };
+      cy.batch(() => {
         members.forEach((arr, k) => {
-          const s = arr.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
-          cent.set(k, { x: s.x / arr.length, y: s.y / arr.length });
-        });
-        const all = [...cent.values()];
-        if (!all.length) return;
-        const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
-        const gc = { x: g.x / all.length, y: g.y / all.length };
-        cy.batch(() => {
-          members.forEach((arr, k) => {
-            const c = cent.get(k);
-            const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
-            arr.forEach((n) => {
-              const p = n.position();
-              n.position({ x: nc.x + (p.x - c.x) * nsx, y: nc.y + (p.y - c.y) * nsy });
-            });
+          const c = cent.get(k);
+          const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
+          arr.forEach((n) => {
+            const p = n.position();
+            n.position({ x: nc.x + (p.x - c.x) * intraX, y: nc.y + (p.y - c.y) * intraY });
           });
         });
-        cy.center();
-      };
+      });
+      cy.center();
+    };
+    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || spreadActive)) {
       afterLayout(
         cy,
-        once(applySpread),
+        once(() => applyGroupSpread(nsx, nsy)),
         /* sync */
         true
       );
@@ -1619,7 +1624,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           bg: bgColor || void 0
         }
       ),
-      elkRouted && cyState && /* @__PURE__ */ jsx12(EdgeLayer, { cy: cyState, routes: edgeRoutes, plans: edgePlans, labels: edgeLabels }),
+      useStaticRoutes && cyState && /* @__PURE__ */ jsx12(EdgeLayer, { cy: cyState, routes: edgeRoutes, plans: edgePlans, labels: edgeLabels }),
       /* @__PURE__ */ jsx12(
         "div",
         {
