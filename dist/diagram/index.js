@@ -1283,7 +1283,7 @@ function defaultRole(kind, n) {
   if (kind === "tree") return "node";
   return "process";
 }
-function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }) {
+function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterGapX = 0, clusterGapY = 0, unsafe = false }) {
   const tune = { direction, spacing, spacingX, spacingY, edgeSpacing };
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails \u2014 use only for known edge cases.");
@@ -1294,7 +1294,6 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
   const resolvedKind = blocked ? "similarity" : kind || intentKind;
   const hostRef = React6.useRef(null);
   const cyRef = React6.useRef(null);
-  const [tip, setTip] = React6.useState(null);
   const [cyState, setCyState] = React6.useState(null);
   const [palette, setPalette] = React6.useState([]);
   const [bgColor, setBgColor] = React6.useState("");
@@ -1329,7 +1328,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     return new Set(top.map((n) => n.id));
   }, [built, resolvedKind]);
   const elkRouted = ELK_ROUTED.has(resolvedKind);
-  const spreadActive = clusterSpreadX !== 1 || clusterSpreadY !== 1;
+  const spreadActive = clusterGapX !== 0 || clusterGapY !== 0;
   const useStaticRoutes = elkRouted && !spreadActive && !liveRouted;
   const edgePlans = React6.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
@@ -1600,10 +1599,18 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       if (!all.length) return;
       const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
       const gc = { x: g.x / all.length, y: g.y / all.length };
+      const sizes = [...members.values()].map((arr) => {
+        const xs = arr.map((n) => n.position().x), ys = arr.map((n) => n.position().y);
+        return { w: Math.max(...xs) - Math.min(...xs) + 120, h: Math.max(...ys) - Math.min(...ys) + 80 };
+      });
+      const meanW = sizes.reduce((a, s2) => a + s2.w, 0) / sizes.length;
+      const meanH = sizes.reduce((a, s2) => a + s2.h, 0) / sizes.length;
+      const offX = clusterGapX * meanW / 2, offY = clusterGapY * meanH / 2;
       cy.batch(() => {
         members.forEach((arr, k) => {
           const c = cent.get(k);
-          const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
+          const dx = c.x - gc.x, dy = c.y - gc.y;
+          const nc = { x: c.x + Math.sign(dx || 1) * offX, y: c.y + Math.sign(dy || 1) * offY };
           arr.forEach((n) => {
             const p = n.position();
             n.position({ x: nc.x + (p.x - c.x) * intraX, y: nc.y + (p.y - c.y) * intraY });
@@ -1623,21 +1630,13 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     cy.on("drag", "node", () => setLiveRouted(true));
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
-      const p = e.target.renderedPosition();
-      const raw = built.nodes.find((n) => n.id === e.target.id());
-      setTip({ x: p.x, y: p.y, text: raw?.label || e.target.id() });
       if (isExplore) {
         const hood = e.target.closedNeighborhood();
         cy.elements().addClass("faded").removeClass("hl");
         hood.removeClass("faded").addClass("hl");
       }
     });
-    cy.on("mousemove", "node", (e) => {
-      const p = e.target.renderedPosition();
-      setTip((prev) => prev ? { ...prev, x: p.x, y: p.y } : prev);
-    });
     cy.on("mouseout", "node", () => {
-      setTip(null);
       if (isExplore) cy.elements().removeClass("faded hl");
     });
     cy.on("tap", "node", (e) => {
@@ -1708,7 +1707,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       cyRef.current = null;
       setCyState(null);
     };
-  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterGapX, clusterGapY]);
   const notes = [
     ...blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout \u2014 showing the distance-true (MDS) embedding instead.`] : [],
     ...built.notes,
@@ -1745,28 +1744,6 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       ),
       cyState && /* @__PURE__ */ jsx12(ZoomControls, { cy: cyState })
     ] }),
-    tip && /* @__PURE__ */ jsx12(
-      "div",
-      {
-        style: {
-          position: "absolute",
-          left: tip.x,
-          top: tip.y,
-          pointerEvents: "none",
-          zIndex: 10,
-          transform: "translate(-50%, calc(-100% - 10px))",
-          whiteSpace: "nowrap",
-          background: "var(--background, #fff)",
-          color: "var(--foreground, #111)",
-          border: "1px solid var(--border, #e5e5e5)",
-          borderRadius: 6,
-          padding: "2px 8px",
-          fontSize: 12,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)"
-        },
-        children: tip.text
-      }
-    ),
     notes.length > 0 && /* @__PURE__ */ jsx12("figcaption", { style: { marginTop: 8, fontSize: 11.5, color: "var(--muted-foreground, #777)", lineHeight: 1.45 }, children: notes.join(" \xB7 ") }),
     /* @__PURE__ */ jsxs7("details", { style: { marginTop: 6, fontSize: 11.5, color: "var(--muted-foreground, #777)" }, children: [
       /* @__PURE__ */ jsx12("summary", { style: { cursor: "pointer", userSelect: "none" }, children: "Data table" }),

@@ -254,13 +254,16 @@ export interface DiagramProps {
   /** Draw the common-region shapes (cluster hulls / swimlane bands). Default true.
    *  Off = the nodes stay exactly where they are, just without the enclosure. */
   showGroups?: boolean;
-  /** Cluster idiom only — post-layout spread, applied about each group's own
-   *  centroid so members keep their relative positions:
-   *    node*   = how far members sit from their group's centre (tighten/loosen)
-   *    cluster*= how far the groups sit from each other
-   *  1 = as laid out. Separate X/Y so a wide canvas can spread horizontally only. */
+  /** Members' own spread about their group centroid (cluster idiom). 1 = as laid out. */
   nodeSpreadX?: number; nodeSpreadY?: number;
-  clusterSpreadX?: number; clusterSpreadY?: number;
+  /** Cluster separation, in CLUSTER-SIZE UNITS rather than an abstract multiplier:
+   *    +1 → groups pushed apart by one full cluster width/height of clear space
+   *     0 → exactly as laid out
+   *    −1 → pulled together by one cluster size, i.e. fully overlapping
+   *  Expressed this way the control means something physical — "one cluster apart" —
+   *  instead of "×1.6", and the same slider value reads the same on any diagram
+   *  whatever its scale. */
+  clusterGapX?: number; clusterGapY?: number;
   /** THE escape hatch — warns; reserved for genuine edge cases. */
   unsafe?: boolean;
 }
@@ -268,7 +271,7 @@ export interface DiagramProps {
 /** A guardrail component: props are meaning only; the result is always a clean
  *  box-and-arrow diagram. There is no prop that can produce an overlapping,
  *  mis-routed, or unreadable result. */
-export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterSpreadX = 1, clusterSpreadY = 1, unsafe = false }: DiagramProps) {
+export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterGapX = 0, clusterGapY = 0, unsafe = false }: DiagramProps) {
   // The layout tuning, meaning-only: reading direction + how tightly it packs.
   const tune: ElkTune = { direction, spacing, spacingX, spacingY, edgeSpacing };
   if (unsafe && typeof console !== "undefined") {
@@ -284,7 +287,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const resolvedKind: DiagramKind = blocked ? "similarity" : kind || intentKind;
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
-  const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
   const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
   const [palette, setPalette] = React.useState<string[]>([]);
   const [bgColor, setBgColor] = React.useState<string>("");
@@ -335,7 +337,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   // A live group spread MOVES nodes after layout, which would strand the static ELK
   // routes (they'd float away from their boxes — the detached-edge bug again). So a
   // spread hands routing back to cytoscape, which recomputes it from live positions.
-  const spreadActive = clusterSpreadX !== 1 || clusterSpreadY !== 1;
+  const spreadActive = clusterGapX !== 0 || clusterGapY !== 0;
   const useStaticRoutes = elkRouted && !spreadActive && !liveRouted;
   const edgePlans = React.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
@@ -632,11 +634,24 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         if (!all.length) return;
         const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
         const gc = { x: g.x / all.length, y: g.y / all.length };
+        // The unit of separation is the CLUSTER's own size, so ±1 means "one cluster
+        // apart / one cluster of overlap" on any diagram at any scale. Each group is
+        // translated OUTWARD from the global centre by half a gap, so two groups on
+        // opposite sides gain a full gap between them.
+        const sizes = [...members.values()].map((arr) => {
+          const xs = arr.map((n) => n.position().x), ys = arr.map((n) => n.position().y);
+          return { w: Math.max(...xs) - Math.min(...xs) + 120, h: Math.max(...ys) - Math.min(...ys) + 80 };
+        });
+        const meanW = sizes.reduce((a, s2) => a + s2.w, 0) / sizes.length;
+        const meanH = sizes.reduce((a, s2) => a + s2.h, 0) / sizes.length;
+        const offX = (clusterGapX * meanW) / 2, offY = (clusterGapY * meanH) / 2;
         cy.batch(() => {
           members.forEach((arr, k) => {
             const c = cent.get(k)!;
-            // where the group's centre moves to
-            const nc = { x: gc.x + (c.x - gc.x) * clusterSpreadX, y: gc.y + (c.y - gc.y) * clusterSpreadY };
+            // where the group's centre moves to — a translation along its own offset
+            // direction, NOT a scale, so the step is the same for near and far groups.
+            const dx = c.x - gc.x, dy = c.y - gc.y;
+            const nc = { x: c.x + Math.sign(dx || 1) * offX, y: c.y + Math.sign(dy || 1) * offY };
             arr.forEach((n) => {
               const p = n.position();
               n.position({ x: nc.x + (p.x - c.x) * intraX, y: nc.y + (p.y - c.y) * intraY });
@@ -662,10 +677,10 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     cy.on("drag", "node", () => setLiveRouted(true));
 
     const isExplore = resolvedKind === "cluster";
+    // No hover tooltip: the node's label is already ON the node, so a chip repeating
+    // it is noise that also covers whatever sits above. The hover still does the one
+    // thing the canvas can't show statically — reveal the neighbourhood.
     cy.on("mouseover", "node", (e) => {
-      const p = e.target.renderedPosition();
-      const raw = built.nodes.find((n) => n.id === e.target.id());
-      setTip({ x: p.x, y: p.y, text: raw?.label || e.target.id() });
       // Tenet 5: dim by default, reveal the hovered node's neighbourhood on hover.
       if (isExplore) {
         const hood = e.target.closedNeighborhood();
@@ -673,12 +688,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         hood.removeClass("faded").addClass("hl");
       }
     });
-    cy.on("mousemove", "node", (e) => {
-      const p = e.target.renderedPosition();
-      setTip((prev) => (prev ? { ...prev, x: p.x, y: p.y } : prev));
-    });
     cy.on("mouseout", "node", () => {
-      setTip(null);
       if (isExplore) cy.elements().removeClass("faded hl");
     });
     cy.on("tap", "node", (e) => {
@@ -748,7 +758,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterSpreadX, clusterSpreadY]);
+  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterGapX, clusterGapY]);
 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.
@@ -790,19 +800,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         />
         {cyState && <ZoomControls cy={cyState} />}
       </div>
-      {tip && (
-        <div
-          style={{
-            position: "absolute", left: tip.x, top: tip.y, pointerEvents: "none", zIndex: 10,
-            transform: "translate(-50%, calc(-100% - 10px))", whiteSpace: "nowrap",
-            background: "var(--background, #fff)", color: "var(--foreground, #111)",
-            border: "1px solid var(--border, #e5e5e5)", borderRadius: 6, padding: "2px 8px",
-            fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-          }}
-        >
-          {tip.text}
-        </div>
-      )}
       {notes.length > 0 && (
         <figcaption style={{ marginTop: 8, fontSize: 11.5, color: "var(--muted-foreground, #777)", lineHeight: 1.45 }}>
           {notes.join(" · ")}
