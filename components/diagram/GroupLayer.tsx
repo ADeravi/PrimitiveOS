@@ -17,8 +17,11 @@ export interface GroupLayerProps {
   cy: cytoscape.Core | null;
   /** common-region blobs per community, or horizontal swimlane bands. */
   mode: "hulls" | "lanes";
-  /** node id → group/lane key. */
+  /** node id → PRIMARY group/lane key (colour, ordering). */
   keyOf: (id: string) => string;
+  /** node id → EVERY group it belongs to. A node in two groups is drawn inside both
+   *  hulls, which is what makes their overlap a real intersection. Defaults to keyOf. */
+  keysOf?: (id: string) => string[];
   /** band order (lanes mode); also fixes colour order. */
   order?: string[];
   /** ordered colour ramp (resolved DS tokens). */
@@ -43,7 +46,7 @@ const LABEL_BAND = 26;
 type Tf = { x: number; y: number; z: number };
 type Shape = { key: string; color: string; path?: string; band?: { x: number; y: number; w: number; h: number }; labelXY?: { x: number; y: number }; members?: string[] };
 
-export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg, onGroupDrag }: GroupLayerProps) {
+export function GroupLayer({ cy, mode, keyOf, keysOf, order, colors, labelOf, labelColor, bg, onGroupDrag }: GroupLayerProps) {
   const [tf, setTf] = React.useState<Tf>({ x: 0, y: 0, z: 1 });
   const [shapes, setShapes] = React.useState<Shape[]>([]);
 
@@ -83,9 +86,13 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor
         return;
       }
 
-      // hulls: one blob per group, sized from member node extents
+      // hulls: one blob per group, sized from member node extents. A node with
+      // several memberships is added to EACH — that's what draws the intersection.
       const groups = new Map<string, GNode[]>();
-      gnodes.forEach((n) => { const k = n.group!; (groups.get(k) || groups.set(k, []).get(k)!).push(n); });
+      gnodes.forEach((n) => {
+        const keys = keysOf ? keysOf(n.id) : [n.group!];
+        keys.forEach((k) => { (groups.get(k) || groups.set(k, []).get(k)!).push(n); });
+      });
       const out: Shape[] = [];
       groups.forEach((arr, key) => {
         // Hull the node BOX CORNERS, not the centres. Two reasons the old centre-hull
@@ -130,7 +137,7 @@ export function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor
     cy.on("render pan zoom resize position add remove layoutstop", schedule);
     schedule();
     return () => { cy.off("render pan zoom resize position add remove layoutstop", schedule); if (raf) cancelAnimationFrame(raf); };
-  }, [cy, mode, keyOf, order, colors, labelOf]);
+  }, [cy, mode, keyOf, keysOf, order, colors, labelOf]);
 
   // ── grab a GROUP: drag the region, its members move together ────────────────
   // The layer itself stays pointer-transparent so nodes and the canvas keep their own

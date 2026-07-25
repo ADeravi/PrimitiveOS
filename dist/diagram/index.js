@@ -374,6 +374,42 @@ function hullPath(centres, pad = 22, radius = 16) {
   }
   return d + "Z";
 }
+function resolveGroupOverlaps(groups, opts = {}) {
+  const pad = opts.pad ?? 24;
+  const iterations = opts.iterations ?? 12;
+  const move = /* @__PURE__ */ new Map();
+  groups.forEach((g) => move.set(g.key, { dx: 0, dy: 0 }));
+  const shares = (a, b) => {
+    for (const id of a.members) if (b.members.has(id)) return true;
+    return false;
+  };
+  for (let it = 0; it < iterations; it++) {
+    let moved = false;
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        const a = groups[i], b = groups[j];
+        if (shares(a, b)) continue;
+        const ma = move.get(a.key), mb = move.get(b.key);
+        const ax = a.x + ma.dx, ay = a.y + ma.dy, bx = b.x + mb.dx, by = b.y + mb.dy;
+        const ox = Math.min(ax + a.w, bx + b.w) - Math.max(ax, bx) + pad;
+        const oy = Math.min(ay + a.h, by + b.h) - Math.max(ay, by) + pad;
+        if (ox <= 0 || oy <= 0) continue;
+        moved = true;
+        if (ox < oy) {
+          const dir = ax + a.w / 2 <= bx + b.w / 2 ? -1 : 1;
+          ma.dx += dir * ox / 2;
+          mb.dx -= dir * ox / 2;
+        } else {
+          const dir = ay + a.h / 2 <= by + b.h / 2 ? -1 : 1;
+          ma.dy += dir * oy / 2;
+          mb.dy -= dir * oy / 2;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+  return move;
+}
 function laneBands(nodes, laneOrder, bounds, opts = {}) {
   const pad = opts.pad ?? 18;
   const byLane = /* @__PURE__ */ new Map();
@@ -500,7 +536,7 @@ function chooseEncoding(input) {
 // components/diagram/GroupLayer.tsx
 import { jsx as jsx10, jsxs as jsxs5 } from "react/jsx-runtime";
 var LABEL_BAND = 26;
-function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg, onGroupDrag }) {
+function GroupLayer({ cy, mode, keyOf, keysOf, order, colors, labelOf, labelColor, bg, onGroupDrag }) {
   const [tf, setTf] = React4.useState({ x: 0, y: 0, z: 1 });
   const [shapes, setShapes] = React4.useState([]);
   React4.useEffect(() => {
@@ -540,8 +576,10 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg, o
       }
       const groups = /* @__PURE__ */ new Map();
       gnodes.forEach((n) => {
-        const k = n.group;
-        (groups.get(k) || groups.set(k, []).get(k)).push(n);
+        const keys = keysOf ? keysOf(n.id) : [n.group];
+        keys.forEach((k) => {
+          (groups.get(k) || groups.set(k, []).get(k)).push(n);
+        });
       });
       const out = [];
       groups.forEach((arr, key) => {
@@ -575,7 +613,7 @@ function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg, o
       cy.off("render pan zoom resize position add remove layoutstop", schedule);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [cy, mode, keyOf, order, colors, labelOf]);
+  }, [cy, mode, keyOf, keysOf, order, colors, labelOf]);
   const drag = React4.useRef(null);
   const onGroupDown = (e, members) => {
     if (!cy || !members || !members.length) return;
@@ -1309,7 +1347,15 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     if (resolvedKind === "cluster" || hasGroup) {
       const detected = resolvedKind === "cluster" && !hasGroup ? detectGroups(built.nodes, built.edges) : void 0;
       const gmap = new Map(built.nodes.map((n) => [n.id, n.group != null ? String(n.group) : detected?.get(n.id) ?? "g0"]));
-      return { mode: "hulls", named: hasGroup, order: [...new Set(gmap.values())], keyOf: (id) => gmap.get(id) ?? "g0" };
+      const multi = new Map(built.nodes.filter((n) => n.groups && n.groups.length).map((n) => [n.id, n.groups.map(String)]));
+      const allKeys = [.../* @__PURE__ */ new Set([...gmap.values(), ...[...multi.values()].flat()])];
+      return {
+        mode: "hulls",
+        named: hasGroup,
+        order: allKeys,
+        keyOf: (id) => gmap.get(id) ?? "g0",
+        keysOf: (id) => multi.get(id) ?? [gmap.get(id) ?? "g0"]
+      };
     }
     return null;
   }, [built, resolvedKind]);
@@ -1581,6 +1627,59 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         true
       );
     }
+    const enforceOverlapRule = () => {
+      if (!grouping || grouping.mode !== "hulls") return;
+      const gk = grouping;
+      const keysOf = (id) => gk.keysOf ? gk.keysOf(id) : [gk.keyOf(id)];
+      const members = /* @__PURE__ */ new Map();
+      cy.nodes().forEach((n) => keysOf(n.id()).forEach((k) => {
+        const arr = members.get(k) || [];
+        arr.push(n.id());
+        members.set(k, arr);
+      }));
+      if (members.size < 2) return;
+      const centreOf = (ids) => {
+        const ps = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty()).map((n) => n.position());
+        if (!ps.length) return null;
+        return { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length };
+      };
+      cy.batch(() => cy.nodes().forEach((n) => {
+        const ks = keysOf(n.id());
+        if (ks.length < 2) return;
+        const cs = ks.map((k) => centreOf((members.get(k) || []).filter((id) => id !== n.id()))).filter(Boolean);
+        if (cs.length < 2) return;
+        n.position({
+          x: cs.reduce((a, c) => a + c.x, 0) / cs.length,
+          y: cs.reduce((a, c) => a + c.y, 0) / cs.length
+        });
+      }));
+      const boxes = [...members.entries()].map(([key, ids]) => {
+        const ns = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty());
+        const xs = ns.map((n) => n.position().x), ys = ns.map((n) => n.position().y);
+        const ws = ns.map((n) => n.width() || 40), hs = ns.map((n) => n.height() || 24);
+        const halfW = Math.max(...ws, 40) / 2, halfH = Math.max(...hs, 24) / 2;
+        return {
+          key,
+          members: new Set(ids),
+          x: Math.min(...xs) - halfW,
+          y: Math.min(...ys) - halfH,
+          w: Math.max(...xs) - Math.min(...xs) + halfW * 2,
+          h: Math.max(...ys) - Math.min(...ys) + halfH * 2
+        };
+      });
+      const move = resolveGroupOverlaps(boxes, { pad: 28 });
+      cy.batch(() => move.forEach((d, key) => {
+        if (!d.dx && !d.dy) return;
+        (members.get(key) || []).forEach((id) => {
+          const n = cy.$id(id);
+          if (n.nonempty() && keysOf(id).length < 2) {
+            const p = n.position();
+            n.position({ x: p.x + d.dx, y: p.y + d.dy });
+          }
+        });
+      }));
+      cy.center();
+    };
     const applyGroupSpread = (intraX, intraY) => {
       const keyOfNode = (id) => grouping ? grouping.keyOf(id) : "";
       const members = /* @__PURE__ */ new Map();
@@ -1619,10 +1718,21 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       });
       cy.center();
     };
+    if (resolvedKind === "cluster" && !(nsx !== 1 || nsy !== 1 || spreadActive)) {
+      afterLayout(
+        cy,
+        once(enforceOverlapRule),
+        /* sync */
+        true
+      );
+    }
     if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || spreadActive)) {
       afterLayout(
         cy,
-        once(() => applyGroupSpread(nsx, nsy)),
+        once(() => {
+          applyGroupSpread(nsx, nsy);
+          enforceOverlapRule();
+        }),
         /* sync */
         true
       );
@@ -1725,6 +1835,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           cy: cyState,
           mode: grouping.mode,
           keyOf: grouping.keyOf,
+          keysOf: grouping.keysOf,
           onGroupDrag: () => setLiveRouted(true),
           order: grouping.order,
           colors: palette.length ? palette : ["#888888"],

@@ -19,7 +19,7 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import { readTokens, readableOn } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { EdgeLayer } from "./EdgeLayer";
-import { detectGroups } from "./grouping";
+import { detectGroups, resolveGroupOverlaps } from "./grouping";
 import { mdsPositions } from "./mds";
 import { wrap, uniformSizes, elkOptions, type ElkTune } from "./layout";
 import { TYPE, OPACITY, RADIUS, STROKE, neutralRoles } from "./primitives";
@@ -308,8 +308,17 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     if (resolvedKind === "cluster" || hasGroup) {
       const detected = resolvedKind === "cluster" && !hasGroup ? detectGroups(built.nodes, built.edges) : undefined;
       const gmap = new Map(built.nodes.map((n) => [n.id, n.group != null ? String(n.group) : detected?.get(n.id) ?? "g0"]));
+      // Multi-membership: `groups` (if given) lists every region the node belongs to.
+      // keysOf is what the hulls and the overlap rule read; keyOf stays the PRIMARY
+      // group, for colour and for anything that needs exactly one answer.
+      const multi = new Map(built.nodes.filter((n) => n.groups && n.groups.length).map((n) => [n.id, n.groups!.map(String)]));
       // only label hulls when the groups are human-named (not auto "g0/g1").
-      return { mode: "hulls" as const, named: hasGroup, order: [...new Set(gmap.values())], keyOf: (id: string) => gmap.get(id) ?? "g0" };
+      const allKeys = [...new Set([...gmap.values(), ...[...multi.values()].flat()])];
+      return {
+        mode: "hulls" as const, named: hasGroup, order: allKeys,
+        keyOf: (id: string) => gmap.get(id) ?? "g0",
+        keysOf: (id: string) => multi.get(id) ?? [gmap.get(id) ?? "g0"],
+      };
     }
     return null;
   }, [built, resolvedKind]);
@@ -615,6 +624,71 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // Group spread works on ANY kind that has groups — a flow grouped by phase, a
     // swimlane's lanes, a cluster's communities. `intra` is the members' own spread
     // (only the force layout needs it; layered kinds get node spacing from ELK).
+    // ── OVERLAP IS EARNED ────────────────────────────────────────────────────
+    // Two rules, one pass:
+    //   1. A node in SEVERAL groups belongs in their INTERSECTION. It's pinned to the
+    //      midpoint of its groups' centres, so it sits in the shared zone and is
+    //      carried along whenever either group moves — it can't drift out of the
+    //      overlap that justifies it.
+    //   2. Two groups that share NO node must not overlap. An empty intersection
+    //      drawn as an overlap claims a shared membership the data doesn't have, so
+    //      those pairs are pushed apart (least-penetration axis, so the move is the
+    //      smallest honest one).
+    const enforceOverlapRule = () => {
+      if (!grouping || grouping.mode !== "hulls") return;
+      // widen once: the lanes variant has no keysOf, so narrowing on it collapses the
+      // else-branch to `never`.
+      const gk = grouping as unknown as { keyOf: (id: string) => string; keysOf?: (id: string) => string[] };
+      const keysOf = (id: string) => (gk.keysOf ? gk.keysOf(id) : [gk.keyOf(id)]);
+      // members per group (a shared node appears in each of its groups)
+      const members = new Map<string, string[]>();
+      cy.nodes().forEach((n) => keysOf(n.id()).forEach((k) => {
+        const arr = members.get(k) || []; arr.push(n.id()); members.set(k, arr);
+      }));
+      if (members.size < 2) return;
+
+      // 1. pin shared nodes to the intersection
+      const centreOf = (ids: string[]) => {
+        const ps = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty()).map((n) => n.position());
+        if (!ps.length) return null;
+        return { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length };
+      };
+      cy.batch(() => cy.nodes().forEach((n) => {
+        const ks = keysOf(n.id());
+        if (ks.length < 2) return;
+        const cs = ks.map((k) => centreOf((members.get(k) || []).filter((id) => id !== n.id()))).filter(Boolean) as { x: number; y: number }[];
+        if (cs.length < 2) return;
+        n.position({
+          x: cs.reduce((a, c) => a + c.x, 0) / cs.length,
+          y: cs.reduce((a, c) => a + c.y, 0) / cs.length,
+        });
+      }));
+
+      // 2. push apart every pair with an empty intersection
+      const boxes = [...members.entries()].map(([key, ids]) => {
+        const ns = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty());
+        const xs = ns.map((n) => n.position().x), ys = ns.map((n) => n.position().y);
+        const ws = ns.map((n) => n.width() || 40), hs = ns.map((n) => n.height() || 24);
+        const halfW = Math.max(...ws, 40) / 2, halfH = Math.max(...hs, 24) / 2;
+        return {
+          key, members: new Set(ids),
+          x: Math.min(...xs) - halfW, y: Math.min(...ys) - halfH,
+          w: Math.max(...xs) - Math.min(...xs) + halfW * 2,
+          h: Math.max(...ys) - Math.min(...ys) + halfH * 2,
+        };
+      });
+      const move = resolveGroupOverlaps(boxes, { pad: 28 });
+      cy.batch(() => move.forEach((d, key) => {
+        if (!d.dx && !d.dy) return;
+        (members.get(key) || []).forEach((id) => {
+          const n = cy.$id(id);
+          // a shared node is held by rule 1 — it must NOT be dragged out by rule 2
+          if (n.nonempty() && keysOf(id).length < 2) { const p = n.position(); n.position({ x: p.x + d.dx, y: p.y + d.dy }); }
+        });
+      }));
+      cy.center();
+    };
+
     const applyGroupSpread = (intraX: number, intraY: number) => {
         const keyOfNode = (id: string) => (grouping ? grouping.keyOf(id) : "");
         const members = new Map<string, cytoscape.NodeSingular[]>();
@@ -669,8 +743,12 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
 
     // cluster: fcose is synchronous, and it's the one kind whose MEMBER spread is
     // ours to apply (everywhere else node spacing rides ELK).
+    // clusters always get the overlap rule, spread or not
+    if (resolvedKind === "cluster" && !(nsx !== 1 || nsy !== 1 || spreadActive)) {
+      afterLayout(cy, once(enforceOverlapRule), /* sync */ true);
+    }
     if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || spreadActive)) {
-      afterLayout(cy, once(() => applyGroupSpread(nsx, nsy)), /* sync */ true);
+      afterLayout(cy, once(() => { applyGroupSpread(nsx, nsy); enforceOverlapRule(); }), /* sync */ true);
     }
 
     // A drag invalidates the static routes — swap to live routing the moment one starts.
@@ -782,6 +860,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
             cy={cyState}
             mode={grouping.mode}
             keyOf={grouping.keyOf}
+            keysOf={grouping.keysOf}
             onGroupDrag={() => setLiveRouted(true)}
             order={grouping.order}
             colors={palette.length ? palette : ["#888888"]}

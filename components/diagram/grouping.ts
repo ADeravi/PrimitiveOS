@@ -150,6 +150,61 @@ export function hullPath(centres: Pt[], pad = 22, radius = 16): string {
   return d + "Z";
 }
 
+// ── overlap is EARNED, never accidental ──────────────────────────────────────
+// Rule: two common regions may overlap ONLY where they genuinely share a node —
+// that is what an overlap MEANS (Euler/Venn semantics: the intersection is the set
+// of things in both). Two groups with nothing in common that happen to overlap are
+// lying to the reader: the picture asserts a shared membership the data doesn't have.
+//
+// Convex hulls over a force layout overlap constantly by accident, because the layout
+// optimises CONNECTIVITY while the hulls describe CATEGORY — two different partitions.
+// So after layout we push apart exactly the pairs that share nothing, and leave the
+// pairs that do share alone.
+//
+// Pure: takes boxes, returns a translation per group. The caller moves the members.
+export interface GroupBox { key: string; x: number; y: number; w: number; h: number; members: Set<string> }
+
+export function resolveGroupOverlaps(
+  groups: GroupBox[],
+  opts: { pad?: number; iterations?: number } = {}
+): Map<string, { dx: number; dy: number }> {
+  const pad = opts.pad ?? 24;
+  const iterations = opts.iterations ?? 12;
+  const move = new Map<string, { dx: number; dy: number }>();
+  groups.forEach((g) => move.set(g.key, { dx: 0, dy: 0 }));
+  const shares = (a: GroupBox, b: GroupBox) => {
+    for (const id of a.members) if (b.members.has(id)) return true;
+    return false;
+  };
+
+  for (let it = 0; it < iterations; it++) {
+    let moved = false;
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        const a = groups[i], b = groups[j];
+        if (shares(a, b)) continue; // a real intersection — overlap is meaningful, keep it
+        const ma = move.get(a.key)!, mb = move.get(b.key)!;
+        const ax = a.x + ma.dx, ay = a.y + ma.dy, bx = b.x + mb.dx, by = b.y + mb.dy;
+        // overlap on each axis, including the padding we want between regions
+        const ox = Math.min(ax + a.w, bx + b.w) - Math.max(ax, bx) + pad;
+        const oy = Math.min(ay + a.h, by + b.h) - Math.max(ay, by) + pad;
+        if (ox <= 0 || oy <= 0) continue; // already clear
+        moved = true;
+        // separate along the axis of LEAST penetration — the smallest honest move.
+        if (ox < oy) {
+          const dir = ax + a.w / 2 <= bx + b.w / 2 ? -1 : 1;
+          ma.dx += (dir * ox) / 2; mb.dx -= (dir * ox) / 2;
+        } else {
+          const dir = ay + a.h / 2 <= by + b.h / 2 ? -1 : 1;
+          ma.dy += (dir * oy) / 2; mb.dy -= (dir * oy) / 2;
+        }
+      }
+    }
+    if (!moved) break; // converged: no disallowed overlap remains
+  }
+  return move;
+}
+
 // ── swimlane / ordered-group bands (common region by enclosure) ──────────────
 export type Band = { lane: string; index: number; y: number; h: number; x: number; w: number };
 export function laneBands(
