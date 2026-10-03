@@ -78,61 +78,17 @@ export function uniformSizes(
   return out;
 }
 
-// Optional, consumer-supplied layout tuning. Meaning-only stays the rule: these
-// don't change WHAT is drawn, only the reading direction and how tightly it packs.
-// Both are bounded/normalised below, so no value can produce an unreadable result —
-// the guardrail holds.
-export interface ElkTune {
-  /** Flow direction, ELK-native. Overrides the per-kind default. */
-  direction?: "DOWN" | "UP" | "RIGHT" | "LEFT";
-  /** Uniform spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped [0.5,2]. */
-  spacing?: number;
-  /** How far apart PARALLEL EDGES sit — their own lane separation, independent of
-   *  node spacing. Raising it un-stacks a busy corridor; lowering it tightens a
-   *  sparse one. Clamped like the rest. */
-  edgeSpacing?: number;
-  /** Per-axis spacing multipliers (SCREEN axes, not ELK's). Override `spacing`.
-   *  These are mapped onto ELK's layer/in-layer keys according to `direction`, so
-   *  "X" always means horizontal on screen whichever way the flow runs. */
-  spacingX?: number;
-  spacingY?: number;
-}
-
 // The ELK layered option set. BRANDES_KOEPF + BALANCED straightens the main spine
 // and centres parents over children, so the trunk is one vertical line and
 // decision branches fan symmetrically. Verified headless in the layout probe.
-export function elkOptions(kind: DiagramKind, tune?: ElkTune): Record<string, string | number | boolean> {
-  const dir = tune?.direction || (kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN");
-  // Clamp so a stray value can never collapse nodes onto each other or explode the
-  // canvas — the spacing knobs stay inside a readable band.
-  const cl = (v: number | undefined, fb: number) => Math.min(2, Math.max(0.5, v && v > 0 ? v : fb));
-  const s = cl(tune?.spacing, 1);
-  const sx = cl(tune?.spacingX, s);
-  const sy = cl(tune?.spacingY, s);
-  const es = cl(tune?.edgeSpacing, 1); // edge-to-edge lane separation
-  // ELK thinks in LAYERS, the user thinks in screen axes. When the flow runs
-  // left→right the layer gap IS the horizontal gap; running top→bottom it's the
-  // vertical one. Map accordingly so "→" always widens the screen-horizontal gap.
-  const horizontalFlow = dir === "RIGHT" || dir === "LEFT";
-  const layerGap = horizontalFlow ? sx : sy;   // gap BETWEEN successive layers
-  const inLayerGap = horizontalFlow ? sy : sx; // gap between siblings WITHIN a layer
-  const scale = (v: number, m: number) => Math.round(v * m);
+export function elkOptions(kind: DiagramKind): Record<string, string | number | boolean> {
+  const dir = kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN";
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10), layerGap), // 48 / 64 @ 1
-    "elk.spacing.nodeNode": scale(sp(8), inLayerGap),                                                // 40 @ 1
-    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6), layerGap),                             // 24 @ 1
-    // ── ALIGNMENT / OVERLAP POLICY ──────────────────────────────────────────
-    // Two edges sharing a lane are drawn as ONE line: the reader can't see there
-    // are two, nor where either goes. These three keep them apart at the source,
-    // so the linter's route.overlapsEdge should never have anything to report.
-    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap * es), // parallel edges get their own lane
-    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap * es),                    // and stay apart within one
-    "elk.layered.mergeEdges": false,                                     // never fuse two edges into one trunk
-    // Labels are placed by our own placer (edgeLint.placeLabel), but ELK still
-    // needs to reserve room for them or they land on top of the routes.
-    "elk.spacing.edgeLabel": 8,
+    "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? sp(9) : sp(10), // 48 / 64
+    "elk.spacing.nodeNode": sp(8),                                                  // 40
+    "elk.layered.spacing.edgeNodeBetweenLayers": sp(6),                             // 24
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",

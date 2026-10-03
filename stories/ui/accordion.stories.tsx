@@ -4,7 +4,7 @@ import { userEvent, within, expect } from "storybook/test";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const meta: Meta<typeof Accordion> = {
-  title: "Nests/Layout/Accordion",
+  title: "UI/Accordion",
   component: Accordion,
   tags: ["autodocs"],
   args: { onValueChange: fn() },

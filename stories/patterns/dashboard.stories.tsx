@@ -28,7 +28,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, TrendingUp, TrendingDown } from "lucide-react";
 
 const meta: Meta = {
-  title: "Nests/Patterns/Dashboard",
+  title: "Patterns/Dashboard",
   parameters: {
     layout: "fullscreen",
     docs: {

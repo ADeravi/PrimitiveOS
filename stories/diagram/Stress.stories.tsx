@@ -11,7 +11,7 @@ import type { SNode, SEdge } from "@/components/diagram";
 // balance) is acceptable too.
 
 const meta: Meta<typeof Diagram> = {
-  title: "Nests/Diagrams/Stress Tests",
+  title: "Diagram/Stress Tests",
   component: Diagram,
   parameters: {
     layout: "centered",

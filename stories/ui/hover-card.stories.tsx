@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
 
-const meta: Meta = { title: "Nests/Overlays/HoverCard", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/HoverCard", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

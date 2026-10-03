@@ -57,7 +57,7 @@ const LANE_E: SEdge[] = [
 ];
 
 const meta: Meta<typeof Diagram> = {
-  title: "Nests/Diagrams/Grouping & Proximity",
+  title: "Diagram/Grouping & Proximity",
   component: Diagram,
   parameters: {
     layout: "centered",

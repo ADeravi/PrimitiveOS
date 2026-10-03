@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command";
 import { Calculator, Calendar, CreditCard, Settings, Smile, User } from "lucide-react";
 
-const meta: Meta = { title: "Nests/Overlays/Command", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Command", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

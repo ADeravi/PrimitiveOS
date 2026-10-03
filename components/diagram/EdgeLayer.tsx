@@ -63,17 +63,6 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
     return { id: n.id(), x: p.x - n.width() / 2, y: p.y - n.height() / 2, w: n.width(), h: n.height() };
   }) : []), [cy, tf]);
 
-  // Chips already placed this pass — each label dodges the ones before it, so two
-  // labels can't stack on the same spot. Rebuilt every render (positions change).
-  const placedLabels: { x: number; y: number; w: number; h: number }[] = [];
-  // every routed segment, so a chip can be kept off OTHER edges (its own excluded
-  // below — a label is allowed to sit beside the line it belongs to).
-  const allSegs = routes.map((r) => {
-    const segs: [{ x: number; y: number }, { x: number; y: number }][] = [];
-    for (let i = 0; i < r.points.length - 1; i++) segs.push([r.points[i], r.points[i + 1]]);
-    return { index: r.index, segs };
-  });
-
   return (
     <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }} aria-hidden>
       <g transform={`translate(${tf.x} ${tf.y}) scale(${tf.z})`}>
@@ -96,9 +85,7 @@ export function EdgeLayer({ cy, routes, plans, labels }: EdgeLayerProps) {
           const lbl = labels[r.index];
           let chip: React.ReactNode = null;
           if (lbl) {
-            const others = allSegs.filter((o) => o.index !== r.index).flatMap((o) => o.segs);
-            const at = placeLabel(r.points, lbl.length, boxes, placedLabels, others);
-            placedLabels.push(at.rect);
+            const at = placeLabel(r.points, lbl.length, boxes);
             const mx = at.x, my = at.y;
             const fs = 12, w = lbl.length * fs * 0.62 + 12, h = fs + 8;
             chip = (

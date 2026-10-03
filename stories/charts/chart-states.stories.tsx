@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ChartCard, ChartEmpty, ChartError, ChartSkeleton } from "@/components/charts";
 
 const meta: Meta = {
-  title: "Nests/Charts/States",
+  title: "Charts/States",
   parameters: {
     layout: "centered",
     docs: {

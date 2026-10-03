@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 
 const meta: Meta<typeof Tabs> = {
-  title: "Nests/Navigation/Tabs",
+  title: "UI/Tabs",
   component: Tabs,
   tags: ["autodocs"],
   parameters: {

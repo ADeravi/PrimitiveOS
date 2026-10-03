@@ -102,7 +102,7 @@ function Planner() {
   );
 }
 
-const meta: Meta = { title: "Nests/Diagrams/Edge Policies", parameters: { layout: "padded" } };
+const meta: Meta = { title: "Diagram/Edge Policies", parameters: { layout: "padded" } };
 export default meta;
 type S = StoryObj;
 

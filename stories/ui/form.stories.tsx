@@ -9,7 +9,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const meta: Meta = { title: "Nests/Data entry/Form", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Form", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

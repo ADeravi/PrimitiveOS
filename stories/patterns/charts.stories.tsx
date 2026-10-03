@@ -36,7 +36,7 @@ import type { FieldSpec } from "@/components/charts/pickChart";
 // clearly labelled, so nothing the library can do is hidden.
 
 const meta: Meta = {
-  title: "Nests/Charts/Overview",
+  title: "Charts/Overview",
   parameters: {
     layout: "fullscreen",
     chromatic: { delay: 1800 },

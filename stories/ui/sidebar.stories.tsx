@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Home, Inbox, Calendar, Search, Settings } from "lucide-react";
 
-const meta: Meta = { title: "Nests/Navigation/Sidebar", tags: ["autodocs"], parameters: { layout: "fullscreen" } };
+const meta: Meta = { title: "UI/Sidebar", tags: ["autodocs"], parameters: { layout: "fullscreen" } };
 export default meta;
 type Story = StoryObj;
 

@@ -109,12 +109,6 @@ export interface SNode {
   role?: NodeRole;
   /** community / category — drives colour + common-region enclosure (hulls). */
   group?: string | number;
-  /** MULTI-MEMBERSHIP. A node genuinely in two groups sits in their INTERSECTION —
-   *  the overlap of the two regions — and is held there: it moves whenever either
-   *  group moves and cannot drift out of the shared zone. This is the only thing
-   *  that earns an overlap; regions with no shared node are pushed apart, because
-   *  an overlap with nothing in it asserts a shared membership that isn't real. */
-  groups?: string[];
   /** swimlane assignment (lane name). */
   lane?: string;
   /** ER entity attributes, rendered inside the box. */

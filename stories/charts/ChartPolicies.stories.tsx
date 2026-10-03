@@ -73,7 +73,7 @@ function Report({ spec, note }: { spec: ChartSpec; note: string }) {
 const GOOD: ChartSpec = {
   chart: "bar", encoding: { x: "region", y: "revenue", color: "region" },
   data: { fields: [{ name: "region", type: "categorical" }, { name: "revenue", type: "quantitative" }], categories: 4 },
-  options: { baseline: 0, title: "Nests/Charts/Revenue is concentrated in the top three regions", palette: { type: "categorical", colors: ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"] }, background: "#ffffff" },
+  options: { baseline: 0, title: "Revenue is concentrated in the top three regions", palette: { type: "categorical", colors: ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"] }, background: "#ffffff" },
 };
 const BAD: ChartSpec = {
   chart: "bar", encoding: { color: "region" },
@@ -92,7 +92,7 @@ function Linter() {
   );
 }
 
-const meta: Meta = { title: "Nests/Charts/Policies", parameters: { layout: "padded" } };
+const meta: Meta = { title: "Charts/Policies", parameters: { layout: "padded" } };
 export default meta;
 type S = StoryObj;
 

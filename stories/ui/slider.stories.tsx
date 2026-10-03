@@ -3,7 +3,7 @@ import { fn } from "storybook/test";
 import { Slider } from "@/components/ui/slider";
 
 const meta: Meta<typeof Slider> = {
-  title: "Components/Data entry/Slider",
+  title: "UI/Slider",
   component: Slider,
   tags: ["autodocs"],
   args: { onValueChange: fn() },

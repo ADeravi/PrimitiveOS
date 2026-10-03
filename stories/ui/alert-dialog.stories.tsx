@@ -3,7 +3,7 @@ import { userEvent, within, expect, waitFor } from "storybook/test";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-const meta: Meta = { title: "Nests/Overlays/AlertDialog", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/AlertDialog", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

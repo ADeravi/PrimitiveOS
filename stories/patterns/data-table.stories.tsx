@@ -39,7 +39,7 @@ import {
 import { MoreHorizontal, Plus, Search } from "lucide-react";
 
 const meta: Meta = {
-  title: "Nests/Patterns/Data Table",
+  title: "Patterns/Data Table",
   parameters: {
     layout: "fullscreen",
     docs: {

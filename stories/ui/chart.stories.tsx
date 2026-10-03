@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
-const meta: Meta = { title: "Nests/Data display/Chart", tags: ["autodocs"], parameters: { layout: "padded" } };
+const meta: Meta = { title: "UI/Chart", tags: ["autodocs"], parameters: { layout: "padded" } };
 export default meta;
 type Story = StoryObj;
 

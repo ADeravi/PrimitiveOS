@@ -84,7 +84,7 @@ function Linter() {
   );
 }
 
-const meta: Meta = { title: "Nests/Diagrams/Primitives", parameters: { layout: "padded" } };
+const meta: Meta = { title: "Diagram/Primitives", parameters: { layout: "padded" } };
 export default meta;
 type S = StoryObj;
 

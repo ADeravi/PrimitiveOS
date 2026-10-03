@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 
-const meta: Meta = { title: "Nests/Data entry/Calendar", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Calendar", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

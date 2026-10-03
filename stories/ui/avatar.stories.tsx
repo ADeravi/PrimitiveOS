@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
 
-const meta: Meta = { title: "Nests/Media/Avatar", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Avatar", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

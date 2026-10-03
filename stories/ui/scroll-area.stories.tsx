@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 
 const tags = Array.from({ length: 50 }).map((_, i, a) => `v1.2.0-beta.${a.length - i}`);
 
-const meta: Meta = { title: "Nests/Layout/ScrollArea", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/ScrollArea", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

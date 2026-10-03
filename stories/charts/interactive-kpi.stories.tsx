@@ -9,7 +9,7 @@ import {
 } from "@/components/charts";
 
 const meta: Meta = {
-  title: "Nests/Charts/Interactive/KPI & Time",
+  title: "Charts/Interactive/KPI & Time",
   parameters: {
     layout: "centered",
     chromatic: { delay: 1800 },

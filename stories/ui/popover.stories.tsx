@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const meta: Meta = { title: "Nests/Overlays/Popover", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Popover", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

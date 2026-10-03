@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/components/ui/menubar";
 
-const meta: Meta = { title: "Nests/Navigation/Menubar", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Menubar", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

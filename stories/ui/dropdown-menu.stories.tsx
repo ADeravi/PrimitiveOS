@@ -3,7 +3,7 @@ import { userEvent, within, expect, waitFor } from "storybook/test";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
-const meta: Meta = { title: "Nests/Overlays/DropdownMenu", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/DropdownMenu", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

@@ -5,7 +5,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Bold, Italic, Underline } from "lucide-react";
 
 const meta: Meta<typeof Toggle> = {
-  title: "Components/Selection/Toggle",
+  title: "UI/Toggle",
   component: Toggle,
   tags: ["autodocs"],
   args: { onClick: fn() },

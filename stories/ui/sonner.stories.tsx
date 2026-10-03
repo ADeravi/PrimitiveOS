@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-const meta: Meta = { title: "Nests/Feedback/Sonner", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Sonner", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

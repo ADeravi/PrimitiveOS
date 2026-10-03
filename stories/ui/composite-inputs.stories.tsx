@@ -14,7 +14,7 @@ import { Dropzone } from "@/components/ui/dropzone";
 import { Label } from "@/components/ui/label";
 
 const meta: Meta = {
-  title: "Nests/Data entry/Composite Inputs",
+  title: "UI/Composite Inputs",
   parameters: {
     docs: {
       description: {

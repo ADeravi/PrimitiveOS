@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Loader2, ChevronRight, Trash2 } from "lucide-react";
 
 const meta: Meta<typeof Button> = {
-  title: "Components/Actions/Button",
+  title: "UI/Button",
   component: Button,
   tags: ["autodocs"],
   parameters: {

@@ -1,7 +1,5 @@
-import { addons, types, useStorybookApi } from "storybook/manager-api";
+import { addons } from "storybook/manager-api";
 import { create, type ThemeVars } from "storybook/theming";
-import * as React from "react";
-import { SEMANTICS } from "./semantics-data.js";
 
 // ---------------------------------------------------------------------------
 // Full Storybook-shell themes — one COMPLETE skin per Design Layer.
@@ -534,59 +532,4 @@ addons.register("scntw/dynamic-manager-theme", (api) => {
   // GLOBALS_UPDATED fires on every toolbar change.
   api.on("setGlobals", sync);
   api.on("globalsUpdated", sync);
-});
-
-// ── Semantics tab (TokenOS ladder, ADR-111) ────────────────────────────────────
-// Adds a "Semantics" tab to every item: the KB anatomy — each part → its TokenOS role + notes — plus
-// the item's tier, capabilities, and (for nests) what it's built from. Data: ./semantics-data.js.
-const semNorm = (s: string) => s.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/[\s_]+/g, "-").toLowerCase();
-
-function SemanticsPanel() {
-  const api = useStorybookApi();
-  const story = api.getCurrentStoryData?.() as { title?: string; name?: string } | undefined;
-  const name = ((story?.title ?? "").split("/").pop() ?? "").trim();
-  const SEM = SEMANTICS as Record<string, any>;
-  const sem = SEM[semNorm(name)] ?? SEM[semNorm(story?.name ?? "")];
-  const h = React.createElement;
-  const wrap = (kids: any) => h("div", { style: { padding: 24, fontFamily: '"Inter", system-ui, sans-serif', overflow: "auto", height: "100%", boxSizing: "border-box" } }, kids);
-  if (!sem) return wrap(h("p", { style: { opacity: 0.6 } }, "No TokenOS KB semantics for “" + name + "”."));
-  const chip = (t: string, bg = "rgba(127,127,127,0.15)") => h("span", { key: t, style: { display: "inline-block", padding: "2px 10px", borderRadius: 999, background: bg, fontSize: 12, margin: "0 6px 6px 0" } }, t);
-  const th = (t: string) => h("th", { style: { textAlign: "left", padding: "6px 10px", borderBottom: "1px solid rgba(127,127,127,0.3)", opacity: 0.6, fontWeight: 500, fontSize: 12 } }, t);
-  const td = (t: any) => h("td", { style: { padding: "6px 10px", borderBottom: "1px solid rgba(127,127,127,0.12)", verticalAlign: "top", fontSize: 13 } }, t);
-  // Purpose (ADR-112) — the axis an AI/designer picks on. Colour-coded so accessibility etc. read at a glance.
-  const PURP: Record<string, string> = { accessibility: "rgba(220,38,38,0.22)", feedback: "rgba(59,130,246,0.20)", status: "rgba(234,179,8,0.24)", emphasis: "rgba(139,92,246,0.22)", identity: "rgba(236,72,153,0.20)", structure: "rgba(107,114,128,0.20)", legibility: "rgba(16,185,129,0.20)" };
-  const pchip = (p: string) => (p ? chip(p, PURP[p] || "rgba(127,127,127,0.15)") : null);
-  return wrap([
-    h("div", { key: "h", style: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" } }, [
-      h("h1", { key: "n", style: { fontSize: 22, fontWeight: 600, margin: 0 } }, sem.name),
-      chip(sem.tier, sem.tier === "Nest" ? "rgba(139,92,246,0.22)" : "rgba(56,138,221,0.22)"),
-      sem.purpose ? pchip(sem.purpose) : null,
-    ]),
-    sem.whenToUse ? h("p", { key: "use", style: { marginTop: 8, marginBottom: 2, fontSize: 14 } }, [h("strong", { key: "l" }, "When to use: "), sem.whenToUse]) : null,
-    sem.whenNotToUse ? h("p", { key: "nuse", style: { marginTop: 0, fontSize: 13, opacity: 0.7 } }, [h("strong", { key: "l" }, "When not to use: "), sem.whenNotToUse]) : null,
-    h("p", { key: "d", style: { opacity: 0.55, marginTop: 8, fontSize: 12 } }, "Purpose is what an AI (or designer) picks a component on — each part's job + its TokenOS role. Change a role's token and every bound part re-skins."),
-    sem.capabilities?.length ? h("div", { key: "c", style: { margin: "10px 0" } }, ["Capabilities: ", ...sem.capabilities.map((c: string) => chip(c))]) : null,
-    sem.subComponents?.length ? h("div", { key: "sc", style: { marginBottom: 10 } }, ["Built from: ", ...sem.subComponents.map((c: string) => chip(c, "rgba(29,158,117,0.22)"))]) : null,
-    sem.slots?.length ? h("div", { key: "sl", style: { marginBottom: 10 } }, ["Slots: ", ...sem.slots.map((c: string) => chip(c))]) : null,
-    h("table", { key: "t", style: { width: "100%", borderCollapse: "collapse", marginTop: 8 } }, [
-      h("thead", { key: "hd" }, h("tr", {}, [th("Part"), th("Role"), th("Purpose"), th("Notes")])),
-      h("tbody", { key: "bd" }, (sem.parts || []).map((p: any, i: number) => h("tr", { key: i }, [
-        td(h("code", {}, p.part)),
-        td(h("code", { style: { color: "#38bdf8" } }, p.role || "—")),
-        td(p.purpose ? h("span", {}, [pchip(p.purpose), p.wcag ? h("span", { key: "w", style: { opacity: 0.5, fontSize: 11 } }, p.wcag) : null]) : h("span", { style: { opacity: 0.4 } }, "—")),
-        td(h("span", { style: { opacity: 0.7 } }, p.notes || "")),
-      ]))),
-    ]),
-  ]);
-}
-
-addons.register("tokenos/semantics", () => {
-  // A bottom addon PANEL (beside Controls / Actions / Accessibility), not a top tab — it belongs with
-  // the per-item inspectors and shows for every story, so an AI (or a designer) picking a component by
-  // PURPOSE/USE reads its semantics in place. Panel content is per-item (reads the current story).
-  addons.add("tokenos/semantics/panel", {
-    type: types.PANEL,
-    title: "Semantics",
-    render: ({ active }: { active?: boolean }) => (active ? React.createElement(SemanticsPanel) : null),
-  });
 });

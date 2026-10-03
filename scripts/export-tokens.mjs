@@ -1,120 +1,152 @@
+#!/usr/bin/env node
 /**
- * scripts/export-tokens.mjs — regenerate tokens.json from the TokenOS-synced CSS.
+ * Export the 3-tier token system from app/globals.css to tokens.json
+ * (W3C Design Tokens-flavoured, grouped by tier and mode) so design tools
+ * (Figma Tokens / Tokens Studio) and other platforms can consume it.
  *
- *   npm run tokens            regenerate tokens.json
- *   npm run tokens -- --check verify only; exits 1 on drift (CI)
+ * Resolves var(--radix-scale-step) references against the Radix Color CSS
+ * files in node_modules, so tokens.json contains concrete colour values
+ * rather than unresolved var() strings.
  *
- * WHY THIS EXISTS (see TOKENOS-INTEGRATION-PLAN.md F1, archive/README.md):
- * `tokens.json` is a PUBLISHED api (package.json `exports["./tokens.json"]`). The previous generator read
- * `app/globals.css` + `@radix-ui/colors` — the two places the tokens MOVED OUT OF when ADR-090 made TokenOS the
- * source. It could no longer regenerate anything real, so tokens.json froze and went stale: it shipped the
- * CVD-broken shadcn chart palette long after TokenOS replaced it with Okabe-Ito. This reads the real source:
- * `app/tokenos/tokens-referential.css`, which `npm run sync:tokenos` keeps equal to TokenOS's gated output.
- *
- * CONTRACT-DRIVEN, deliberately. The published KEY SET and each `$type` are taken from the EXISTING tokens.json;
- * only `$value` is recomputed. tokens.json publishes a curated SUBSET (32 semantic roles — the shadcn-era
- * surface) while the CSS exposes 59 (tertiary, containers, inverse-primary, hover/muted variants...). Emitting
- * everything would silently EXPAND a published contract. Expanding it is a decision, not a side effect — so a
- * published token missing from the CSS is a hard error, and CSS roles outside the contract are reported, never
- * added.
+ *   npm run tokens
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CSS_PATH = join(ROOT, "app/tokenos/tokens-referential.css");
-const OUT_PATH = join(ROOT, "tokens.json");
-const check = process.argv.includes("--check");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const css = readFileSync(join(root, "app/globals.css"), "utf8");
 
-// ── parse the two blocks ───────────────────────────────────────────────────────
-// `:root` carries everything; `.dark` carries only the semantic/functional overrides (it declares no
-// primitives, elevation or motion — those are mode-independent).
-const css = readFileSync(CSS_PATH, "utf8");
-const blockOf = (sel) => {
-  const i = css.indexOf(`${sel} {`);
-  if (i === -1) throw new Error(`${sel} block not found in ${CSS_PATH}`);
-  const j = css.indexOf("\n}", i);
-  if (j === -1) throw new Error(`${sel} block is unterminated in ${CSS_PATH}`);
-  return css.slice(i, j);
-};
-const declsOf = (b) =>
-  Object.fromEntries([...b.matchAll(/^\s*(--[a-z0-9-]+)\s*:\s*([^;]+);/gm)].map((m) => [m[1], m[2].trim()]));
-
-const LIGHT = declsOf(blockOf(":root"));
-const DARK = declsOf(blockOf(".dark"));
-
-// ── resolve var() chains to concrete values ────────────────────────────────────
-// The semantic/functional tier is REFERENTIAL (`--semantic-primary: var(--primitive-neutral-900)`), but the
-// published file carries literals. Follow the chain; primitives resolve out of :root even in dark scope.
-// Cycle-guarded. Anything still containing var() throws — never publish an unresolved reference.
-function resolve(name, scope, seen = new Set()) {
-  if (seen.has(name)) throw new Error(`var() cycle at ${name}`);
-  seen.add(name);
-  const raw = scope[name] ?? LIGHT[name];
-  if (raw === undefined) return undefined;
-  const pure = raw.match(/^var\(\s*(--[a-z0-9-]+)\s*\)$/);
-  if (pure) return resolve(pure[1], scope, seen);
-  if (raw.includes("var(")) throw new Error(`unresolved composite var() in ${name}: ${raw}`);
-  return raw;
-}
-
-// ── rebuild, preserving the contract ───────────────────────────────────────────
-const prev = JSON.parse(readFileSync(OUT_PATH, "utf8"));
-const missing = [];
-
-const fill = (tier, prefix, scope) => {
+/** Extract `--name: value;` declarations from the body of a selector block. */
+function declarations(selector) {
+  const re = new RegExp(`(?:^|\\n)\\s*${selector}\\s*\\{([\\s\\S]*?)\\n\\}`, "g");
   const out = {};
-  for (const [key, tok] of Object.entries(tier)) {
-    const value = resolve(`${prefix}-${key}`, scope, new Set());
-    if (value === undefined) { missing.push(`${prefix}-${key}`); continue; }
-    out[key] = { $value: value, $type: tok.$type }; // $type is the contract's, not re-derived
+  let m;
+  while ((m = re.exec(css))) {
+    for (const d of m[1].matchAll(/--([\\w-]+)\\s*:\\s*([^;]+);/g)) {
+      out[d[1]] = d[2].trim();
+    }
   }
   return out;
-};
-
-const next = {
-  $description:
-    "ScnTw Design System tokens — generated from app/tokenos/tokens-referential.css (the TokenOS web layer, " +
-    "kept in sync by `npm run sync:tokenos`) via scripts/export-tokens.mjs. Do not edit by hand; run `npm run tokens`.",
-  primitive: fill(prev.primitive, "--primitive", LIGHT),
-  semantic: { light: fill(prev.semantic.light, "--semantic", LIGHT), dark: fill(prev.semantic.dark, "--semantic", DARK) },
-  functional: { light: fill(prev.functional.light, "--functional", LIGHT), dark: fill(prev.functional.dark, "--functional", DARK) },
-  elevation: fill(prev.elevation, "--elevation", LIGHT),
-  motion: fill(prev.motion, "--motion", LIGHT),
-};
-
-if (missing.length) {
-  console.error(`✗ ${missing.length} PUBLISHED token(s) are missing from the CSS — refusing to drop them silently:`);
-  for (const m of missing) console.error(`    ${m}`);
-  console.error(`  Either restore them upstream in TokenOS, or drop them from tokens.json deliberately.`);
-  process.exit(1);
 }
 
-// Report (never act on) roles the CSS exposes beyond the published contract.
-const extra = Object.keys(LIGHT).filter((n) => /^--(semantic|functional|primitive)-/.test(n)).filter((n) => {
-  const [, tier, key] = n.match(/^--(semantic|functional|primitive)-(.+)$/);
-  const published = tier === "primitive" ? next.primitive : next[tier].light;
-  return !(key in published);
-});
-
-const serialized = JSON.stringify(next, null, 2) + "\n";
-const current = readFileSync(OUT_PATH, "utf8");
-
-if (check) {
-  if (serialized !== current) {
-    console.error("✗ tokens.json is STALE — regenerate with `npm run tokens` (after `npm run sync:tokenos`).");
-    process.exit(1);
+/**
+ * Build a flat map of { varName: concreteValue } from every *light* Radix
+ * Color CSS file in node_modules/@radix-ui/colors.
+ * These are the Tier-1 primitive values our semantic tokens reference.
+ */
+function buildRadixMap() {
+  const radixDir = join(root, "node_modules/@radix-ui/colors");
+  const map = {};
+  if (!existsSync(radixDir)) {
+    console.warn("⚠  node_modules/@radix-ui/colors not found — var() values will not be resolved.");
+    return map;
   }
-  console.log("✓ tokens.json is up to date with app/tokenos/tokens-referential.css");
-} else {
-  writeFileSync(OUT_PATH, serialized);
-  console.log(serialized === current ? "✓ tokens.json already up to date" : "↻ tokens.json regenerated");
+  for (const file of readdirSync(radixDir)) {
+    // Skip dark files (they override inside .dark; we export light values here)
+    if (!file.endsWith(".css") || file.includes("dark")) continue;
+    const src = readFileSync(join(radixDir, file), "utf8");
+    for (const m of src.matchAll(/--([\\w-]+)\\s*:\\s*([^;]+);/g)) {
+      map[m[1]] = m[2].trim();
+    }
+  }
+  return map;
 }
-console.log(
-  `  contract: ${Object.keys(next.primitive).length} primitive · ` +
-  `${Object.keys(next.semantic.light).length}/${Object.keys(next.semantic.dark).length} semantic light/dark · ` +
-  `${Object.keys(next.functional.light).length}/${Object.keys(next.functional.dark).length} functional · ` +
-  `${Object.keys(next.elevation).length} elevation · ${Object.keys(next.motion).length} motion`
+
+const rootVars = declarations(":root");
+const darkVars  = declarations("\\.dark");
+const radixMap  = buildRadixMap();
+
+/**
+ * Resolve a CSS value that may be var(--something), up to 4 levels deep.
+ * Lookup order: globals.css :root vars → Radix Color primitives.
+ */
+function resolveVar(value, depth = 0) {
+  if (depth > 4) return value;
+  const m = value.match(/^var\\(--(\\S+?)(?:\\s*,.*?)?\\)$/);
+  if (!m) return value;
+  const name = m[1];
+  const next = rootVars[name] ?? radixMap[name];
+  return next ? resolveVar(next, depth + 1) : value;
+}
+
+const typeOf = (key, value) => {
+  if (key.startsWith("duration-")) return "duration";
+  if (key.startsWith("ease-"))     return "cubicBezier";
+  if (key.startsWith("shadow-"))   return "shadow";
+  if (key === "radius" || /^(spacing|text)-/.test(key)) return "dimension";
+  if (/oklch|color\\(|rgb|#[0-9a-f]{3,8}/i.test(value)) return "color";
+  return "other";
+};
+
+const token = (key, rawValue) => {
+  const resolved = resolveVar(rawValue);
+  return { $value: resolved, $type: typeOf(key, resolved) };
+};
+
+const group = (entries) =>
+  Object.fromEntries(entries.map(([k, v]) => [k, token(k, v)]));
+
+// ── Token categories ──────────────────────────────────────────────────────────
+// Collect Radix primitive names actually referenced by semantic tokens, so
+// Figma Tokens / Tokens Studio can resolve alias chains offline.
+const SEMANTIC_REFS = new Set(
+  [...Object.values(rootVars), ...Object.values(darkVars)].flatMap((v) => {
+    const matches = v.match(/var\\(--(\\S+?)(?:\\s*,.*?)?\\)/g);
+    return matches
+      ? matches.map((s) => s.replace(/^var\\(--/, "").replace(/[\\s,)].*/,""))
+      : [];
+  })
 );
-if (extra.length) console.log(`  note: the CSS exposes ${extra.length} role(s) outside the published contract (not added — expanding it is a decision).`);
+
+const primitiveTier = Object.fromEntries(
+  [...SEMANTIC_REFS]
+    .filter((k) => k in radixMap)
+    .sort()
+    .map((k) => [k, token(k, radixMap[k])])
+);
+
+const FUNCTIONAL     = ["success", "success-foreground", "warning", "warning-foreground", "info", "info-foreground", "rose"];
+const MOTION_PREFIXES = ["duration-", "ease-"];
+const SHADOW_PREFIX   = "shadow-";
+
+const isMotion    = (k) => MOTION_PREFIXES.some((p) => k.startsWith(p));
+const isPrimitive = (k) => k in primitiveTier;
+
+const tokens = {
+  $description:
+    "ScnTw Design System tokens — generated from app/globals.css by scripts/export-tokens.mjs. " +
+    "Do not edit by hand. Tier-1 primitives are Radix Color steps referenced by semantic tokens; " +
+    "all values are resolved to concrete colours at export time.",
+  primitive: primitiveTier,
+  semantic: {
+    light: group(
+      Object.entries(rootVars).filter(
+        ([k]) => !isPrimitive(k) && !FUNCTIONAL.includes(k) && !isMotion(k) && !k.startsWith(SHADOW_PREFIX)
+      )
+    ),
+    dark: group(
+      Object.entries(darkVars).filter(([k]) => !FUNCTIONAL.includes(k))
+    ),
+  },
+  functional: {
+    light: group(Object.entries(rootVars).filter(([k]) => FUNCTIONAL.includes(k))),
+    dark:  group(Object.entries(darkVars).filter(([k]) => FUNCTIONAL.includes(k))),
+  },
+  elevation: group(Object.entries(rootVars).filter(([k]) => k.startsWith(SHADOW_PREFIX))),
+  motion:    group(Object.entries(rootVars).filter(([k]) => isMotion(k))),
+};
+
+const counts = Object.fromEntries(
+  Object.entries(tokens)
+    .filter(([k]) => !k.startsWith("$"))
+    .map(([k, v]) => [
+      k,
+      "light" in v
+        ? Object.keys(v.light).length + Object.keys(v.dark).length
+        : Object.keys(v).length,
+    ])
+);
+
+writeFileSync(join(root, "tokens.json"), JSON.stringify(tokens, null, 2) + "\\n");
+console.log("tokens.json written:", counts);

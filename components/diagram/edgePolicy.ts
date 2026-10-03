@@ -14,7 +14,7 @@
 //   · decision secondary      out the near SIDE                            ≤2
 //   · semantics               "no"/async/return/uncertain → dashed; ER undirected
 
-import { elkOptions, type ElkTune } from "./layout";
+import { elkOptions } from "./layout";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
 
 export type Side = "NORTH" | "SOUTH" | "EAST" | "WEST";
@@ -85,19 +85,14 @@ export function buildElkGraph(
   sizeOf: (id: string) => { w: number; h: number },
   plans: EdgePlan[],
   /** optional lane index per node → ELK partitioning (swimlanes as bands). */
-  partitionOf?: (id: string) => number,
-  /** same direction/spacing the layout uses — MUST match or routes desync. */
-  tune?: ElkTune
+  partitionOf?: (id: string) => number
 ): unknown {
   const sides = new Map<string, Set<Side>>();
   nodeIds.forEach((id) => sides.set(id, new Set<Side>()));
   plans.forEach((p) => { sides.get(p.source)?.add(p.sourceSide); sides.get(p.target)?.add(p.targetSide); });
 
   const layoutOptions: Record<string, string> = {};
-  // Pass the SAME tune the cytoscape layout got: buildElkGraph computes the routes,
-  // layoutFor computes the positions, and both read elkOptions — desync the tune and
-  // the painted routes no longer land on the nodes.
-  for (const [k, v] of Object.entries(elkOptions(kind, tune))) layoutOptions[k] = String(v);
+  for (const [k, v] of Object.entries(elkOptions(kind))) layoutOptions[k] = String(v);
   layoutOptions["elk.edgeRouting"] = "ORTHOGONAL";
   if (partitionOf) layoutOptions["elk.partitioning.activate"] = "true"; // lanes as ordered bands
 

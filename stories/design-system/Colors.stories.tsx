@@ -3,7 +3,7 @@ import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const meta: Meta = {
-  title: "Primitives/Colour",
+  title: "Design System/Color Palette",
   parameters: { layout: "fullscreen" },
   tags: ["autodocs"],
 };

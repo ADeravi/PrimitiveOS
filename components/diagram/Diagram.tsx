@@ -16,12 +16,12 @@ import cytoscape from "cytoscape";
 import elk from "cytoscape-elk";
 import fcose from "cytoscape-fcose";
 import ELK from "elkjs/lib/elk.bundled.js";
-import { readTokens, readableOn } from "../charts/network";
+import { readTokens, readableOn, ensureContrast } from "../charts/network";
 import { GroupLayer } from "./GroupLayer";
 import { EdgeLayer } from "./EdgeLayer";
-import { detectGroups, resolveGroupOverlaps } from "./grouping";
+import { detectGroups } from "./grouping";
 import { mdsPositions } from "./mds";
-import { wrap, uniformSizes, elkOptions, type ElkTune } from "./layout";
+import { wrap, uniformSizes, elkOptions } from "./layout";
 import { TYPE, OPACITY, RADIUS, STROKE, neutralRoles } from "./primitives";
 import { planEdges, buildElkGraph, extractRoutes, type Side, type RoutedEdge } from "./edgePolicy";
 import type { DiagramKind, NodeRole, SNode, SEdge } from "./types";
@@ -34,35 +34,6 @@ const SIDE_ENDPOINT: Record<Side, string> = { NORTH: "0% -50%", SOUTH: "0% 50%",
 // swimlane is NOT here: ELK can't lane (its partitioning is layer-axis), so it
 // lays out via cytoscape-elk + a lane-row snap + cytoscape's own edge routing.
 const ELK_ROUTED = new Set<DiagramKind>(["flow", "tree", "state", "er"]);
-
-/** Run `fn` at most once, however many paths call it. */
-function once(fn: () => void): () => void {
-  let done = false;
-  return () => { if (done) return; done = true; fn(); };
-}
-
-/** Run post-layout work — the two layout families need OPPOSITE handling.
- *
- *  The layout is handed to the cytoscape() CONSTRUCTOR, so:
- *
- *  · SYNC (fcose, `animate: false`) runs to completion inside that constructor call.
- *    "layoutstop" has already fired by the time we could subscribe, so a listener is
- *    dead on arrival — we must run on the next frame instead.
- *  · ASYNC (cytoscape-elk) hasn't even started. A next-frame callback would fire
- *    BEFORE the nodes are placed and operate on garbage positions, which the real
- *    layout then overwrites — so it MUST be the listener.
- *
- *  Getting this wrong is silent: the work runs, just against the wrong positions.
- *  Hence an explicit `sync` flag rather than "subscribe and also poll, first one
- *  wins" — that races, and for async layouts the race is always lost. */
-function afterLayout(cy: cytoscape.Core, fn: () => void, sync: boolean) {
-  if (sync) {
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
-    else setTimeout(fn, 0);
-  } else {
-    cy.one("layoutstop", fn);
-  }
-}
 // one shared elkjs instance for direct (route-returning) layout in the browser.
 const elkEngine = new ELK();
 
@@ -100,9 +71,7 @@ function shapeFor(role: NodeRole, kind: DiagramKind): string {
     case "end": return "round-rectangle"; // terminator (pill via large corner radius)
     case "decision": return "diamond";
     case "io": return "rhomboid";
-    // ISO 5807 predefined-process is a rectangle with struck sides; cut-rectangle is
-    // the closest cytoscape primitive and, crucially, is not another rounded box.
-    case "subprocess": return "cut-rectangle";
+    case "subprocess": return "round-rectangle";
     case "entity": return "rectangle";
     case "state": return "round-rectangle";
     case "actor": return "round-rectangle";
@@ -129,16 +98,17 @@ function roleStyle(role: NodeRole, t: ReturnType<typeof readTokens>, policy: Col
   // never a mid-grey fill behind text. Polarity from the resolved canvas.
   const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
   const n = neutralRoles(light);
-  const fill = n.surface;
-  // ONE outline for every node, every role, every policy. (`policy` is kept in the
-  // signature because the caller still uses it elsewhere.)
-  const border = n.border;
-  // NOTE: the border is deliberately CONSTANT across roles. It used to carry a
-  // per-role accent (decision → chart-3, entity → chart-2, io → chart-4), which meant
-  // role was encoded TWICE — once in the shape, once in the colour — and the two
-  // read as different systems: boxes that differ in outline colour look categorically
-  // different even when they're the same role. Shape is the standard carrier
-  // (ISO 5807), so colour steps back and every node gets the same neutral outline.
+  let fill = n.surface, border = n.border;
+  if (policy === "minimal") {
+    // terminators read with a slightly stronger (still neutral) outline.
+    if (role === "start" || role === "end") border = n.borderStrong;
+  } else {
+    // rich: keep neutral tiles, but encode role with ONE accent on the border
+    // (contrast-gated), instead of colouring the whole fill — calmer, Carbon-like.
+    const accent = t.c[0], decide = t.c[2] || t.c[0];
+    const a = role === "decision" ? decide : role === "entity" ? (t.c[1] || accent) : role === "io" ? (t.c[3] || accent) : accent;
+    border = ensureContrast(a, n.surface, 3);
+  }
   // text from the dark/light END of the ramp by measured contrast on the fill.
   const text = readableOn(fill, [n.text, n.surfaceAlt]);
   return { fill, border, text };
@@ -153,7 +123,7 @@ function labelFor(n: SNode, role: NodeRole): string {
 }
 
 // ── layout per kind ──────────────────────────────────────────────────────────
-function layoutFor(kind: DiagramKind, tune?: ElkTune): cytoscape.LayoutOptions {
+function layoutFor(kind: DiagramKind): cytoscape.LayoutOptions {
   if (kind === "cluster") {
     // force layout, but cluster-aware: tight communities, clear gaps between
     // them — so proximity actually encodes relatedness (then hulls confirm it).
@@ -163,17 +133,17 @@ function layoutFor(kind: DiagramKind, tune?: ElkTune): cytoscape.LayoutOptions {
       gravityRange: 3.4, numIter: 2500,
     } as unknown as cytoscape.LayoutOptions;
   }
-  return elkLayout(kind, tune);
+  return elkLayout(kind);
 }
 
 // ── ELK layout per kind ──────────────────────────────────────────────────────
-function elkLayout(kind: DiagramKind, tune?: ElkTune): cytoscape.LayoutOptions {
+function elkLayout(kind: DiagramKind): cytoscape.LayoutOptions {
   return {
     name: "elk",
     fit: true,
     padding: 24,
     nodeDimensionsIncludeLabels: false,
-    elk: elkOptions(kind, tune),
+    elk: elkOptions(kind),
   } as unknown as cytoscape.LayoutOptions;
 }
 
@@ -236,34 +206,6 @@ export interface DiagramProps {
   height?: number;
   /** Dev/QA badge: shows the chosen kind + element count. */
   showGrade?: boolean;
-  /** Flow direction for the layered idioms (flow/tree/state/er, and swimlane bands).
-   *  ELK-native: DOWN | UP | RIGHT | LEFT. Ignored where layout isn't ELK-driven
-   *  (similarity is distance-true; cluster is force). Falls back to the per-kind
-   *  default when omitted. Meaning is unchanged — only the reading axis moves. */
-  direction?: ElkTune["direction"];
-  /** Spacing multiplier: 1 = default, <1 compact, >1 roomy. Clamped [0.5, 2]. */
-  spacing?: number;
-  /** Per-SCREEN-AXIS spacing. Override `spacing`. On layered idioms these map onto
-   *  ELK's layer/in-layer gaps according to `direction`; on similarity they scale the
-   *  embedding about its centroid (uniform scale preserves the distance encoding, so
-   *  only equal X/Y is honest there — unequal values are averaged). */
-  spacingX?: number;
-  spacingY?: number;
-  /** Separation between PARALLEL EDGES (their lanes), independent of node spacing. */
-  edgeSpacing?: number;
-  /** Draw the common-region shapes (cluster hulls / swimlane bands). Default true.
-   *  Off = the nodes stay exactly where they are, just without the enclosure. */
-  showGroups?: boolean;
-  /** Members' own spread about their group centroid (cluster idiom). 1 = as laid out. */
-  nodeSpreadX?: number; nodeSpreadY?: number;
-  /** Cluster separation, in CLUSTER-SIZE UNITS rather than an abstract multiplier:
-   *    +1 → groups pushed apart by one full cluster width/height of clear space
-   *     0 → exactly as laid out
-   *    −1 → pulled together by one cluster size, i.e. fully overlapping
-   *  Expressed this way the control means something physical — "one cluster apart" —
-   *  instead of "×1.6", and the same slider value reads the same on any diagram
-   *  whatever its scale. */
-  clusterGapX?: number; clusterGapY?: number;
   /** THE escape hatch — warns; reserved for genuine edge cases. */
   unsafe?: boolean;
 }
@@ -271,9 +213,7 @@ export interface DiagramProps {
 /** A guardrail component: props are meaning only; the result is always a clean
  *  box-and-arrow diagram. There is no prop that can produce an overlapping,
  *  mis-routed, or unreadable result. */
-export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterGapX = 0, clusterGapY = 0, unsafe = false }: DiagramProps) {
-  // The layout tuning, meaning-only: reading direction + how tightly it packs.
-  const tune: ElkTune = { direction, spacing, spacingX, spacingY, edgeSpacing };
+export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, unsafe = false }: DiagramProps) {
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails — use only for known edge cases.");
   }
@@ -287,12 +227,10 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   const resolvedKind: DiagramKind = blocked ? "similarity" : kind || intentKind;
   const hostRef = React.useRef<HTMLDivElement>(null);
   const cyRef = React.useRef<cytoscape.Core | null>(null);
+  const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null);
   const [cyState, setCyState] = React.useState<cytoscape.Core | null>(null);
   const [palette, setPalette] = React.useState<string[]>([]);
   const [bgColor, setBgColor] = React.useState<string>("");
-  // Set once the user drags anything: the precomputed ELK routes no longer match the
-  // positions, so cytoscape takes over and routes from where the nodes actually are.
-  const [liveRouted, setLiveRouted] = React.useState(false);
 
   const built = React.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
 
@@ -308,17 +246,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     if (resolvedKind === "cluster" || hasGroup) {
       const detected = resolvedKind === "cluster" && !hasGroup ? detectGroups(built.nodes, built.edges) : undefined;
       const gmap = new Map(built.nodes.map((n) => [n.id, n.group != null ? String(n.group) : detected?.get(n.id) ?? "g0"]));
-      // Multi-membership: `groups` (if given) lists every region the node belongs to.
-      // keysOf is what the hulls and the overlap rule read; keyOf stays the PRIMARY
-      // group, for colour and for anything that needs exactly one answer.
-      const multi = new Map(built.nodes.filter((n) => n.groups && n.groups.length).map((n) => [n.id, n.groups!.map(String)]));
       // only label hulls when the groups are human-named (not auto "g0/g1").
-      const allKeys = [...new Set([...gmap.values(), ...[...multi.values()].flat()])];
-      return {
-        mode: "hulls" as const, named: hasGroup, order: allKeys,
-        keyOf: (id: string) => gmap.get(id) ?? "g0",
-        keysOf: (id: string) => multi.get(id) ?? [gmap.get(id) ?? "g0"],
-      };
+      return { mode: "hulls" as const, named: hasGroup, order: [...new Set(gmap.values())], keyOf: (id: string) => gmap.get(id) ?? "g0" };
     }
     return null;
   }, [built, resolvedKind]);
@@ -343,11 +272,6 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   // Edge policy plans (pure) — shared by the layout (ELK ports) and the EdgeLayer
   // overlay. ELK-routed idioms draw edges from the routed sections, not cytoscape.
   const elkRouted = ELK_ROUTED.has(resolvedKind);
-  // A live group spread MOVES nodes after layout, which would strand the static ELK
-  // routes (they'd float away from their boxes — the detached-edge bug again). So a
-  // spread hands routing back to cytoscape, which recomputes it from live positions.
-  const spreadActive = clusterGapX !== 0 || clusterGapY !== 0;
-  const useStaticRoutes = elkRouted && !spreadActive && !liveRouted;
   const edgePlans = React.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
       const n = built.nodes.find((x) => x.id === id);
@@ -385,17 +309,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           "line-height": 1.3,
           "border-width": "data(bw)" as unknown as number,
           "border-color": "data(border)",
-          // ISO 5807: process is a RECTANGLE. md (8px) rounded it enough that a
-          // process and a terminator read as the same "rounded box" — the reported
-          // "all nodes look identical". sm keeps the DS softness without the
-          // silhouette collapsing into the pill.
-          "corner-radius": `${RADIUS.sm}px` as unknown as string,
+          "corner-radius": `${RADIUS.md}px` as unknown as string,
           "min-zoomed-font-size": 6,
         } as cytoscape.Css.Node,
       },
-      // ISO 5807 terminator = stadium. A radius larger than any half-height always
-      // fully rounds the ends, so start/end can never be confused with a process box.
-      { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": "999px" } as unknown as cytoscape.Css.Node },
+      { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": `${RADIUS.pill}px` } as unknown as cytoscape.Css.Node },
       // Initial / final states marked CONSISTENTLY: same accent colour and the
       // same modest weight as each other (not a jarring heavy black) — final adds
       // a double ring, the state-machine convention.
@@ -411,7 +329,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         style: {
           // ELK-routed idioms draw edges in the SVG EdgeLayer (from ELK's actual
           // routes); hide cytoscape's own edge so they don't double-draw.
-          display: useStaticRoutes ? "none" : "element",
+          display: ELK_ROUTED.has(resolvedKind) ? "none" : "element",
           width: STROKE.regular,
           // structured idioms get crisp, darker connectors (box-and-arrow);
           // force/similarity webs stay light so they don't overpower the nodes.
@@ -466,7 +384,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       { selector: "edge.hl", style: { "line-color": t.primary, "target-arrow-color": t.primary, width: STROKE.heavy, opacity: OPACITY.solid } as cytoscape.Css.Edge },
       ];
     },
-    [resolvedKind, useStaticRoutes]
+    [resolvedKind]
   );
 
   React.useEffect(() => {
@@ -499,10 +417,8 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
           data: {
             id: n.id, label: showLbl ? (n.unknown ? labelFor(n, role) + "  ?" : labelFor(n, role)) : "", role, shape: shapeFor(role, resolvedKind),
             w, h, fill: rs.fill, border: rs.border, text: rs.text,
-            // Constant weight. Degree used to thicken the outline ("importance"), which
-            // made otherwise-identical nodes look like different kinds — the reported
-            // "borders are different". Hubs are still discoverable by their edges.
-            bw: STROKE.regular,
+            // importance (rich policy only): hubs get a heavier border.
+            bw: policy === "rich" ? STROKE.regular + Math.min(3, deg * 0.5) : STROKE.regular,
             mark: n.initial ? "initial" : n.final ? "final" : "",
             unknown: n.unknown ? "1" : "",
             inferred: n.inferred ? "1" : "",
@@ -530,7 +446,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         ? ({ name: "preset", positions: sim.pos, fit: true, padding: 40 } as unknown as cytoscape.LayoutOptions)
         : elkRouted
           ? ({ name: "preset", fit: true, padding: 30 } as unknown as cytoscape.LayoutOptions)
-          : layoutFor(resolvedKind, tune);
+          : layoutFor(resolvedKind);
 
     const cy = cytoscape({
       container: host,
@@ -540,14 +456,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
-      // Nodes stay grabbable and selectable in EVERY idiom. Locking them was the old
-      // answer to "edges detach when you drag" (the static ELK routes stayed put while
-      // the box moved) — but that traded away direct manipulation to protect a
-      // rendering detail. The right fix is below: the FIRST drag hands routing back to
-      // cytoscape, so edges follow their boxes and you keep the freedom to move things.
       autoungrabify: false,
-      selectionType: "additive",
-      boxSelectionEnabled: true,
     });
     cyRef.current = cy;
     setCyState(cy);
@@ -558,18 +467,11 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // node positions AND edge routes, place the nodes, and hand the routes to the
     // EdgeLayer — so the rendered routing is exactly what the policy/probe verify.
     if (elkRouted) {
-      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans, undefined, tune);
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id)!, edgePlans);
       elkEngine.layout(graph as never).then((res) => {
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => { const n = cy.$id(b.id); if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 }); }));
         setEdgeRoutes(routes);
-        // Moving nodes now would strand the STATIC routes, so when a spread is live
-        // we hand routing back to cytoscape (see useStaticRoutes) and then move.
-        if (spreadActive) applyGroupSpread(1, 1);
-        // The overlap rule is NOT cluster-only: any kind whose nodes carry groups draws
-        // hulls, and an unearned overlap lies just as much on a flowchart. (Self-guards
-        // on hull mode, so lanes/ungrouped diagrams are untouched.)
-        enforceOverlapRule();
         cy.fit(undefined, 28);
       }).catch(() => { /* preset fallback stays */ });
     }
@@ -580,190 +482,20 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
     // its edges from these positions (so swimlane stays on cytoscape, not EdgeLayer).
     if (resolvedKind === "swimlane" && grouping?.order.length) {
       const order = grouping.order, LANE_H = 130;
-      const snapLanes = once(() => {
+      cy.one("layoutstop", () => {
         cy.batch(() => cy.nodes().forEach((node) => {
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
-        if (spreadActive) applyGroupSpread(1, 1);
         cy.fit(undefined, 58);
       });
-      afterLayout(cy, snapLanes, /* sync */ false); // cytoscape-elk is async
     }
-
-    // Cluster spread (Tenet: proximity encodes relatedness — so let the reader tune
-    // the two proximities independently). Applied AFTER the force layout settles, as a
-    // pure affine move about centroids: members keep their relative positions inside a
-    // group, groups move relative to the whole. Nothing re-runs the physics, so the
-    // mental map survives.
-    // The force layout (cluster) and the MDS embedding (similarity) don't go through
-    // ELK, so spacingX/Y can't ride the ELK keys there — fold them into the same
-    // post-layout affine instead. For CLUSTER that means the member spread; for
-    // SIMILARITY only a UNIFORM scale is honest (position encodes distance), so the
-    // two axes are averaged into one factor — a uniform scale is just a zoom and
-    // leaves every pairwise distance ratio intact.
-    const uniform = (spacingX != null || spacingY != null)
-      ? ((spacingX ?? spacingY ?? 1) + (spacingY ?? spacingX ?? 1)) / 2
-      : (spacing ?? 1);
-    const nsx = nodeSpreadX * (spacingX ?? spacing ?? 1);
-    const nsy = nodeSpreadY * (spacingY ?? spacing ?? 1);
-
-    if (resolvedKind === "similarity" && uniform !== 1) {
-      afterLayout(cy, once(() => {
-        const ns = cy.nodes();
-        if (!ns.length) return;
-        const c = ns.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
-        const gc = { x: c.x / ns.length, y: c.y / ns.length };
-        cy.batch(() => ns.forEach((n) => {
-          const p = n.position();
-          n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
-        }));
-        // center(), NOT fit() — see the note in applySpread: fit re-zooms and cancels
-        // the very change the user just asked for.
-        if (spreadActive) applyGroupSpread(1, 1);
-        enforceOverlapRule();
-        cy.center();
-      }), /* sync */ true); // preset positions — already placed
-    }
-
-    // Group spread works on ANY kind that has groups — a flow grouped by phase, a
-    // swimlane's lanes, a cluster's communities. `intra` is the members' own spread
-    // (only the force layout needs it; layered kinds get node spacing from ELK).
-    // ── OVERLAP IS EARNED ────────────────────────────────────────────────────
-    // Two rules, one pass:
-    //   1. A node in SEVERAL groups belongs in their INTERSECTION. It's pinned to the
-    //      midpoint of its groups' centres, so it sits in the shared zone and is
-    //      carried along whenever either group moves — it can't drift out of the
-    //      overlap that justifies it.
-    //   2. Two groups that share NO node must not overlap. An empty intersection
-    //      drawn as an overlap claims a shared membership the data doesn't have, so
-    //      those pairs are pushed apart (least-penetration axis, so the move is the
-    //      smallest honest one).
-    const enforceOverlapRule = () => {
-      if (!grouping || grouping.mode !== "hulls") return;
-      // widen once: the lanes variant has no keysOf, so narrowing on it collapses the
-      // else-branch to `never`.
-      const gk = grouping as unknown as { keyOf: (id: string) => string; keysOf?: (id: string) => string[] };
-      const keysOf = (id: string) => (gk.keysOf ? gk.keysOf(id) : [gk.keyOf(id)]);
-      // members per group (a shared node appears in each of its groups)
-      const members = new Map<string, string[]>();
-      cy.nodes().forEach((n) => keysOf(n.id()).forEach((k) => {
-        const arr = members.get(k) || []; arr.push(n.id()); members.set(k, arr);
-      }));
-      if (members.size < 2) return;
-
-      // 1. pin shared nodes to the intersection
-      const centreOf = (ids: string[]) => {
-        const ps = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty()).map((n) => n.position());
-        if (!ps.length) return null;
-        return { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length };
-      };
-      cy.batch(() => cy.nodes().forEach((n) => {
-        const ks = keysOf(n.id());
-        if (ks.length < 2) return;
-        const cs = ks.map((k) => centreOf((members.get(k) || []).filter((id) => id !== n.id()))).filter(Boolean) as { x: number; y: number }[];
-        if (cs.length < 2) return;
-        n.position({
-          x: cs.reduce((a, c) => a + c.x, 0) / cs.length,
-          y: cs.reduce((a, c) => a + c.y, 0) / cs.length,
-        });
-      }));
-
-      // 2. push apart every pair with an empty intersection
-      const boxes = [...members.entries()].map(([key, ids]) => {
-        const ns = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty());
-        const xs = ns.map((n) => n.position().x), ys = ns.map((n) => n.position().y);
-        const ws = ns.map((n) => n.width() || 40), hs = ns.map((n) => n.height() || 24);
-        const halfW = Math.max(...ws, 40) / 2, halfH = Math.max(...hs, 24) / 2;
-        return {
-          key, members: new Set(ids),
-          x: Math.min(...xs) - halfW, y: Math.min(...ys) - halfH,
-          w: Math.max(...xs) - Math.min(...xs) + halfW * 2,
-          h: Math.max(...ys) - Math.min(...ys) + halfH * 2,
-        };
-      });
-      const move = resolveGroupOverlaps(boxes, { pad: 28 });
-      cy.batch(() => move.forEach((d, key) => {
-        if (!d.dx && !d.dy) return;
-        (members.get(key) || []).forEach((id) => {
-          const n = cy.$id(id);
-          // a shared node is held by rule 1 — it must NOT be dragged out by rule 2
-          if (n.nonempty() && keysOf(id).length < 2) { const p = n.position(); n.position({ x: p.x + d.dx, y: p.y + d.dy }); }
-        });
-      }));
-      cy.center();
-    };
-
-    const applyGroupSpread = (intraX: number, intraY: number) => {
-        const keyOfNode = (id: string) => (grouping ? grouping.keyOf(id) : "");
-        const members = new Map<string, cytoscape.NodeSingular[]>();
-        cy.nodes().forEach((n) => {
-          const k = keyOfNode(n.id());
-          const arr = members.get(k) || [];
-          arr.push(n as cytoscape.NodeSingular);
-          members.set(k, arr);
-        });
-        // group centroids + the global centroid of those centroids
-        const cent = new Map<string, { x: number; y: number }>();
-        members.forEach((arr, k) => {
-          const s = arr.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
-          cent.set(k, { x: s.x / arr.length, y: s.y / arr.length });
-        });
-        const all = [...cent.values()];
-        if (!all.length) return;
-        const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
-        const gc = { x: g.x / all.length, y: g.y / all.length };
-        // The unit of separation is the CLUSTER's own size, so ±1 means "one cluster
-        // apart / one cluster of overlap" on any diagram at any scale. Each group is
-        // translated OUTWARD from the global centre by half a gap, so two groups on
-        // opposite sides gain a full gap between them.
-        const sizes = [...members.values()].map((arr) => {
-          const xs = arr.map((n) => n.position().x), ys = arr.map((n) => n.position().y);
-          return { w: Math.max(...xs) - Math.min(...xs) + 120, h: Math.max(...ys) - Math.min(...ys) + 80 };
-        });
-        const meanW = sizes.reduce((a, s2) => a + s2.w, 0) / sizes.length;
-        const meanH = sizes.reduce((a, s2) => a + s2.h, 0) / sizes.length;
-        const offX = (clusterGapX * meanW) / 2, offY = (clusterGapY * meanH) / 2;
-        cy.batch(() => {
-          members.forEach((arr, k) => {
-            const c = cent.get(k)!;
-            // where the group's centre moves to — a translation along its own offset
-            // direction, NOT a scale, so the step is the same for near and far groups.
-            const dx = c.x - gc.x, dy = c.y - gc.y;
-            const nc = { x: c.x + Math.sign(dx || 1) * offX, y: c.y + Math.sign(dy || 1) * offY };
-            arr.forEach((n) => {
-              const p = n.position();
-              n.position({ x: nc.x + (p.x - c.x) * intraX, y: nc.y + (p.y - c.y) * intraY });
-            });
-          });
-        });
-        // center(), NOT fit(). fit() rescales the viewport to the new bounding box,
-        // which CANCELS the spread: push the clusters twice as far apart and fit zooms
-        // out by half, so on screen the separation is unchanged and only the nodes look
-        // smaller. Compress, and fit zooms IN until the nodes collide — which is why
-        // the control only ever appeared to overlap. center() pans without touching
-        // zoom, so a spread genuinely spreads at constant node size.
-        cy.center();
-    };
-
-    // cluster: fcose is synchronous, and it's the one kind whose MEMBER spread is
-    // ours to apply (everywhere else node spacing rides ELK).
-    // clusters always get the overlap rule, spread or not
-    if (resolvedKind === "cluster" && !(nsx !== 1 || nsy !== 1 || spreadActive)) {
-      afterLayout(cy, once(enforceOverlapRule), /* sync */ true);
-    }
-    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || spreadActive)) {
-      afterLayout(cy, once(() => { applyGroupSpread(nsx, nsy); enforceOverlapRule(); }), /* sync */ true);
-    }
-
-    // A drag invalidates the static routes — swap to live routing the moment one starts.
-    cy.on("drag", "node", () => setLiveRouted(true));
 
     const isExplore = resolvedKind === "cluster";
-    // No hover tooltip: the node's label is already ON the node, so a chip repeating
-    // it is noise that also covers whatever sits above. The hover still does the one
-    // thing the canvas can't show statically — reveal the neighbourhood.
     cy.on("mouseover", "node", (e) => {
+      const p = e.target.renderedPosition();
+      const raw = built.nodes.find((n) => n.id === e.target.id());
+      setTip({ x: p.x, y: p.y, text: raw?.label || e.target.id() });
       // Tenet 5: dim by default, reveal the hovered node's neighbourhood on hover.
       if (isExplore) {
         const hood = e.target.closedNeighborhood();
@@ -771,7 +503,12 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         hood.removeClass("faded").addClass("hl");
       }
     });
+    cy.on("mousemove", "node", (e) => {
+      const p = e.target.renderedPosition();
+      setTip((prev) => (prev ? { ...prev, x: p.x, y: p.y } : prev));
+    });
     cy.on("mouseout", "node", () => {
+      setTip(null);
       if (isExplore) cy.elements().removeClass("faded hl");
     });
     cy.on("tap", "node", (e) => {
@@ -841,7 +578,7 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
       clearTimeout(fitT); clearTimeout(settle); ro.disconnect(); mo.disconnect(); cy.destroy(); cyRef.current = null; setCyState(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterGapX, clusterGapY]);
+  }, [built, resolvedKind, buildStyle]);
 
   // Disclosures (Tenets 2 & 8): the stress score for distance-true views, and an
   // explicit "distance isn't meaning" note on exploratory force layouts.
@@ -860,20 +597,18 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
   return (
     <figure style={{ margin: 0, position: "relative", width: 720, maxWidth: "100%" }}>
       <div style={{ position: "relative", height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", overflow: "hidden", background: "var(--background, #fff)" }}>
-        {showGroups && grouping && cyState && (
+        {grouping && cyState && (
           <GroupLayer
             cy={cyState}
             mode={grouping.mode}
             keyOf={grouping.keyOf}
-            keysOf={grouping.keysOf}
-            onGroupDrag={() => setLiveRouted(true)}
             order={grouping.order}
             colors={palette.length ? palette : ["#888888"]}
             labelOf={grouping.named ? (k) => k : undefined}
             bg={bgColor || undefined}
           />
         )}
-        {useStaticRoutes && cyState && (
+        {elkRouted && cyState && (
           <EdgeLayer cy={cyState} routes={edgeRoutes} plans={edgePlans} labels={edgeLabels} />
         )}
         <div
@@ -884,6 +619,19 @@ export function Diagram({ intent = "flow", kind, nodes = [], edges = [], height 
         />
         {cyState && <ZoomControls cy={cyState} />}
       </div>
+      {tip && (
+        <div
+          style={{
+            position: "absolute", left: tip.x, top: tip.y, pointerEvents: "none", zIndex: 10,
+            transform: "translate(-50%, calc(-100% - 10px))", whiteSpace: "nowrap",
+            background: "var(--background, #fff)", color: "var(--foreground, #111)",
+            border: "1px solid var(--border, #e5e5e5)", borderRadius: 6, padding: "2px 8px",
+            fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          }}
+        >
+          {tip.text}
+        </div>
+      )}
       {notes.length > 0 && (
         <figcaption style={{ marginTop: 8, fontSize: 11.5, color: "var(--muted-foreground, #777)", lineHeight: 1.45 }}>
           {notes.join(" · ")}

@@ -36,15 +36,15 @@ import { cva } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import { jsx as jsx4 } from "react/jsx-runtime";
 var buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[length:var(--state-focus-ring-width,3px)] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-[var(--state-disabled-opacity)] aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-[var(--semantic-primary-hover)]",
-        destructive: "bg-destructive text-white hover:bg-[var(--semantic-destructive-hover)] focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
-        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-[var(--semantic-input-hover)]",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-[var(--semantic-secondary-hover)]",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-[var(--semantic-accent-hover)]",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline"
       },
       size: {
@@ -355,60 +355,15 @@ function hullPath(centres, pad = 22, radius = 16) {
     return `M ${a.x + ox} ${a.y + oy} L ${b.x + ox} ${b.y + oy} L ${b.x - ox} ${b.y - oy} L ${a.x - ox} ${a.y - oy} Z`;
   }
   const n = hull.length;
-  const along = (from, to, dist2) => {
-    const dx = to.x - from.x, dy = to.y - from.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const t = Math.min(dist2, len) / len;
-    return { x: from.x + dx * t, y: from.y + dy * t };
-  };
   let d = "";
   for (let i = 0; i < n; i++) {
     const prev = hull[(i - 1 + n) % n], cur = hull[i], next = hull[(i + 1) % n];
-    const lenPrev = Math.hypot(cur.x - prev.x, cur.y - prev.y);
-    const lenNext = Math.hypot(next.x - cur.x, next.y - cur.y);
-    const r = Math.max(0, Math.min(radius, lenPrev / 2, lenNext / 2));
-    const entry = along(cur, prev, r);
-    const exit = along(cur, next, r);
-    d += i === 0 ? `M ${entry.x} ${entry.y} ` : `L ${entry.x} ${entry.y} `;
-    d += `Q ${cur.x} ${cur.y} ${exit.x} ${exit.y} `;
+    const m1 = { x: (prev.x + cur.x) / 2, y: (prev.y + cur.y) / 2 };
+    const m2 = { x: (cur.x + next.x) / 2, y: (cur.y + next.y) / 2 };
+    d += i === 0 ? `M ${m1.x} ${m1.y} ` : "";
+    d += `Q ${cur.x} ${cur.y} ${m2.x} ${m2.y} `;
   }
   return d + "Z";
-}
-function resolveGroupOverlaps(groups, opts = {}) {
-  const pad = opts.pad ?? 24;
-  const iterations = opts.iterations ?? 12;
-  const move = /* @__PURE__ */ new Map();
-  groups.forEach((g) => move.set(g.key, { dx: 0, dy: 0 }));
-  const shares = (a, b) => {
-    for (const id of a.members) if (b.members.has(id)) return true;
-    return false;
-  };
-  for (let it = 0; it < iterations; it++) {
-    let moved = false;
-    for (let i = 0; i < groups.length; i++) {
-      for (let j = i + 1; j < groups.length; j++) {
-        const a = groups[i], b = groups[j];
-        if (shares(a, b)) continue;
-        const ma = move.get(a.key), mb = move.get(b.key);
-        const ax = a.x + ma.dx, ay = a.y + ma.dy, bx = b.x + mb.dx, by = b.y + mb.dy;
-        const ox = Math.min(ax + a.w, bx + b.w) - Math.max(ax, bx) + pad;
-        const oy = Math.min(ay + a.h, by + b.h) - Math.max(ay, by) + pad;
-        if (ox <= 0 || oy <= 0) continue;
-        moved = true;
-        if (ox < oy) {
-          const dir = ax + a.w / 2 <= bx + b.w / 2 ? -1 : 1;
-          ma.dx += dir * ox / 2;
-          mb.dx -= dir * ox / 2;
-        } else {
-          const dir = ay + a.h / 2 <= by + b.h / 2 ? -1 : 1;
-          ma.dy += dir * oy / 2;
-          mb.dy -= dir * oy / 2;
-        }
-      }
-    }
-    if (!moved) break;
-  }
-  return move;
 }
 function laneBands(nodes, laneOrder, bounds, opts = {}) {
   const pad = opts.pad ?? 18;
@@ -535,8 +490,7 @@ function chooseEncoding(input) {
 
 // components/diagram/GroupLayer.tsx
 import { jsx as jsx10, jsxs as jsxs5 } from "react/jsx-runtime";
-var LABEL_BAND = 26;
-function GroupLayer({ cy, mode, keyOf, keysOf, order, colors, labelOf, labelColor, bg, onGroupDrag }) {
+function GroupLayer({ cy, mode, keyOf, order, colors, labelOf, labelColor, bg }) {
   const [tf, setTf] = React4.useState({ x: 0, y: 0, z: 1 });
   const [shapes, setShapes] = React4.useState([]);
   React4.useEffect(() => {
@@ -568,39 +522,24 @@ function GroupLayer({ cy, mode, keyOf, keysOf, order, colors, labelOf, labelColo
             key: b.lane,
             color: colorFor(b.lane),
             band: { x: b.x, y: b.y, w: b.w, h: b.h },
-            labelXY: { x: b.x + 12, y: b.y + LABEL_BAND * 0.66 },
-            members: gnodes.filter((n) => n.lane === b.lane).map((n) => n.id)
+            labelXY: { x: b.x + 10, y: b.y + 16 }
           }))
         );
         return;
       }
       const groups = /* @__PURE__ */ new Map();
       gnodes.forEach((n) => {
-        const keys = keysOf ? keysOf(n.id) : [n.group];
-        keys.forEach((k) => {
-          (groups.get(k) || groups.set(k, []).get(k)).push(n);
-        });
+        const k = n.group;
+        (groups.get(k) || groups.set(k, []).get(k)).push(n);
       });
       const out = [];
       groups.forEach((arr, key) => {
-        const shortEdge = Math.min(...arr.map((n) => Math.min(n.w || 40, n.h || 24)));
-        const pad = Math.max(12, shortEdge * 0.5);
-        const padY = pad * 1.25;
-        const padTop = padY + LABEL_BAND;
-        const corners = [];
-        arr.forEach((n) => {
-          const hw = (n.w || 40) / 2 + pad, hhTop = (n.h || 24) / 2 + padTop, hhBot = (n.h || 24) / 2 + padY;
-          corners.push(
-            { x: n.x - hw, y: n.y - hhTop },
-            { x: n.x + hw, y: n.y - hhTop },
-            { x: n.x + hw, y: n.y + hhBot },
-            { x: n.x - hw, y: n.y + hhBot }
-          );
-        });
-        const cx = arr.reduce((s, n) => s + n.x, 0) / arr.length;
-        const hullTop = Math.min(...corners.map((p) => p.y));
-        const topY = hullTop + LABEL_BAND * 0.72;
-        out.push({ key, color: colorFor(key), path: hullPath(corners, 4, 18), labelXY: { x: cx, y: topY }, members: arr.map((n) => n.id) });
+        const centres = arr.map((n) => ({ x: n.x, y: n.y }));
+        const maxHalf = Math.max(20, ...arr.map((n) => Math.max(n.w || 0, n.h || 0) / 2));
+        const pad = maxHalf + 28;
+        const cx = centres.reduce((s, p) => s + p.x, 0) / centres.length;
+        const topY = Math.min(...centres.map((p) => p.y)) - pad - 4;
+        out.push({ key, color: colorFor(key), path: hullPath(centres, pad, 18), labelXY: { x: cx, y: topY } });
       });
       setShapes(out);
     };
@@ -613,81 +552,17 @@ function GroupLayer({ cy, mode, keyOf, keysOf, order, colors, labelOf, labelColo
       cy.off("render pan zoom resize position add remove layoutstop", schedule);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [cy, mode, keyOf, keysOf, order, colors, labelOf]);
-  const drag = React4.useRef(null);
-  const onGroupDown = (e, members) => {
-    if (!cy || !members || !members.length) return;
-    e.stopPropagation();
-    e.target.setPointerCapture?.(e.pointerId);
-    drag.current = { x: e.clientX, y: e.clientY, ids: members };
-    onGroupDrag?.();
-  };
-  const onGroupMove = (e) => {
-    const d = drag.current;
-    if (!d || !cy) return;
-    const z = cy.zoom() || 1;
-    const dx = (e.clientX - d.x) / z, dy = (e.clientY - d.y) / z;
-    if (!dx && !dy) return;
-    cy.batch(() => d.ids.forEach((id) => {
-      const n = cy.$id(id);
-      if (n.nonempty()) {
-        const p = n.position();
-        n.position({ x: p.x + dx, y: p.y + dy });
-      }
-    }));
-    drag.current = { ...d, x: e.clientX, y: e.clientY };
-  };
-  const endGroupDrag = () => {
-    drag.current = null;
-  };
-  return /* @__PURE__ */ jsx10(
-    "svg",
-    {
-      style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" },
-      onPointerMove: onGroupMove,
-      onPointerUp: endGroupDrag,
-      onPointerCancel: endGroupDrag,
-      "aria-hidden": true,
-      children: /* @__PURE__ */ jsx10("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: shapes.map((s) => {
-        const labelFill = labelColor || ensureContrast(s.color, bg || "#ffffff", 4.5);
-        return s.band ? /* @__PURE__ */ jsxs5("g", { children: [
-          /* @__PURE__ */ jsx10(
-            "rect",
-            {
-              x: s.band.x,
-              y: s.band.y,
-              width: s.band.w,
-              height: s.band.h,
-              rx: 8,
-              fill: s.color,
-              fillOpacity: 0.06,
-              stroke: s.color,
-              strokeOpacity: 0.35,
-              strokeWidth: 1 / tf.z,
-              style: { pointerEvents: "all", cursor: "grab" },
-              onPointerDown: (e) => onGroupDown(e, s.members)
-            }
-          ),
-          labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
-        ] }, s.key) : /* @__PURE__ */ jsxs5("g", { children: [
-          /* @__PURE__ */ jsx10(
-            "path",
-            {
-              d: s.path,
-              fill: s.color,
-              fillOpacity: 0.08,
-              stroke: s.color,
-              strokeOpacity: 0.4,
-              strokeWidth: 1.5 / tf.z,
-              style: { pointerEvents: "all", cursor: "grab" },
-              onPointerDown: (e) => onGroupDown(e, s.members)
-            }
-          ),
-          labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, textAnchor: "middle", fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
-        ] }, s.key);
-      }) })
-    }
-  );
+  }, [cy, mode, keyOf, order, colors, labelOf]);
+  return /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }, "aria-hidden": true, children: /* @__PURE__ */ jsx10("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: shapes.map((s) => {
+    const labelFill = labelColor || ensureContrast(s.color, bg || "#ffffff", 4.5);
+    return s.band ? /* @__PURE__ */ jsxs5("g", { children: [
+      /* @__PURE__ */ jsx10("rect", { x: s.band.x, y: s.band.y, width: s.band.w, height: s.band.h, rx: 8, fill: s.color, fillOpacity: 0.06, stroke: s.color, strokeOpacity: 0.35, strokeWidth: 1 / tf.z }),
+      labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
+    ] }, s.key) : /* @__PURE__ */ jsxs5("g", { children: [
+      /* @__PURE__ */ jsx10("path", { d: s.path, fill: s.color, fillOpacity: 0.08, stroke: s.color, strokeOpacity: 0.4, strokeWidth: 1.5 / tf.z }),
+      labelOf && s.labelXY && /* @__PURE__ */ jsx10("text", { x: s.labelXY.x, y: s.labelXY.y, textAnchor: "middle", fontSize: 12 / tf.z, fontWeight: 700, fill: labelFill, children: labelOf(s.key) })
+    ] }, s.key);
+  }) }) });
 }
 
 // components/diagram/EdgeLayer.tsx
@@ -751,44 +626,18 @@ function rectsOverlap(a, b, pad = 2) {
 }
 var CHAR_W = 7.4;
 var LBL_H = 20;
-function rectHitsSeg(r, a, b) {
-  const x0 = r.x, x1 = r.x + r.w, y0 = r.y, y1 = r.y + r.h;
-  if (Math.abs(a.y - b.y) < 0.5) {
-    const y = a.y;
-    if (y <= y0 || y >= y1) return false;
-    return Math.max(a.x, b.x) > x0 && Math.min(a.x, b.x) < x1;
-  }
-  if (Math.abs(a.x - b.x) < 0.5) {
-    const x = a.x;
-    if (x <= x0 || x >= x1) return false;
-    return Math.max(a.y, b.y) > y0 && Math.min(a.y, b.y) < y1;
-  }
-  return false;
-}
-function placeLabel(points, textLen, boxes, taken = [], avoid = []) {
+function placeLabel(points, textLen, boxes) {
   const w = textLen * CHAR_W + 12, h = LBL_H;
   const segs = [];
   for (let i = 0; i < points.length - 1; i++) segs.push([points[i], points[i + 1]]);
   segs.sort((p, q) => Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) - Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y));
-  const ts = [0.5, 0.38, 0.62, 0.26, 0.74];
-  const OFF = h / 2 + 3;
   for (const [p, q] of segs) {
-    const horiz = Math.abs(p.y - q.y) < 0.5;
-    for (const t of ts) {
-      for (const side of [-1, 1]) {
-        const bx = p.x + (q.x - p.x) * t, by = p.y + (q.y - p.y) * t;
-        const cx2 = bx + (horiz ? 0 : side * OFF), cy2 = by + (horiz ? side * OFF : 0);
-        const r = { x: cx2 - w / 2, y: cy2 - h / 2, w, h };
-        const hitsNode = boxes.some((b) => rectsOverlap(r, b));
-        const hitsLabel = taken.some((o) => rectsOverlap(r, o));
-        const hitsEdge = avoid.some(([a2, b2]) => rectHitsSeg(r, a2, b2));
-        if (!hitsNode && !hitsLabel && !hitsEdge) return { x: cx2, y: cy2, clear: true, rect: r };
-      }
-    }
+    const cx = (p.x + q.x) / 2, cy = (p.y + q.y) / 2;
+    const r = { x: cx - w / 2, y: cy - h / 2, w, h };
+    if (!boxes.some((b) => rectsOverlap(r, b))) return { x: cx, y: cy, clear: true };
   }
   const f = segs[0] ?? [points[0], points[points.length - 1]];
-  const cx = (f[0].x + f[1].x) / 2, cy = (f[0].y + f[1].y) / 2;
-  return { x: cx, y: cy, clear: false, rect: { x: cx - w / 2, y: cy - h / 2, w, h } };
+  return { x: (f[0].x + f[1].x) / 2, y: (f[0].y + f[1].y) / 2, clear: false };
 }
 
 // components/diagram/EdgeLayer.tsx
@@ -834,12 +683,6 @@ function EdgeLayer({ cy, routes, plans, labels }) {
     const p = n.position();
     return { id: n.id(), x: p.x - n.width() / 2, y: p.y - n.height() / 2, w: n.width(), h: n.height() };
   }) : [], [cy, tf]);
-  const placedLabels = [];
-  const allSegs = routes.map((r) => {
-    const segs = [];
-    for (let i = 0; i < r.points.length - 1; i++) segs.push([r.points[i], r.points[i + 1]]);
-    return { index: r.index, segs };
-  });
   return /* @__PURE__ */ jsx11("svg", { style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1, overflow: "visible" }, "aria-hidden": true, children: /* @__PURE__ */ jsx11("g", { transform: `translate(${tf.x} ${tf.y}) scale(${tf.z})`, children: routes.map((r) => {
     if (!r.points || r.points.length < 2) return null;
     const p = planByIdx.get(r.index);
@@ -852,9 +695,7 @@ function EdgeLayer({ cy, routes, plans, labels }) {
     const lbl = labels[r.index];
     let chip = null;
     if (lbl) {
-      const others = allSegs.filter((o) => o.index !== r.index).flatMap((o) => o.segs);
-      const at = placeLabel(r.points, lbl.length, boxes, placedLabels, others);
-      placedLabels.push(at.rect);
+      const at = placeLabel(r.points, lbl.length, boxes);
       const mx = at.x, my = at.y;
       const fs = 12, w = lbl.length * fs * 0.62 + 12, h = fs + 8;
       chip = /* @__PURE__ */ jsxs6("g", { children: [
@@ -1012,39 +853,17 @@ function uniformSizes(nodes, roleOf, opts = {}) {
   }
   return out;
 }
-function elkOptions(kind, tune) {
-  const dir = tune?.direction || (kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN");
-  const cl = (v, fb) => Math.min(2, Math.max(0.5, v && v > 0 ? v : fb));
-  const s = cl(tune?.spacing, 1);
-  const sx = cl(tune?.spacingX, s);
-  const sy = cl(tune?.spacingY, s);
-  const es = cl(tune?.edgeSpacing, 1);
-  const horizontalFlow = dir === "RIGHT" || dir === "LEFT";
-  const layerGap = horizontalFlow ? sx : sy;
-  const inLayerGap = horizontalFlow ? sy : sx;
-  const scale = (v, m) => Math.round(v * m);
+function elkOptions(kind) {
+  const dir = kind === "er" || kind === "swimlane" ? "RIGHT" : "DOWN";
   return {
     "elk.algorithm": "layered",
     "elk.direction": dir,
-    "elk.layered.spacing.nodeNodeBetweenLayers": scale(kind === "tree" ? sp(9) : sp(10), layerGap),
-    // 48 / 64 @ 1
-    "elk.spacing.nodeNode": scale(sp(8), inLayerGap),
-    // 40 @ 1
-    "elk.layered.spacing.edgeNodeBetweenLayers": scale(sp(6), layerGap),
-    // 24 @ 1
-    // ── ALIGNMENT / OVERLAP POLICY ──────────────────────────────────────────
-    // Two edges sharing a lane are drawn as ONE line: the reader can't see there
-    // are two, nor where either goes. These three keep them apart at the source,
-    // so the linter's route.overlapsEdge should never have anything to report.
-    "elk.layered.spacing.edgeEdgeBetweenLayers": scale(sp(4), layerGap * es),
-    // parallel edges get their own lane
-    "elk.spacing.edgeEdge": scale(sp(3), inLayerGap * es),
-    // and stay apart within one
-    "elk.layered.mergeEdges": false,
-    // never fuse two edges into one trunk
-    // Labels are placed by our own placer (edgeLint.placeLabel), but ELK still
-    // needs to reserve room for them or they land on top of the routes.
-    "elk.spacing.edgeLabel": 8,
+    "elk.layered.spacing.nodeNodeBetweenLayers": kind === "tree" ? sp(9) : sp(10),
+    // 48 / 64
+    "elk.spacing.nodeNode": sp(8),
+    // 40
+    "elk.layered.spacing.edgeNodeBetweenLayers": sp(6),
+    // 24
     "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
     "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
     "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
@@ -1112,7 +931,7 @@ function planEdges(kind, nodes, edges, roleOf) {
   });
 }
 var portId = (node, side) => `${node}@@${side}`;
-function buildElkGraph(kind, nodeIds, sizeOf, plans, partitionOf, tune) {
+function buildElkGraph(kind, nodeIds, sizeOf, plans, partitionOf) {
   const sides = /* @__PURE__ */ new Map();
   nodeIds.forEach((id) => sides.set(id, /* @__PURE__ */ new Set()));
   plans.forEach((p) => {
@@ -1120,7 +939,7 @@ function buildElkGraph(kind, nodeIds, sizeOf, plans, partitionOf, tune) {
     sides.get(p.target)?.add(p.targetSide);
   });
   const layoutOptions = {};
-  for (const [k, v] of Object.entries(elkOptions(kind, tune))) layoutOptions[k] = String(v);
+  for (const [k, v] of Object.entries(elkOptions(kind))) layoutOptions[k] = String(v);
   layoutOptions["elk.edgeRouting"] = "ORTHOGONAL";
   if (partitionOf) layoutOptions["elk.partitioning.activate"] = "true";
   return {
@@ -1156,22 +975,6 @@ function extractRoutes(elkResult) {
 import { jsx as jsx12, jsxs as jsxs7 } from "react/jsx-runtime";
 var SIDE_ENDPOINT = { NORTH: "0% -50%", SOUTH: "0% 50%", EAST: "50% 0%", WEST: "-50% 0%" };
 var ELK_ROUTED = /* @__PURE__ */ new Set(["flow", "tree", "state", "er"]);
-function once(fn) {
-  let done = false;
-  return () => {
-    if (done) return;
-    done = true;
-    fn();
-  };
-}
-function afterLayout(cy, fn, sync) {
-  if (sync) {
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(fn);
-    else setTimeout(fn, 0);
-  } else {
-    cy.one("layoutstop", fn);
-  }
-}
 var elkEngine = new ELK();
 try {
   cytoscape2.use(elk);
@@ -1241,10 +1044,8 @@ function shapeFor(role, kind) {
       return "diamond";
     case "io":
       return "rhomboid";
-    // ISO 5807 predefined-process is a rectangle with struck sides; cut-rectangle is
-    // the closest cytoscape primitive and, crucially, is not another rounded box.
     case "subprocess":
-      return "cut-rectangle";
+      return "round-rectangle";
     case "entity":
       return "rectangle";
     case "state":
@@ -1262,8 +1063,14 @@ function colorPolicy(kind, nodeCount, groupCount) {
 function roleStyle(role, t, policy = "rich") {
   const light = readableOn(t.bgSolid, ["#000000", "#ffffff"]) === "#000000";
   const n = neutralRoles(light);
-  const fill = n.surface;
-  const border = n.border;
+  let fill = n.surface, border = n.border;
+  if (policy === "minimal") {
+    if (role === "start" || role === "end") border = n.borderStrong;
+  } else {
+    const accent = t.c[0], decide = t.c[2] || t.c[0];
+    const a = role === "decision" ? decide : role === "entity" ? t.c[1] || accent : role === "io" ? t.c[3] || accent : accent;
+    border = ensureContrast(a, n.surface, 3);
+  }
   const text = readableOn(fill, [n.text, n.surfaceAlt]);
   return { fill, border, text };
 }
@@ -1272,7 +1079,7 @@ function labelFor(n, role) {
   if (role === "entity" && n.attrs && n.attrs.length) return head + "\n" + n.attrs.map((a) => "\xB7 " + a).join("\n");
   return head;
 }
-function layoutFor(kind, tune) {
+function layoutFor(kind) {
   if (kind === "cluster") {
     return {
       name: "fcose",
@@ -1288,15 +1095,15 @@ function layoutFor(kind, tune) {
       numIter: 2500
     };
   }
-  return elkLayout(kind, tune);
+  return elkLayout(kind);
 }
-function elkLayout(kind, tune) {
+function elkLayout(kind) {
   return {
     name: "elk",
     fit: true,
     padding: 24,
     nodeDimensionsIncludeLabels: false,
-    elk: elkOptions(kind, tune)
+    elk: elkOptions(kind)
   };
 }
 var MAX_NODES = 60;
@@ -1347,8 +1154,7 @@ function defaultRole(kind, n) {
   if (kind === "tree") return "node";
   return "process";
 }
-function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, direction, spacing, spacingX, spacingY, edgeSpacing, showGroups = true, nodeSpreadX = 1, nodeSpreadY = 1, clusterGapX = 0, clusterGapY = 0, unsafe = false }) {
-  const tune = { direction, spacing, spacingX, spacingY, edgeSpacing };
+function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, showGrade = false, unsafe = false }) {
   if (unsafe && typeof console !== "undefined") {
     console.warn("<Diagram unsafe> bypasses the readability guardrails \u2014 use only for known edge cases.");
   }
@@ -1358,10 +1164,10 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
   const resolvedKind = blocked ? "similarity" : kind || intentKind;
   const hostRef = React6.useRef(null);
   const cyRef = React6.useRef(null);
+  const [tip, setTip] = React6.useState(null);
   const [cyState, setCyState] = React6.useState(null);
   const [palette, setPalette] = React6.useState([]);
   const [bgColor, setBgColor] = React6.useState("");
-  const [liveRouted, setLiveRouted] = React6.useState(false);
   const built = React6.useMemo(() => normalize(resolvedKind, nodes, edges), [resolvedKind, nodes, edges]);
   const grouping = React6.useMemo(() => {
     const laneMap = new Map(built.nodes.map((n) => [n.id, n.lane != null ? String(n.lane) : ""]));
@@ -1373,15 +1179,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     if (resolvedKind === "cluster" || hasGroup) {
       const detected = resolvedKind === "cluster" && !hasGroup ? detectGroups(built.nodes, built.edges) : void 0;
       const gmap = new Map(built.nodes.map((n) => [n.id, n.group != null ? String(n.group) : detected?.get(n.id) ?? "g0"]));
-      const multi = new Map(built.nodes.filter((n) => n.groups && n.groups.length).map((n) => [n.id, n.groups.map(String)]));
-      const allKeys = [.../* @__PURE__ */ new Set([...gmap.values(), ...[...multi.values()].flat()])];
-      return {
-        mode: "hulls",
-        named: hasGroup,
-        order: allKeys,
-        keyOf: (id) => gmap.get(id) ?? "g0",
-        keysOf: (id) => multi.get(id) ?? [gmap.get(id) ?? "g0"]
-      };
+      return { mode: "hulls", named: hasGroup, order: [...new Set(gmap.values())], keyOf: (id) => gmap.get(id) ?? "g0" };
     }
     return null;
   }, [built, resolvedKind]);
@@ -1400,8 +1198,6 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
     return new Set(top.map((n) => n.id));
   }, [built, resolvedKind]);
   const elkRouted = ELK_ROUTED.has(resolvedKind);
-  const spreadActive = clusterGapX !== 0 || clusterGapY !== 0;
-  const useStaticRoutes = elkRouted && !spreadActive && !liveRouted;
   const edgePlans = React6.useMemo(
     () => planEdges(resolvedKind, built.nodes, built.edges, (id) => {
       const n = built.nodes.find((x) => x.id === id);
@@ -1436,17 +1232,11 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             "line-height": 1.3,
             "border-width": "data(bw)",
             "border-color": "data(border)",
-            // ISO 5807: process is a RECTANGLE. md (8px) rounded it enough that a
-            // process and a terminator read as the same "rounded box" — the reported
-            // "all nodes look identical". sm keeps the DS softness without the
-            // silhouette collapsing into the pill.
-            "corner-radius": `${RADIUS.sm}px`,
+            "corner-radius": `${RADIUS.md}px`,
             "min-zoomed-font-size": 6
           }
         },
-        // ISO 5807 terminator = stadium. A radius larger than any half-height always
-        // fully rounds the ends, so start/end can never be confused with a process box.
-        { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": "999px" } },
+        { selector: 'node[role = "start"], node[role = "end"]', style: { "corner-radius": `${RADIUS.pill}px` } },
         // Initial / final states marked CONSISTENTLY: same accent colour and the
         // same modest weight as each other (not a jarring heavy black) — final adds
         // a double ring, the state-machine convention.
@@ -1462,7 +1252,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           style: {
             // ELK-routed idioms draw edges in the SVG EdgeLayer (from ELK's actual
             // routes); hide cytoscape's own edge so they don't double-draw.
-            display: useStaticRoutes ? "none" : "element",
+            display: ELK_ROUTED.has(resolvedKind) ? "none" : "element",
             width: STROKE.regular,
             // structured idioms get crisp, darker connectors (box-and-arrow);
             // force/similarity webs stay light so they don't overpower the nodes.
@@ -1517,7 +1307,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         { selector: "edge.hl", style: { "line-color": t.primary, "target-arrow-color": t.primary, width: STROKE.heavy, opacity: OPACITY.solid } }
       ];
     },
-    [resolvedKind, useStaticRoutes]
+    [resolvedKind]
   );
   React6.useEffect(() => {
     const host = hostRef.current;
@@ -1553,10 +1343,8 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
             fill: rs.fill,
             border: rs.border,
             text: rs.text,
-            // Constant weight. Degree used to thicken the outline ("importance"), which
-            // made otherwise-identical nodes look like different kinds — the reported
-            // "borders are different". Hubs are still discoverable by their edges.
-            bw: STROKE.regular,
+            // importance (rich policy only): hubs get a heavier border.
+            bw: policy === "rich" ? STROKE.regular + Math.min(3, deg * 0.5) : STROKE.regular,
             mark: n.initial ? "initial" : n.final ? "final" : "",
             unknown: n.unknown ? "1" : "",
             inferred: n.inferred ? "1" : ""
@@ -1578,7 +1366,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
         }
       }))
     ];
-    const layout = resolvedKind === "similarity" && sim ? { name: "preset", positions: sim.pos, fit: true, padding: 40 } : elkRouted ? { name: "preset", fit: true, padding: 30 } : layoutFor(resolvedKind, tune);
+    const layout = resolvedKind === "similarity" && sim ? { name: "preset", positions: sim.pos, fit: true, padding: 40 } : elkRouted ? { name: "preset", fit: true, padding: 30 } : layoutFor(resolvedKind);
     const cy = cytoscape2({
       container: host,
       elements,
@@ -1587,21 +1375,14 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       minZoom: 0.35,
       maxZoom: 2.4,
       wheelSensitivity: 0.2,
-      // Nodes stay grabbable and selectable in EVERY idiom. Locking them was the old
-      // answer to "edges detach when you drag" (the static ELK routes stayed put while
-      // the box moved) — but that traded away direct manipulation to protect a
-      // rendering detail. The right fix is below: the FIRST drag hands routing back to
-      // cytoscape, so edges follow their boxes and you keep the freedom to move things.
-      autoungrabify: false,
-      selectionType: "additive",
-      boxSelectionEnabled: true
+      autoungrabify: false
     });
     cyRef.current = cy;
     setCyState(cy);
     setPalette(t0.c);
     setBgColor(t0.bg);
     if (elkRouted) {
-      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id), edgePlans, void 0, tune);
+      const graph = buildElkGraph(resolvedKind, built.nodes.map((n) => n.id), (id) => sizeMap.get(id), edgePlans);
       elkEngine.layout(graph).then((res) => {
         const { boxes, routes } = extractRoutes(res);
         cy.batch(() => boxes.forEach((b) => {
@@ -1609,172 +1390,37 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
           if (n.nonempty()) n.position({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
         }));
         setEdgeRoutes(routes);
-        if (spreadActive) applyGroupSpread(1, 1);
-        enforceOverlapRule();
         cy.fit(void 0, 28);
       }).catch(() => {
       });
     }
     if (resolvedKind === "swimlane" && grouping?.order.length) {
       const order = grouping.order, LANE_H = 130;
-      const snapLanes = once(() => {
+      cy.one("layoutstop", () => {
         cy.batch(() => cy.nodes().forEach((node) => {
           const li = Math.max(0, order.indexOf(grouping.keyOf(node.id())));
           node.position({ x: node.position().x, y: li * LANE_H + LANE_H / 2 });
         }));
-        if (spreadActive) applyGroupSpread(1, 1);
         cy.fit(void 0, 58);
       });
-      afterLayout(
-        cy,
-        snapLanes,
-        /* sync */
-        false
-      );
     }
-    const uniform = spacingX != null || spacingY != null ? ((spacingX ?? spacingY ?? 1) + (spacingY ?? spacingX ?? 1)) / 2 : spacing ?? 1;
-    const nsx = nodeSpreadX * (spacingX ?? spacing ?? 1);
-    const nsy = nodeSpreadY * (spacingY ?? spacing ?? 1);
-    if (resolvedKind === "similarity" && uniform !== 1) {
-      afterLayout(
-        cy,
-        once(() => {
-          const ns = cy.nodes();
-          if (!ns.length) return;
-          const c = ns.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
-          const gc = { x: c.x / ns.length, y: c.y / ns.length };
-          cy.batch(() => ns.forEach((n) => {
-            const p = n.position();
-            n.position({ x: gc.x + (p.x - gc.x) * uniform, y: gc.y + (p.y - gc.y) * uniform });
-          }));
-          if (spreadActive) applyGroupSpread(1, 1);
-          enforceOverlapRule();
-          cy.center();
-        }),
-        /* sync */
-        true
-      );
-    }
-    const enforceOverlapRule = () => {
-      if (!grouping || grouping.mode !== "hulls") return;
-      const gk = grouping;
-      const keysOf = (id) => gk.keysOf ? gk.keysOf(id) : [gk.keyOf(id)];
-      const members = /* @__PURE__ */ new Map();
-      cy.nodes().forEach((n) => keysOf(n.id()).forEach((k) => {
-        const arr = members.get(k) || [];
-        arr.push(n.id());
-        members.set(k, arr);
-      }));
-      if (members.size < 2) return;
-      const centreOf = (ids) => {
-        const ps = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty()).map((n) => n.position());
-        if (!ps.length) return null;
-        return { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length };
-      };
-      cy.batch(() => cy.nodes().forEach((n) => {
-        const ks = keysOf(n.id());
-        if (ks.length < 2) return;
-        const cs = ks.map((k) => centreOf((members.get(k) || []).filter((id) => id !== n.id()))).filter(Boolean);
-        if (cs.length < 2) return;
-        n.position({
-          x: cs.reduce((a, c) => a + c.x, 0) / cs.length,
-          y: cs.reduce((a, c) => a + c.y, 0) / cs.length
-        });
-      }));
-      const boxes = [...members.entries()].map(([key, ids]) => {
-        const ns = ids.map((id) => cy.$id(id)).filter((n) => n.nonempty());
-        const xs = ns.map((n) => n.position().x), ys = ns.map((n) => n.position().y);
-        const ws = ns.map((n) => n.width() || 40), hs = ns.map((n) => n.height() || 24);
-        const halfW = Math.max(...ws, 40) / 2, halfH = Math.max(...hs, 24) / 2;
-        return {
-          key,
-          members: new Set(ids),
-          x: Math.min(...xs) - halfW,
-          y: Math.min(...ys) - halfH,
-          w: Math.max(...xs) - Math.min(...xs) + halfW * 2,
-          h: Math.max(...ys) - Math.min(...ys) + halfH * 2
-        };
-      });
-      const move = resolveGroupOverlaps(boxes, { pad: 28 });
-      cy.batch(() => move.forEach((d, key) => {
-        if (!d.dx && !d.dy) return;
-        (members.get(key) || []).forEach((id) => {
-          const n = cy.$id(id);
-          if (n.nonempty() && keysOf(id).length < 2) {
-            const p = n.position();
-            n.position({ x: p.x + d.dx, y: p.y + d.dy });
-          }
-        });
-      }));
-      cy.center();
-    };
-    const applyGroupSpread = (intraX, intraY) => {
-      const keyOfNode = (id) => grouping ? grouping.keyOf(id) : "";
-      const members = /* @__PURE__ */ new Map();
-      cy.nodes().forEach((n) => {
-        const k = keyOfNode(n.id());
-        const arr = members.get(k) || [];
-        arr.push(n);
-        members.set(k, arr);
-      });
-      const cent = /* @__PURE__ */ new Map();
-      members.forEach((arr, k) => {
-        const s = arr.reduce((a, n) => ({ x: a.x + n.position().x, y: a.y + n.position().y }), { x: 0, y: 0 });
-        cent.set(k, { x: s.x / arr.length, y: s.y / arr.length });
-      });
-      const all = [...cent.values()];
-      if (!all.length) return;
-      const g = all.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 });
-      const gc = { x: g.x / all.length, y: g.y / all.length };
-      const sizes = [...members.values()].map((arr) => {
-        const xs = arr.map((n) => n.position().x), ys = arr.map((n) => n.position().y);
-        return { w: Math.max(...xs) - Math.min(...xs) + 120, h: Math.max(...ys) - Math.min(...ys) + 80 };
-      });
-      const meanW = sizes.reduce((a, s2) => a + s2.w, 0) / sizes.length;
-      const meanH = sizes.reduce((a, s2) => a + s2.h, 0) / sizes.length;
-      const offX = clusterGapX * meanW / 2, offY = clusterGapY * meanH / 2;
-      cy.batch(() => {
-        members.forEach((arr, k) => {
-          const c = cent.get(k);
-          const dx = c.x - gc.x, dy = c.y - gc.y;
-          const nc = { x: c.x + Math.sign(dx || 1) * offX, y: c.y + Math.sign(dy || 1) * offY };
-          arr.forEach((n) => {
-            const p = n.position();
-            n.position({ x: nc.x + (p.x - c.x) * intraX, y: nc.y + (p.y - c.y) * intraY });
-          });
-        });
-      });
-      cy.center();
-    };
-    if (resolvedKind === "cluster" && !(nsx !== 1 || nsy !== 1 || spreadActive)) {
-      afterLayout(
-        cy,
-        once(enforceOverlapRule),
-        /* sync */
-        true
-      );
-    }
-    if (resolvedKind === "cluster" && (nsx !== 1 || nsy !== 1 || spreadActive)) {
-      afterLayout(
-        cy,
-        once(() => {
-          applyGroupSpread(nsx, nsy);
-          enforceOverlapRule();
-        }),
-        /* sync */
-        true
-      );
-    }
-    cy.on("drag", "node", () => setLiveRouted(true));
     const isExplore = resolvedKind === "cluster";
     cy.on("mouseover", "node", (e) => {
+      const p = e.target.renderedPosition();
+      const raw = built.nodes.find((n) => n.id === e.target.id());
+      setTip({ x: p.x, y: p.y, text: raw?.label || e.target.id() });
       if (isExplore) {
         const hood = e.target.closedNeighborhood();
         cy.elements().addClass("faded").removeClass("hl");
         hood.removeClass("faded").addClass("hl");
       }
     });
+    cy.on("mousemove", "node", (e) => {
+      const p = e.target.renderedPosition();
+      setTip((prev) => prev ? { ...prev, x: p.x, y: p.y } : prev);
+    });
     cy.on("mouseout", "node", () => {
+      setTip(null);
       if (isExplore) cy.elements().removeClass("faded hl");
     });
     cy.on("tap", "node", (e) => {
@@ -1845,7 +1491,7 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       cyRef.current = null;
       setCyState(null);
     };
-  }, [built, resolvedKind, buildStyle, direction, spacing, spacingX, spacingY, edgeSpacing, nodeSpreadX, nodeSpreadY, clusterGapX, clusterGapY]);
+  }, [built, resolvedKind, buildStyle]);
   const notes = [
     ...blocked ? [`Blocked: a similarity intent can't ride a "${kind}" layout \u2014 showing the distance-true (MDS) embedding instead.`] : [],
     ...built.notes,
@@ -1857,21 +1503,19 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
   const cap = { textAlign: "left", fontWeight: 700, padding: "0 0 4px", color: "var(--foreground, #222)" };
   return /* @__PURE__ */ jsxs7("figure", { style: { margin: 0, position: "relative", width: 720, maxWidth: "100%" }, children: [
     /* @__PURE__ */ jsxs7("div", { style: { position: "relative", height, width: "100%", borderRadius: 10, border: "1px solid var(--border, #e5e5e5)", overflow: "hidden", background: "var(--background, #fff)" }, children: [
-      showGroups && grouping && cyState && /* @__PURE__ */ jsx12(
+      grouping && cyState && /* @__PURE__ */ jsx12(
         GroupLayer,
         {
           cy: cyState,
           mode: grouping.mode,
           keyOf: grouping.keyOf,
-          keysOf: grouping.keysOf,
-          onGroupDrag: () => setLiveRouted(true),
           order: grouping.order,
           colors: palette.length ? palette : ["#888888"],
           labelOf: grouping.named ? (k) => k : void 0,
           bg: bgColor || void 0
         }
       ),
-      useStaticRoutes && cyState && /* @__PURE__ */ jsx12(EdgeLayer, { cy: cyState, routes: edgeRoutes, plans: edgePlans, labels: edgeLabels }),
+      elkRouted && cyState && /* @__PURE__ */ jsx12(EdgeLayer, { cy: cyState, routes: edgeRoutes, plans: edgePlans, labels: edgeLabels }),
       /* @__PURE__ */ jsx12(
         "div",
         {
@@ -1883,6 +1527,28 @@ function Diagram({ intent = "flow", kind, nodes = [], edges = [], height = 480, 
       ),
       cyState && /* @__PURE__ */ jsx12(ZoomControls, { cy: cyState })
     ] }),
+    tip && /* @__PURE__ */ jsx12(
+      "div",
+      {
+        style: {
+          position: "absolute",
+          left: tip.x,
+          top: tip.y,
+          pointerEvents: "none",
+          zIndex: 10,
+          transform: "translate(-50%, calc(-100% - 10px))",
+          whiteSpace: "nowrap",
+          background: "var(--background, #fff)",
+          color: "var(--foreground, #111)",
+          border: "1px solid var(--border, #e5e5e5)",
+          borderRadius: 6,
+          padding: "2px 8px",
+          fontSize: 12,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.12)"
+        },
+        children: tip.text
+      }
+    ),
     notes.length > 0 && /* @__PURE__ */ jsx12("figcaption", { style: { marginTop: 8, fontSize: 11.5, color: "var(--muted-foreground, #777)", lineHeight: 1.45 }, children: notes.join(" \xB7 ") }),
     /* @__PURE__ */ jsxs7("details", { style: { marginTop: 6, fontSize: 11.5, color: "var(--muted-foreground, #777)" }, children: [
       /* @__PURE__ */ jsx12("summary", { style: { cursor: "pointer", userSelect: "none" }, children: "Data table" }),

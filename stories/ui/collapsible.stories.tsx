@@ -3,7 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 
-const meta: Meta = { title: "Nests/Layout/Collapsible", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Collapsible", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

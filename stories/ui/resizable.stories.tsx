@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
-const meta: Meta = { title: "Nests/Layout/Resizable", tags: ["autodocs"] };
+const meta: Meta = { title: "UI/Resizable", tags: ["autodocs"] };
 export default meta;
 type Story = StoryObj;
 

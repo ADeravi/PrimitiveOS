@@ -12,7 +12,7 @@ import {
 } from "@/components/charts";
 
 const meta: Meta = {
-  title: "Nests/Charts/Interactive/Core",
+  title: "Charts/Interactive/Core",
   parameters: {
     layout: "centered",
     chromatic: { delay: 1800 },

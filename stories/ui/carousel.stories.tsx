@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 
-const meta: Meta = { title: "Nests/Media/Carousel", tags: ["autodocs"], parameters: { layout: "padded" } };
+const meta: Meta = { title: "UI/Carousel", tags: ["autodocs"], parameters: { layout: "padded" } };
 export default meta;
 type Story = StoryObj;
 

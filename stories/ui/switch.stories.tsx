@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 const meta: Meta<typeof Switch> = {
-  title: "Components/Selection/Switch",
+  title: "UI/Switch",
   component: Switch,
   tags: ["autodocs"],
   args: { onCheckedChange: fn() },
