@@ -11,7 +11,7 @@ import "./component-themes.css";
 // them dark via `.dark .sbdocs` CSS so they follow the dark toggle too.
 const docsTheme = create({
   base: "light",
-  brandTitle: "ScnTw Design System",
+  brandTitle: "PrimitiveOS",
   fontBase: '"Inter", system-ui, sans-serif',
   fontCode: '"JetBrains Mono", monospace',
 });

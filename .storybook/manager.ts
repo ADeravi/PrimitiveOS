@@ -11,7 +11,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // shadcn Neutral — the original dark zinc chrome.
   shadcn: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Neutral",
+    brandTitle: "PrimitiveOS · Neutral",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#6366f1",
     colorSecondary: "#6366f1",
@@ -42,7 +42,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // Neutral — pure greyscale chrome (canonical = light), near-black accent.
   neutral: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Neutral",
+    brandTitle: "PrimitiveOS · Neutral",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#171717",
     colorSecondary: "#171717",
@@ -73,7 +73,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // Material 3 — light tonal surfaces, M3 primary purple, Roboto, 16px radius.
   material: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Material 3",
+    brandTitle: "PrimitiveOS · Material 3",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#6750a4",
     colorSecondary: "#6750a4",
@@ -104,7 +104,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // Fluent 2 — quiet light grey, communication blue, Segoe UI, 4px corners.
   fluent: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Fluent 2",
+    brandTitle: "PrimitiveOS · Fluent 2",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#0f6cbd",
     colorSecondary: "#0f6cbd",
@@ -135,7 +135,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // IBM Carbon — Gray-100 flat dark shell, IBM Blue 40 selection, Plex, 0px.
   carbon: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Carbon",
+    brandTitle: "PrimitiveOS · Carbon",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#4589ff",
     colorSecondary: "#4589ff",
@@ -166,7 +166,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // Apple HIG — near-white macOS chrome, hairlines, systemBlue, SF stack.
   apple: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Apple HIG",
+    brandTitle: "PrimitiveOS · Apple HIG",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#0071e3",
     colorSecondary: "#0071e3",
@@ -197,7 +197,7 @@ const MANAGER_THEMES: Record<string, ThemeVars> = {
   // Expressive — tinted lavender shell, violet/pink accents, Nunito, 16px.
   expressive: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Expressive",
+    brandTitle: "PrimitiveOS · Expressive",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#8b5cf6",
     colorSecondary: "#8b5cf6",
@@ -238,7 +238,7 @@ const MANAGER_THEMES_DARK: Record<string, ThemeVars> = {
   // Neutral dark — inverted greyscale chrome, near-white accent.
   neutral: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Neutral",
+    brandTitle: "PrimitiveOS · Neutral",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#e5e5e5",
     colorSecondary: "#e5e5e5",
@@ -269,7 +269,7 @@ const MANAGER_THEMES_DARK: Record<string, ThemeVars> = {
   // Material 3 dark — tonal dark surfaces, dark-scheme primary (#d0bcff).
   material: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Material 3",
+    brandTitle: "PrimitiveOS · Material 3",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#d0bcff",
     colorSecondary: "#d0bcff",
@@ -300,7 +300,7 @@ const MANAGER_THEMES_DARK: Record<string, ThemeVars> = {
   // Fluent 2 dark — neutral greys, brighter communication blue.
   fluent: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Fluent 2",
+    brandTitle: "PrimitiveOS · Fluent 2",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#479ef5",
     colorSecondary: "#479ef5",
@@ -334,7 +334,7 @@ const MANAGER_THEMES_DARK: Record<string, ThemeVars> = {
   // Apple HIG dark — macOS dark chrome, dark-mode systemBlue (#0a84ff).
   apple: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Apple HIG",
+    brandTitle: "PrimitiveOS · Apple HIG",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#0a84ff",
     colorSecondary: "#0a84ff",
@@ -365,7 +365,7 @@ const MANAGER_THEMES_DARK: Record<string, ThemeVars> = {
   // Expressive dark — deep violet shell, luminous accents.
   expressive: create({
     base: "dark",
-    brandTitle: "ScnTw Design System · Expressive",
+    brandTitle: "PrimitiveOS · Expressive",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#a78bfa",
     colorSecondary: "#a78bfa",
@@ -401,7 +401,7 @@ const MANAGER_THEMES_LIGHT: Record<string, ThemeVars> = {
   // shadcn light — zinc-50 chrome, indigo accent.
   shadcn: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Neutral",
+    brandTitle: "PrimitiveOS · Neutral",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#6366f1",
     colorSecondary: "#6366f1",
@@ -432,7 +432,7 @@ const MANAGER_THEMES_LIGHT: Record<string, ThemeVars> = {
   // Carbon light — Gray-10 shell, IBM Blue 60.
   carbon: create({
     base: "light",
-    brandTitle: "ScnTw Design System · Carbon",
+    brandTitle: "PrimitiveOS · Carbon",
     brandUrl: "https://github.com/ADeravi/ScnTw-Design-system",
     colorPrimary: "#0f62fe",
     colorSecondary: "#0f62fe",
