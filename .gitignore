@@ -42,3 +42,4 @@ next-env.d.ts
 
 # diagram critique screenshots (generated artifacts)
 tools/diagram-critique/out/
+_quarantine-tokenos-experiment-20261003/
